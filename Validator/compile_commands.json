@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release",
+  "command": "/usr/bin/c++ -D_GNU_SOURCE -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/hpp -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/../../Include -O3 -DNDEBUG -std=c++20 -o Src/CMakeFiles/oxide-validator.dir/cpp/Main.cpp.o -c /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/cpp/Main.cpp",
+  "file": "/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/cpp/Main.cpp",
+  "output": "Src/CMakeFiles/oxide-validator.dir/cpp/Main.cpp.o"
+},
+{
+  "directory": "/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release",
+  "command": "/usr/bin/c++ -D_GNU_SOURCE -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/hpp -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/../../Include -O3 -DNDEBUG -std=c++20 -o Src/CMakeFiles/oxide-validator.dir/cpp/Validator.cpp.o -c /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/cpp/Validator.cpp",
+  "file": "/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/cpp/Validator.cpp",
+  "output": "Src/CMakeFiles/oxide-validator.dir/cpp/Validator.cpp.o"
+}
+]

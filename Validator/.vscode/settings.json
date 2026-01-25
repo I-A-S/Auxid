@@ -1,0 +1,9 @@
+{
+    "editor.formatOnSave": true,
+    "C_Cpp.codeAnalysis.runAutomatically": "onSave",
+    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+    "C_Cpp.codeAnalysis.clangTidy.useBuildPath": false,
+    "C_Cpp.codeAnalysis.clangTidy.config": "",
+    "C_Cpp.clang_format_fallbackStyle": "Microsoft",
+    "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
+}

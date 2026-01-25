@@ -1,0 +1,57 @@
+name: Build Windows Binary
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            git
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-clang
+            mingw-w64-x86_64-clang-tools-extra
+            mingw-w64-x86_64-llvm
+
+      - name: Configure CMake
+        run: |
+          cmake -S ./Validator -B build -G "Ninja" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Bundle DLLs
+        run: |
+          cp /mingw64/bin/*.dll build/
+
+          echo "DLLs bundled successfully."
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OxideValidator-Windows
+          path: |
+            build/**/*.exe
+            build/*.dll
+          retention-days: 5

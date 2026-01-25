@@ -1,0 +1,83 @@
+// Oxide: Rust like safety and syntax for C++
+// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include <Validator.hpp>
+
+using namespace Oxide;
+using namespace Oxide::Validator;
+
+static Const<cl::extrahelp> COMMON_HELP(CommonOptionsParser::HelpMessage);
+static Const<cl::extrahelp>
+    MORE_HELP("\nEnforces Oxide explicit mutability rules.\n");
+
+auto main(Const<int> argc, Const<const char **> argv) -> int {
+  if (argc < 2) {
+    llvm::outs() << "Usage: " << argv[0] << " <file.cpp> [options]\n";
+    return 1;
+  }
+
+  Mut<bool> has_resource_arg = false;
+  for (Mut<i32> i = 0; i < argc; ++i) {
+    Const<StringRef> arg(argv[i]);
+
+    if (arg.contains("-I") && arg.contains("clang") &&
+        arg.contains("include")) {
+      has_resource_arg = true;
+      break;
+    }
+  }
+
+  Mut<Vec<const char *>> new_argv;
+  new_argv.reserve(static_cast<usize>(argc) + 2);
+  for (Mut<i32> i = 0; i < argc; ++i) {
+    new_argv.push_back(argv[i]);
+  }
+
+  Mut<String> resource_path_storage;
+  Mut<String> extra_arg_storage;
+
+  if (!has_resource_arg) {
+    Mut<Result<String>> res = get_clang_resource_dir();
+    if (!res) {
+      llvm::errs() << res.error() << "\n";
+      return 1;
+    }
+    resource_path_storage = *res;
+    extra_arg_storage = "--extra-arg=-I" + resource_path_storage;
+    new_argv.push_back(extra_arg_storage.c_str());
+  }
+
+  Mut<int> new_argc = static_cast<int>(new_argv.size());
+
+  Mut<llvm::Expected<CommonOptionsParser>> expected_parser =
+      CommonOptionsParser::create(new_argc, new_argv.data(), oxide_category);
+  if (!expected_parser) {
+    llvm::errs() << expected_parser.takeError();
+    return 1;
+  }
+
+  Mut<ClangTool> tool(expected_parser.get().getCompilations(),
+                      expected_parser.get().getSourcePathList());
+
+  Mut<MutabilityMatchHandler> handler;
+  Mut<MatchFinder> finder;
+
+  finder.addMatcher(
+      varDecl(unless(isImplicit()), unless(isExpansionInSystemHeader()))
+          .bind("var"),
+      &handler);
+
+  return tool.run(newFrontendActionFactory(&finder).get());
+}

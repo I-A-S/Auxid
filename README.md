@@ -1,0 +1,116 @@
+<div align="center">
+  <img src="logo.png" alt="Oxide Logo" width="190" style="border-radius: 1.15rem;"/>
+  <br/>
+  
+  <img src="https://img.shields.io/badge/license-apache_v2-blue.svg" alt="License"/>
+  <img src="https://img.shields.io/badge/standard-C%2B%2B20-yellow.svg" alt="C++ Standard"/>
+
+  <p style="padding-top: 0.2rem;">
+    <b>Rust-like Safety and Syntax for C++20.</b>
+  </p>
+</div>
+
+## 📖 Description
+
+Oxide is a header-only library that brings Rust's ownership semantics, safety primitives, and explicit mutability to C++. It aims to make C++ code safer, more expressive, and easier to reason about by adopting Rust's "strict" philosophy.
+
+## ✨ Features
+
+* ****Explicit Mutability:**** `Mut<T>` vs `Const<T>` (enforced by tooling).  
+* ****Rust Types:**** `Vec`, `String`, `Option`, `Result`, `Box`, `Arc`.  
+* ****Error Handling:**** `Result<T, E>` with `OX_TRY` macros for ergonomic error propagation.  
+* ****Statement Expressions:**** Rust-like block expressions (e.g., `let x = { ... };`) **[GCC/Clang only]**.  
+* ****Safety Validator:**** A Clang-based tool to ban unsafe raw C++ declarations.
+
+## 📦 Installation
+
+Oxide is a ****header-only**** library.
+
+1.  Copy the `Include/oxide` folder to your project's include directory.  
+2.  Include the main header: `#include <oxide/oxide.hpp>`
+
+## 🚀 Quick Start
+
+```cpp  
+#include <oxide/oxide.hpp>
+
+// Optional: Use the short alias namespace 'ox'  
+using namespace ox;
+
+auto safe_divide(f32 a, f32 b) -> Result<f32> {  
+    if (b == 0.0f) {  
+        return fail("Division by zero");  
+    }  
+    return a / b;  
+}
+
+auto count() -> Result<void> {  
+    // 1. Explicit Mutability  
+    // Raw 'i32 x;' is banned by the OxideValidator!  
+    Mut<i32> counter = 0;  
+    Const<i32> limit = 10;
+
+    // 2. Error Handling with OX_TRY  
+    // Automatically propagates errors if safe_divide fails  
+    f32 result = OX_TRY(safe_divide(100.0f, 2.0f));
+
+    // 3. Statement Expressions (GCC/Clang Only)  
+    // Initialize complex variables in a single expression block  
+    Const<String> message = OX_TRY({  
+        if (result > 50.0f) {  
+            fail("Result too large"); // returns Result<String>  
+        }  
+        Oxide::Internal::make_unexpected("Success"); // returns Result<String>  
+    });
+}
+```
+
+## **🛡️ Tooling: OxideValidator**
+
+Oxide is more than just a library; it's a discipline. The **OxideValidator** is a standalone Clang-based tool that enforces strict mutability.
+
+It flags "unsafe" C++ declarations like:
+
+```cpp 
+int x = 5; // ❌ Violation: Variable 'x' has unsafe type 'int'.
+```
+
+And demands:
+
+
+```cpp 
+Mut<int> x = 5;   // ✅ Allowed  
+Const<int> x = 5; // ✅ Allowed
+```
+
+### **Validator Setup**
+
+The validator requires a compilation database (compile_commands.json) to understand your code.
+
+1. **Generate Compilation Database:**  
+   * **CMake:** Run with -DCMAKE_EXPORT_COMPILE_COMMANDS=ON.  
+   * **Bazel/Make:** Use tools like bear to generate it.  
+2. **Run Manually:**  
+   ```bash  
+   ./oxide-validator <path/to/file.cpp> -p <path/to/compile_commands_folder>
+   ```
+
+## **🧩 VS Code Extension**
+
+This repository includes a VS Code extension (oxide-vscode) that integrates the validator directly into your editor, highlighting unsafe declarations as warnings/errors in real-time.
+
+**Configuration:**
+
+* oxide.validatorPath: Path to the compiled oxide-validator executable.  
+* oxide.buildPath: Path to the folder containing your compile_commands.json (defaults to workspace root).
+
+## **⚠️ Requirements**
+
+* **C++ Standard:** C++20 or newer.  
+* **Compilers:**  
+  * **Linux/macOS:** GCC or Clang (Required for Statement Expressions).  
+  * **Windows:** clang-cl is recommended. MSVC is **not supported** due to lack of Statement Expression support.
+
+## **📄 License**
+
+Copyright (C) 2026 IAS. Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).

@@ -1,0 +1,11 @@
+# --- Clangd & Cache ---
+.clangd/
+.cache/
+
+# --- Node.js ---
+node_modules/
+
+# --- Build Outputs ---
+build/
+out/
+[Rr]elease/

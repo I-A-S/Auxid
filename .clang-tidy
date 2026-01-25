@@ -1,0 +1,78 @@
+Checks: >
+  -*,
+  readability-identifier-naming,
+  readability-const-return-type,
+  modernize-use-nodiscard,
+  modernize-use-override,
+  modernize-use-nullptr,
+  bugprone-use-after-move
+
+CheckOptions:
+  # ----------------------------------------------------------------------------
+  # Types (PascalCase) - Matches Rust structs/enums
+  # ----------------------------------------------------------------------------
+  - key: readability-identifier-naming.ClassCase
+    value: PascalCase
+  - key: readability-identifier-naming.StructCase
+    value: PascalCase
+  - key: readability-identifier-naming.TypedefCase
+    value: PascalCase
+  - key: readability-identifier-naming.EnumCase
+    value: PascalCase
+  - key: readability-identifier-naming.TemplateParameterCase
+    value: PascalCase
+
+  # ----------------------------------------------------------------------------
+  # Functions & Methods (snake_case) - Matches Rust fn
+  # ----------------------------------------------------------------------------
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.MethodCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+
+  # ----------------------------------------------------------------------------
+  # Variables (snake_case) - Matches Rust let
+  # ----------------------------------------------------------------------------
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.LocalVariableCase
+    value: lower_case
+
+  # ----------------------------------------------------------------------------
+  # Members (m_snake_case for private, snake_case for public)
+  # ----------------------------------------------------------------------------
+  # Public struct members (like a Rust struct) -> x, y, width
+  - key: readability-identifier-naming.PublicMemberCase
+    value: lower_case
+  - key: readability-identifier-naming.StructMemberIgnoredRegexp
+    value: ^_[a-z0-9_]*$
+  
+  # Private/Protected class members -> m_parser, m_count
+  - key: readability-identifier-naming.PrivateMemberCase
+    value: lower_case
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: m_
+  - key: readability-identifier-naming.ProtectedMemberCase
+    value: lower_case
+  - key: readability-identifier-naming.ProtectedMemberPrefix
+    value: m_
+
+  # ----------------------------------------------------------------------------
+  # Constants (SCREAMING_SNAKE_CASE)
+  # ----------------------------------------------------------------------------
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.EnumConstantCase
+    value: PascalCase 
+    # Note: Rust uses PascalCase for Enum Variants (Option::None). 
+    # Change to UPPER_CASE if you prefer C-style enums.
+
+  # ----------------------------------------------------------------------------
+  # Macros (SCREAMING_SNAKE_CASE)
+  # ----------------------------------------------------------------------------
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
