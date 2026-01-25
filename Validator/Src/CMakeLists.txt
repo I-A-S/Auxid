@@ -26,3 +26,5 @@ target_link_directories(oxide-validator PRIVATE
 target_compile_definitions(oxide-validator PRIVATE
     ${LLVM_DEFINITIONS}
 )
+
+target_precompile_headers(oxide-validator PRIVATE hpp/PCH.hpp)

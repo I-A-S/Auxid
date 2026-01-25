@@ -15,16 +15,15 @@
 
 #include <Validator.hpp>
 
+extern ox::Mut<llvm::cl::opt<bool>> raw_output;
+
 namespace Oxide::Validator {
 
-static Mut<cl::opt<bool>> raw_output("raw", cl::desc("Disable pretty printing"),
-                                     cl::cat(oxide_category));
-
-auto is_type_safe(MutRef<StringRef> ty) -> bool {
+auto MutabilityMatchHandler::is_type_safe(MutRef<StringRef> ty) -> bool {
   if (ty.starts_with("Oxide::")) {
-      ty.consume_front("Oxide::");
+    ty.consume_front("Oxide::");
   } else if (ty.starts_with("ox::")) {
-      ty.consume_front("ox::");
+    ty.consume_front("ox::");
   }
 
   ty = ty.trim();
@@ -56,42 +55,19 @@ auto is_type_safe(MutRef<StringRef> ty) -> bool {
   return true;
 }
 
-auto get_clang_resource_dir() -> Result<String> {
-  Mut<Array<char, 128>> buffer;
-  Mut<String> result;
-
-#ifdef _WIN32
-  Const<FILE *> pipe = _popen("clang -print-resource-dir 2>NUL", "r");
-#else
-  Const<FILE *> pipe = popen("clang -print-resource-dir 2>/dev/null", "r");
-#endif
-
-  if (!pipe) {
-    return fail("Error: 'clang' executable not found in PATH.");
-  }
-
-  while (fgets(buffer.data(), static_cast<i32>(buffer.size()), pipe) !=
-         nullptr) {
-    result += buffer.data();
-  }
-
-#ifdef _WIN32
-  _pclose(pipe);
-#else
-  pclose(pipe);
-#endif
-
-  while (!result.empty() && (result.back() == '\n' || result.back() == '\r')) {
-    result.pop_back();
-  }
-
-  return result + "/include";
-}
-
 auto MutabilityMatchHandler::run(Ref<MatchFinder::MatchResult> result) -> void {
   Const<const VarDecl *> var_decl =
       result.Nodes.getNodeAs<clang::VarDecl>("var");
   if (!var_decl) {
+    return;
+  }
+
+  if (var_decl->isConstexpr()) {
+    return;
+  }
+
+  if (var_decl->getDeclContext()->isDependentContext() ||
+      var_decl->getType()->isDependentType()) {
     return;
   }
 
@@ -101,12 +77,27 @@ auto MutabilityMatchHandler::run(Ref<MatchFinder::MatchResult> result) -> void {
     return;
   }
 
+  if (Const<ParmVarDecl> *parm = dyn_cast<ParmVarDecl>(var_decl)) {
+    if (Const<FunctionDecl> *func =
+            dyn_cast<FunctionDecl>(parm->getDeclContext())) {
+      if (func->isDeleted()) {
+        return;
+      }
+    }
+  }
+
   Const<TypeSourceInfo *> tsi = var_decl->getTypeSourceInfo();
   if (!tsi) {
     return;
   }
 
-  Const<SourceRange> range = tsi->getTypeLoc().getSourceRange();
+  Mut<TypeLoc> tl = tsi->getTypeLoc();
+  while (Const<ArrayTypeLoc> arr = tl.getAs<ArrayTypeLoc>()) {
+    tl = arr.getElementLoc();
+  }
+
+  Const<SourceRange> range = tl.getSourceRange();
+
   Mut<StringRef> type_text = Lexer::getSourceText(
       CharSourceRange::getTokenRange(range), *result.SourceManager,
       result.Context->getLangOpts());

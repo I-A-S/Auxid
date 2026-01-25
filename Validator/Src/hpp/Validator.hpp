@@ -24,15 +24,12 @@ using namespace clang::ast_matchers;
 using namespace clang::tooling;
 using namespace llvm;
 
-static Mut<cl::OptionCategory> oxide_category("oxide-validator options");
-
-auto get_clang_resource_dir() -> Result<String>;
-
-auto is_type_safe(MutRef<StringRef> ty) -> bool;
-
 class MutabilityMatchHandler : public MatchFinder::MatchCallback {
 public:
   auto run(Ref<MatchFinder::MatchResult> result) -> void override;
+
+private:
+  auto is_type_safe(MutRef<StringRef> ty) -> bool;
 };
 
 } // namespace Oxide::Validator

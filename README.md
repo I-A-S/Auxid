@@ -17,8 +17,8 @@ Oxide is a header-only library that brings Rust's ownership semantics, safety pr
 ## ✨ Features
 
 * ****Explicit Mutability:**** `Mut<T>` vs `Const<T>` (enforced by tooling).  
-* ****Rust Types:**** `Vec`, `String`, `Option`, `Result`, `Box`, `Arc`.  
 * ****Error Handling:**** `Result<T, E>` with `OX_TRY` macros for ergonomic error propagation.  
+* ****Rust Types:**** `Vec`, `String`, `Option`, `Result`, `Box`, `Arc`.  
 * ****Statement Expressions:**** Rust-like block expressions (e.g., `let x = { ... };`) **[GCC/Clang only]**.  
 * ****Safety Validator:**** A Clang-based tool to ban unsafe raw C++ declarations.
 
@@ -74,6 +74,11 @@ It flags "unsafe" C++ declarations like:
 ```cpp 
 int x = 5; // ❌ Violation: Variable 'x' has unsafe type 'int'.
 ```
+
+> [!NOTE]
+> You might be asking how exactly is `int x = 5;` unsafe?
+> 
+> By disallowing 'naked' types in variable declarations and requiring the programmer to either wrap them in `Const<T>` or `Mut<T>`, it forces them to stop and think if this variable truly needs to be marked `Mut<T>`, or if just `Const<T>` is sufficient. Hope here is promoting 'Immutable by Default' on C++ codebases. 
 
 And demands:
 

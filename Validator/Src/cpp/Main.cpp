@@ -18,9 +18,45 @@
 using namespace Oxide;
 using namespace Oxide::Validator;
 
+static Mut<cl::OptionCategory> oxide_category("oxide-validator options");
 static Const<cl::extrahelp> COMMON_HELP(CommonOptionsParser::HelpMessage);
 static Const<cl::extrahelp>
     MORE_HELP("\nEnforces Oxide explicit mutability rules.\n");
+
+Mut<cl::opt<bool>> raw_output("raw", cl::desc("Disable pretty printing"),
+                              cl::cat(oxide_category));
+
+auto get_clang_resource_dir() -> Result<String> {
+  Mut<Array<char, 128>> buffer;
+  Mut<String> result;
+
+#ifdef _WIN32
+  Const<FILE *> pipe = _popen("clang -print-resource-dir 2>NUL", "r");
+#else
+  Const<FILE *> pipe = popen("clang -print-resource-dir 2>/dev/null", "r");
+#endif
+
+  if (!pipe) {
+    return fail("Error: 'clang' executable not found in PATH.");
+  }
+
+  while (fgets(buffer.data(), static_cast<i32>(buffer.size()), pipe) !=
+         nullptr) {
+    result += buffer.data();
+  }
+
+#ifdef _WIN32
+  _pclose(pipe);
+#else
+  pclose(pipe);
+#endif
+
+  while (!result.empty() && (result.back() == '\n' || result.back() == '\r')) {
+    result.pop_back();
+  }
+
+  return result + "/include";
+}
 
 auto main(Const<int> argc, Const<const char **> argv) -> int {
   if (argc < 2) {
