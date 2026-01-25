@@ -107,6 +107,33 @@ auto main(Const<int> argc, Const<const char **> argv) -> int {
   Mut<ClangTool> tool(expected_parser.get().getCompilations(),
                       expected_parser.get().getSourcePathList());
 
+  tool.appendArgumentsAdjuster(
+      [](Ref<clang::tooling::CommandLineArguments> args,
+         Mut<llvm::StringRef> filename) {
+        Mut<clang::tooling::CommandLineArguments> new_args;
+
+        if (!args.empty()) {
+          new_args.push_back(args[0]);
+        }
+
+        new_args.push_back("-Wno-ignored-gch");
+        new_args.push_back("-Wno-unused-command-line-argument");
+
+        for (Mut<size_t> i = 1; i < args.size(); ++i) {
+          if (args[i] == "-include-pch" || args[i] == "-pch-is-pch") {
+            i++;
+            continue;
+          }
+
+          if (args[i].starts_with("@")) {
+            continue;
+          }
+
+          new_args.push_back(args[i]);
+        }
+        return new_args;
+      });
+
   Mut<MutabilityMatchHandler> handler;
   Mut<MatchFinder> finder;
 

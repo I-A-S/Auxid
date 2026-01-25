@@ -2,27 +2,94 @@ import * as vscode from 'vscode';
 import * as cp from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
- 
+
+import { OxideSidebarProvider } from './sidebar_provider';
+
+interface OxideIssue {
+    file: string;
+    line: number;
+    col: number;
+    msg: string;
+}
+
 let diagnosticCollection: vscode.DiagnosticCollection;
 let outputChannel: vscode.OutputChannel;
+let sidebarProvider: OxideSidebarProvider;
+let isLinterEnabled = true;
 
 export function activate(context: vscode.ExtensionContext) {
     outputChannel = vscode.window.createOutputChannel("Oxide");
     diagnosticCollection = vscode.languages.createDiagnosticCollection('oxide');
     context.subscriptions.push(diagnosticCollection);
-     
+
+    sidebarProvider = new OxideSidebarProvider(context.extensionUri);
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider("oxide.sidebar", sidebarProvider)
+    );
+
+    context.subscriptions.push(vscode.commands.registerCommand('oxide.toggle', () => {
+        isLinterEnabled = !isLinterEnabled;
+        sidebarProvider.updateStatus(isLinterEnabled);
+
+        if (!isLinterEnabled) {
+            diagnosticCollection.clear();
+            vscode.window.showInformationMessage('Oxide Validator Disabled (Window)');
+        } else {
+            vscode.window.showInformationMessage('Oxide Validator Enabled');
+            if (vscode.window.activeTextEditor) {
+                runLinter(vscode.window.activeTextEditor.document);
+            }
+        }
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand('oxide.analyzeWorkspace', async () => {
+        const excludePattern = '**/{out,build,_deps,deps,CMakeFiles,Vendor,External,node_modules,.git}/**';
+        const files = await vscode.workspace.findFiles('**/*.{cpp,h,hpp,c}', excludePattern);
+
+        let totalIssues = 0;
+        let allIssues: OxideIssue[] = [];
+
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Oxide: Analyzing Workspace...",
+            cancellable: true
+        }, async (progress, token) => {
+            const step = 100 / files.length;
+
+            for (const file of files) {
+                if (token.isCancellationRequested) {
+                    break;
+                }
+
+                const doc = await vscode.workspace.openTextDocument(file);
+                const result = await runValidatorCli(doc);
+
+                if (result.issueCount > 0) {
+                    totalIssues += result.issueCount;
+                    allIssues.push(...result.issues);
+                }
+                progress.report({ increment: step, message: path.basename(file.fsPath) });
+            }
+        });
+
+        sidebarProvider.reportResults({
+            total: files.length,
+            issueCount: totalIssues,
+            issues: allIssues
+        });
+    }));
+
     context.subscriptions.push(
         vscode.workspace.onDidSaveTextDocument(document => {
             if (document.languageId === 'cpp' || document.languageId === 'c') {
-                runLinter(document);
+                if (isLinterEnabled) { runLinter(document); }
             }
         })
     );
-     
     context.subscriptions.push(
         vscode.workspace.onDidOpenTextDocument(document => {
             if (document.languageId === 'cpp' || document.languageId === 'c') {
-                runLinter(document);
+                if (isLinterEnabled) { runLinter(document); }
             }
         })
     );
@@ -32,84 +99,104 @@ function getClangIncludePath(): string | null {
     try {
         const out = cp.execSync('clang -print-resource-dir', { encoding: 'utf8' }).trim();
         const includePath = path.join(out, 'include');
-        if (fs.existsSync(includePath)) {
-            return includePath;
-        }
+        if (fs.existsSync(includePath)) { return includePath; }
     } catch (e) {
         outputChannel.appendLine(`[Error] Could not find clang resource dir: ${e}`);
     }
     return null;
 }
 
- 
-async function runLinter(document: vscode.TextDocument) {
-    const config = vscode.workspace.getConfiguration('oxide');
-    const validatorPath = config.get<string>('validatorPath');
-    const buildPathSetting = config.get<string>('buildPath');
+function runValidatorCli(document: vscode.TextDocument): Promise<{ issueCount: number, issues: OxideIssue[] }> {
+    return new Promise((resolve) => {
+        const config = vscode.workspace.getConfiguration('oxide');
+        const validatorPath = config.get<string>('validatorPath') || 'oxide-validator';
+        const buildPathSetting = config.get<string>('buildPath');
 
-    if (!validatorPath) {
-        return;
-    }
-     
-    let buildPath = buildPathSetting || '.';
-    if (vscode.workspace.workspaceFolders) {
-        const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
-        buildPath = buildPath.replace('${workspaceFolder}', root);
-    }
-     
-    const existingDiagnostics = vscode.languages.getDiagnostics(document.uri);
-    const hasCompilerErrors = existingDiagnostics.some(d => 
-        (d.source === 'c++' || d.source === 'clang' || d.source === 'gcc') && 
-        d.severity === vscode.DiagnosticSeverity.Error
-    );
-
-    if (hasCompilerErrors) {
-         
-        diagnosticCollection.delete(document.uri);
-        return; 
-    }
-     
-    const clangInclude = getClangIncludePath();
-    const args = ['-p', buildPath, document.fileName];
-    
-    if (clangInclude) {
-        args.push(`--extra-arg=-I${clangInclude}`);
-    }
-
-    args.push('--raw');
-     
-    cp.execFile(validatorPath, args, { cwd: buildPath }, (err, stdout, stderr) => {
-        if (err && (err as any).code === 'ENOENT') {
-            vscode.window.showErrorMessage(`Oxide Validator not found at: ${validatorPath}`);
+        if (!validatorPath) {
+            outputChannel.appendLine("[Error] Validator path not set.");
+            resolve({ issueCount: 0, issues: [] });
             return;
         }
-         
-        const diagnostics: vscode.Diagnostic[] = [];
-        const lines = stdout.split('\n');
 
-        const regex = /^(.+):(\d+):(\d+):\s+\[Oxide\]\s+Violation:\s+(.+)$/;
-
-        for (const line of lines) {
-            const match = line.match(regex);
-            if (match) {
-                 
-                const lineNum = parseInt(match[2]) - 1;  
-                const colNum = parseInt(match[3]) - 1;
-                const msg = match[4];
-
-                const range = new vscode.Range(lineNum, colNum, lineNum, 100);
-                const diagnostic = new vscode.Diagnostic(
-                    range, 
-                    msg, 
-                    vscode.DiagnosticSeverity.Warning  
-                );
-                diagnostic.source = 'Oxide';
-                diagnostics.push(diagnostic);
-            }
+        let buildPath = buildPathSetting || '.';
+        if (vscode.workspace.workspaceFolders) {
+            const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
+            buildPath = buildPath.replace('${workspaceFolder}', root);
         }
-         
-        diagnosticCollection.set(document.uri, diagnostics);
+
+        const existingDiagnostics = vscode.languages.getDiagnostics(document.uri);
+        const hasCompilerErrors = existingDiagnostics.some(d =>
+            (d.source === 'c++' || d.source === 'clang' || d.source === 'gcc') &&
+            d.severity === vscode.DiagnosticSeverity.Error
+        );
+
+        if (hasCompilerErrors) {
+            diagnosticCollection.delete(document.uri);
+            resolve({ issueCount: 0, issues: [] });
+            return;
+        }
+
+        const clangInclude = getClangIncludePath();
+        const args = ['-p', buildPath, document.fileName];
+
+        if (clangInclude) {
+            args.push(`--extra-arg=-I${clangInclude}`);
+        }
+
+        args.push('--raw');
+
+        cp.execFile(validatorPath, args, { cwd: path.dirname(document.fileName) }, (err, stdout, stderr) => {
+            if (err && (err as any).code === 'ENOENT') {
+                vscode.window.showErrorMessage(`Oxide Validator not found at: ${validatorPath}`);
+                resolve({ issueCount: 0, issues: [] });
+                return;
+            }
+
+            const lines = stdout.split('\n');
+            const regex = /^.+:(\d+):(\d+):\s+\[Oxide\]\s+Violation:\s+(.+)$/;
+
+            const foundIssues: OxideIssue[] = [];
+            const diagnostics: vscode.Diagnostic[] = [];
+
+            lines.forEach(line => {
+                const match = line.match(regex);
+                if (match) {
+                    const lineNum = parseInt(match[1]) - 1;
+                    const colNum = parseInt(match[2]) - 1;
+                    const msg = match[3];
+
+                    foundIssues.push({
+                        file: document.fileName,
+                        line: lineNum,
+                        col: colNum,
+                        msg: msg
+                    });
+
+                    if (isLinterEnabled) {
+                        const range = new vscode.Range(lineNum, colNum, lineNum, Number.MAX_VALUE);
+                        const diagnostic = new vscode.Diagnostic(
+                            range,
+                            msg,
+                            vscode.DiagnosticSeverity.Warning
+                        );
+                        diagnostic.source = 'Oxide';
+                        diagnostics.push(diagnostic);
+                    }
+                }
+            });
+
+            if (isLinterEnabled) {
+                diagnosticCollection.set(document.uri, diagnostics);
+            }
+
+            resolve({ issueCount: foundIssues.length, issues: foundIssues });
+        });
     });
 }
 
-export function deactivate() {}
+async function runLinter(document: vscode.TextDocument) {
+    if (!isLinterEnabled) { return; }
+    runValidatorCli(document);
+}
+
+export function deactivate() { }

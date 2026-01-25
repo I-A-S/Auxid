@@ -2,7 +2,7 @@
   "name": "oxide-vscode",
   "displayName": "oxide-vscode",
   "description": "Oxide Extension for VSCode",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "repository": "https://github.com/I-A-S/Oxide",
   "icon": "logo.png",
   "publisher": "I-A-S",
@@ -14,21 +14,55 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-      "configuration": {
-          "title": "Oxide",
-          "properties": {
-              "oxide.validatorPath": {
-                  "type": "string",
-                  "default": "oxide-validator",
-                  "description": "Path to the compiled oxide-validator executable."
-              },
-              "oxide.buildPath": {
-                  "type": "string",
-                  "default": "${workspaceFolder}",
-                  "description": "Path to the folder containing compile_commands.json."
-              }
-          }
+    "commands": [
+      {
+        "command": "oxide.toggle",
+        "title": "Oxide: Toggle Validator",
+        "category": "Oxide"
       }
+    ],
+    "keybindings": [
+      {
+        "command": "oxide.toggle",
+        "key": "ctrl+q",
+        "mac": "cmd+q",
+        "when": "editorTextFocus"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "oxide-sidebar-view",
+          "title": "Oxide",
+          "icon": "logo.png"
+        }
+      ]
+    },
+    "views": {
+      "oxide-sidebar-view": [
+        {
+          "type": "webview",
+          "id": "oxide.sidebar",
+          "name": "Oxide Controls",
+          "icon": "logo.png"
+        }
+      ]
+    },
+    "configuration": {
+        "title": "Oxide",
+        "properties": {
+            "oxide.validatorPath": {
+                "type": "string",
+                "default": "oxide-validator",
+                "description": "Path to the compiled oxide-validator executable."
+            },
+            "oxide.buildPath": {
+                "type": "string",
+                "default": "${workspaceFolder}",
+                "description": "Path to the folder containing compile_commands.json."
+            }
+        }
+    }
   },
   "activationEvents": [
       "onLanguage:cpp",
