@@ -1,4 +1,4 @@
-// Oxide: Rust like safety and syntax for C++
+// Auxid: Rust like safety and syntax for C++
 // Copyright (C) 2026 IAS (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
 
 #include <PCH.hpp>
 
-namespace Oxide::Validator {
+namespace Auxid::Validator {
 
 using namespace clang;
 using namespace clang::ast_matchers;
@@ -32,4 +32,4 @@ private:
   auto is_type_safe(MutRef<StringRef> ty) -> bool;
 };
 
-} // namespace Oxide::Validator
+} // namespace Auxid::Validator

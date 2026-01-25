@@ -3,9 +3,9 @@ import * as cp from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { OxideSidebarProvider } from './sidebar_provider';
+import { AuxidSidebarProvider } from './sidebar_provider';
 
-interface OxideIssue {
+interface AuxidIssue {
     file: string;
     line: number;
     col: number;
@@ -14,44 +14,44 @@ interface OxideIssue {
 
 let diagnosticCollection: vscode.DiagnosticCollection;
 let outputChannel: vscode.OutputChannel;
-let sidebarProvider: OxideSidebarProvider;
+let sidebarProvider: AuxidSidebarProvider;
 let isLinterEnabled = true;
 
 export function activate(context: vscode.ExtensionContext) {
-    outputChannel = vscode.window.createOutputChannel("Oxide");
-    diagnosticCollection = vscode.languages.createDiagnosticCollection('oxide');
+    outputChannel = vscode.window.createOutputChannel("Auxid");
+    diagnosticCollection = vscode.languages.createDiagnosticCollection('auxid');
     context.subscriptions.push(diagnosticCollection);
 
-    sidebarProvider = new OxideSidebarProvider(context.extensionUri);
+    sidebarProvider = new AuxidSidebarProvider(context.extensionUri);
     context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider("oxide.sidebar", sidebarProvider)
+        vscode.window.registerWebviewViewProvider("auxid.sidebar", sidebarProvider)
     );
 
-    context.subscriptions.push(vscode.commands.registerCommand('oxide.toggle', () => {
+    context.subscriptions.push(vscode.commands.registerCommand('auxid.toggle', () => {
         isLinterEnabled = !isLinterEnabled;
         sidebarProvider.updateStatus(isLinterEnabled);
 
         if (!isLinterEnabled) {
             diagnosticCollection.clear();
-            vscode.window.showInformationMessage('Oxide Validator Disabled (Window)');
+            vscode.window.showInformationMessage('Auxid Validator Disabled (Window)');
         } else {
-            vscode.window.showInformationMessage('Oxide Validator Enabled');
+            vscode.window.showInformationMessage('Auxid Validator Enabled');
             if (vscode.window.activeTextEditor) {
                 runLinter(vscode.window.activeTextEditor.document);
             }
         }
     }));
 
-    context.subscriptions.push(vscode.commands.registerCommand('oxide.analyzeWorkspace', async () => {
+    context.subscriptions.push(vscode.commands.registerCommand('auxid.analyzeWorkspace', async () => {
         const excludePattern = '**/{out,build,_deps,deps,CMakeFiles,Vendor,External,node_modules,.git}/**';
         const files = await vscode.workspace.findFiles('**/*.{cpp,h,hpp,c}', excludePattern);
 
         let totalIssues = 0;
-        let allIssues: OxideIssue[] = [];
+        let allIssues: AuxidIssue[] = [];
 
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
-            title: "Oxide: Analyzing Workspace...",
+            title: "Auxid: Analyzing Workspace...",
             cancellable: true
         }, async (progress, token) => {
             const step = 100 / files.length;
@@ -106,10 +106,10 @@ function getClangIncludePath(): string | null {
     return null;
 }
 
-function runValidatorCli(document: vscode.TextDocument): Promise<{ issueCount: number, issues: OxideIssue[] }> {
+function runValidatorCli(document: vscode.TextDocument): Promise<{ issueCount: number, issues: AuxidIssue[] }> {
     return new Promise((resolve) => {
-        const config = vscode.workspace.getConfiguration('oxide');
-        const validatorPath = config.get<string>('validatorPath') || 'oxide-validator';
+        const config = vscode.workspace.getConfiguration('auxid');
+        const validatorPath = config.get<string>('validatorPath') || 'auxid-validator';
         const buildPathSetting = config.get<string>('buildPath');
 
         if (!validatorPath) {
@@ -147,15 +147,15 @@ function runValidatorCli(document: vscode.TextDocument): Promise<{ issueCount: n
 
         cp.execFile(validatorPath, args, { cwd: path.dirname(document.fileName) }, (err, stdout, stderr) => {
             if (err && (err as any).code === 'ENOENT') {
-                vscode.window.showErrorMessage(`Oxide Validator not found at: ${validatorPath}`);
+                vscode.window.showErrorMessage(`Auxid Validator not found at: ${validatorPath}`);
                 resolve({ issueCount: 0, issues: [] });
                 return;
             }
 
             const lines = stdout.split('\n');
-            const regex = /^.+:(\d+):(\d+):\s+\[Oxide\]\s+Violation:\s+(.+)$/;
+            const regex = /^.+:(\d+):(\d+):\s+\[Auxid\]\s+Violation:\s+(.+)$/;
 
-            const foundIssues: OxideIssue[] = [];
+            const foundIssues: AuxidIssue[] = [];
             const diagnostics: vscode.Diagnostic[] = [];
 
             lines.forEach(line => {
@@ -179,7 +179,7 @@ function runValidatorCli(document: vscode.TextDocument): Promise<{ issueCount: n
                             msg,
                             vscode.DiagnosticSeverity.Warning
                         );
-                        diagnostic.source = 'Oxide';
+                        diagnostic.source = 'Auxid';
                         diagnostics.push(diagnostic);
                     }
                 }

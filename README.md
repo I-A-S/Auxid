@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="logo.png" alt="Oxide Logo" width="190" style="border-radius: 1.15rem;"/>
+  <img src="logo.png" alt="Auxid Logo" width="190" style="border-radius: 1.15rem;"/>
   <br/>
   
   <img src="https://img.shields.io/badge/license-apache_v2-blue.svg" alt="License"/>
@@ -12,27 +12,27 @@
 
 ## 📖 Description
 
-Oxide is a header-only library that brings Rust's ownership semantics, safety primitives, and explicit mutability to C++. It aims to make C++ code safer, more expressive, and easier to reason about by adopting Rust's "strict" philosophy.
+Auxid is a header-only library that brings Rust's ownership semantics, safety primitives, and explicit mutability to C++. It aims to make C++ code safer, more expressive, and easier to reason about by adopting Rust's "strict" philosophy.
 
 ## ✨ Features
 
 * ****Explicit Mutability:**** `Mut<T>` vs `Const<T>` (enforced by tooling).  
-* ****Error Handling:**** `Result<T, E>` with `OX_TRY` macros for ergonomic error propagation.  
+* ****Error Handling:**** `Result<T, E>` with `AU_TRY` macros for ergonomic error propagation.  
 * ****Rust Types:**** `Vec`, `String`, `Option`, `Result`, `Box`, `Arc`.  
 * ****Statement Expressions:**** Rust-like block expressions (e.g., `let x = { ... };`) **[GCC/Clang only]**.  
 * ****Safety Validator:**** A Clang-based tool to ban unsafe raw C++ declarations.
 
 ## 📦 Installation
 
-Oxide is a ****header-only**** library.
+Auxid is a ****header-only**** library.
 
-1.  Copy the `Include/oxide` folder to your project's include directory.  
-2.  Include the main header: `#include <oxide/oxide.hpp>`
+1.  Copy the `Include/auxid` folder to your project's include directory.  
+2.  Include the main header: `#include <auxid/auxid.hpp>`
 
 ## 🚀 Quick Start
 
 ```cpp  
-#include <oxide/oxide.hpp>
+#include <auxid/auxid.hpp>
 
 // Optional: Use the short alias namespace 'ox'  
 using namespace ox;
@@ -46,28 +46,28 @@ auto safe_divide(f32 a, f32 b) -> Result<f32> {
 
 auto count() -> Result<void> {  
     // 1. Explicit Mutability  
-    // Raw 'i32 x;' is banned by the OxideValidator!  
+    // Raw 'i32 x;' is banned by the AuxidValidator!  
     Mut<i32> counter = 0;  
     Const<i32> limit = 10;
 
-    // 2. Error Handling with OX_TRY  
+    // 2. Error Handling with AU_TRY  
     // Automatically propagates errors if safe_divide fails  
-    f32 result = OX_TRY(safe_divide(100.0f, 2.0f));
+    f32 result = AU_TRY(safe_divide(100.0f, 2.0f));
 
     // 3. Statement Expressions (GCC/Clang Only)  
     // Initialize complex variables in a single expression block  
-    Const<String> message = OX_TRY({  
+    Const<String> message = AU_TRY({  
         if (result > 50.0f) {  
             fail("Result too large"); // returns Result<String>  
         }  
-        Oxide::Internal::make_unexpected("Success"); // returns Result<String>  
+        Auxid::Internal::make_unexpected("Success"); // returns Result<String>  
     });
 }
 ```
 
-## **🛡️ Tooling: OxideValidator**
+## **🛡️ Tooling: AuxidValidator**
 
-Oxide is more than just a library; it's a discipline. The **OxideValidator** is a standalone Clang-based tool that enforces strict mutability.
+Auxid is more than just a library; it's a discipline. The **AuxidValidator** is a standalone Clang-based tool that enforces strict mutability.
 
 It flags "unsafe" C++ declarations like:
 
@@ -97,17 +97,17 @@ The validator requires a compilation database (compile_commands.json) to underst
    * **Bazel/Make:** Use tools like bear to generate it.  
 2. **Run Manually:**  
    ```bash  
-   ./oxide-validator <path/to/file.cpp> -p <path/to/compile_commands_folder>
+   ./auxid-validator <path/to/file.cpp> -p <path/to/compile_commands_folder>
    ```
 
 ## **🧩 VS Code Extension**
 
-This repository includes a VS Code extension (oxide-vscode) that integrates the validator directly into your editor, highlighting unsafe declarations as warnings/errors in real-time.
+This repository includes a VS Code extension (auxid-vscode) that integrates the validator directly into your editor, highlighting unsafe declarations as warnings/errors in real-time.
 
 **Configuration:**
 
-* oxide.validatorPath: Path to the compiled oxide-validator executable.  
-* oxide.buildPath: Path to the folder containing your compile_commands.json (defaults to workspace root).
+* auxid.validatorPath: Path to the compiled auxid-validator executable.  
+* auxid.buildPath: Path to the folder containing your compile_commands.json (defaults to workspace root).
 
 ## **⚠️ Requirements**
 

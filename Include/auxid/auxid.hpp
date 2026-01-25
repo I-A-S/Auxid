@@ -1,4 +1,4 @@
-// Oxide: Rust like safety and syntax for C++
+// Auxid: Rust like safety and syntax for C++
 // Copyright (C) 2026 IAS (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
 
 #if __cplusplus >= 202302L
 #include <expected>
-namespace Oxide {
+namespace Auxid {
 namespace Internal {
 template <typename T, typename E> using Expected = std::expected<T, E>;
 
@@ -25,10 +25,10 @@ template <typename E> auto make_unexpected(E &&e) {
   return std::unexpected(std::forward<E>(e));
 }
 } // namespace Internal
-} // namespace Oxide
+} // namespace Auxid
 #else
 #include "tl/expected.hpp"
-namespace Oxide {
+namespace Auxid {
 namespace Internal {
 template <typename T, typename E> using Expected = tl::expected<T, E>;
 
@@ -36,7 +36,7 @@ template <typename E> auto make_unexpected(E &&e) {
   return tl::make_unexpected(std::forward<E>(e));
 }
 } // namespace Internal
-} // namespace Oxide
+} // namespace Auxid
 #endif
 
 #include <array>
@@ -53,16 +53,16 @@ template <typename E> auto make_unexpected(E &&e) {
 
 #if !defined(__clang__) && !defined(__GNUC__)
 #error                                                                         \
-    "Oxide requires Clang or GCC for Statement Expressions ({...}). Use clang-cl on Windows."
+    "Auxid requires Clang or GCC for Statement Expressions ({...}). Use clang-cl on Windows."
 #endif
 
 #if __cplusplus < 202002L
-#error "Oxide requires C++20 or newer."
+#error "Auxid requires C++20 or newer."
 #endif
 
-#define OX_UNUSED(v) (void)(v)
+#define AU_UNUSED(v) (void)(v)
 
-namespace Oxide {
+namespace Auxid {
 
 // =============================================================================
 // Primitive Types
@@ -109,13 +109,13 @@ template <typename T, typename... Args>
 }
 
 template <typename T, typename... Args>
-inline Box<T> make_box_protected(ForwardRef<Args>... args) {
-  struct make_box_enabler : public T {
-    make_box_enabler(ForwardRef<Args>... args)
+inline Box<T> make_bau_protected(ForwardRef<Args>... args) {
+  struct make_bau_enabler : public T {
+    make_bau_enabler(ForwardRef<Args>... args)
         : T(std::forward<Args>(args)...) {}
   };
 
-  return std::make_unique<make_box_enabler>(std::forward<Args>(args)...);
+  return std::make_unique<make_bau_enabler>(std::forward<Args>(args)...);
 }
 
 template <typename T, typename... Args>
@@ -138,16 +138,16 @@ inline Arc<T> make_arc_protected(ForwardRef<Args>... args) {
 // =============================================================================
 
 template <typename T, typename E = std::string>
-using Result = Oxide::Internal::Expected<T, E>;
+using Result = Auxid::Internal::Expected<T, E>;
 
 template <typename E> [[nodiscard]] inline auto fail(ForwardRef<E> error) {
-  return Oxide::Internal::make_unexpected(std::forward<E>(error));
+  return Auxid::Internal::make_unexpected(std::forward<E>(error));
 }
 
 template <typename... Args>
 [[nodiscard]] inline auto fail(Ref<std::format_string<Args...>> fmt,
                                ForwardRef<Args>... args) {
-  return Oxide::Internal::make_unexpected(
+  return Auxid::Internal::make_unexpected(
       std::format(fmt, std::forward<Args>(args)...));
 }
 
@@ -192,34 +192,34 @@ template <typename T> using Span = std::span<T>;
 template <typename T1, typename T2> using Pair = std::pair<T1, T2>;
 template <typename T, usize Count> using Array = std::array<T, Count>;
 
-} // namespace Oxide
+} // namespace Auxid
 
-#define OX_TRY_PURE(expr)                                                     \
+#define AU_TRY_PURE(expr)                                                     \
   {                                                                            \
-    auto _ox_res = (expr);                                                    \
-    if (!_ox_res) {                                                           \
-      return Oxide::Internal::make_unexpected(std::move(_ox_res.error()));  \
+    auto _au_res = (expr);                                                    \
+    if (!_au_res) {                                                           \
+      return Auxid::Internal::make_unexpected(std::move(_au_res.error()));  \
     }                                                                          \
   }
 
-#define OX_TRY(expr)                                                          \
+#define AU_TRY(expr)                                                          \
   __extension__({                                                              \
-    auto _ox_res = (expr);                                                    \
-    if (!_ox_res) {                                                           \
-      return Oxide::Internal::make_unexpected(std::move(_ox_res.error()));  \
+    auto _au_res = (expr);                                                    \
+    if (!_au_res) {                                                           \
+      return Auxid::Internal::make_unexpected(std::move(_au_res.error()));  \
     }                                                                          \
-    std::move(*_ox_res);                                                      \
+    std::move(*_au_res);                                                      \
   })
 
-#define OX_TRY_DISCARD(expr)                                                  \
+#define AU_TRY_DISCARD(expr)                                                  \
   {                                                                            \
-    auto _ox_res = (expr);                                                    \
-    if (!_ox_res) {                                                           \
-      return Oxide::Internal::make_unexpected(std::move(_ox_res.error()));  \
+    auto _au_res = (expr);                                                    \
+    if (!_au_res) {                                                           \
+      return Auxid::Internal::make_unexpected(std::move(_au_res.error()));  \
     }                                                                          \
-    OX_UNUSED(*_ox_res);                                                     \
+    AU_UNUSED(*_au_res);                                                     \
   }
 
-#if !defined(OXIDE_DONT_ALIAS_TO_OX)
-namespace ox = Oxide;
+#if !defined(AUXID_DONT_ALIAS_TO_AU)
+namespace au = Auxid;
 #endif

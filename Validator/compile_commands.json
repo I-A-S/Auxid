@@ -1,20 +1,20 @@
 [
 {
   "directory": "/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release",
-  "command": "/usr/bin/c++ -D_GNU_SOURCE -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/hpp -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/../../Include -O3 -DNDEBUG -std=c++20 -Winvalid-pch -x c++-header -include /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release/Src/CMakeFiles/oxide-validator.dir/cmake_pch.hxx -o Src/CMakeFiles/oxide-validator.dir/cmake_pch.hxx.gch -c /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release/Src/CMakeFiles/oxide-validator.dir/cmake_pch.hxx.cxx",
-  "file": "/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release/Src/CMakeFiles/oxide-validator.dir/cmake_pch.hxx.cxx",
-  "output": "Src/CMakeFiles/oxide-validator.dir/cmake_pch.hxx.gch"
+  "command": "/usr/bin/c++ -D_GNU_SOURCE -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/hpp -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/../../Include -O3 -DNDEBUG -std=c++20 -Winvalid-pch -x c++-header -include /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release/Src/CMakeFiles/auxid-validator.dir/cmake_pch.hxx -o Src/CMakeFiles/auxid-validator.dir/cmake_pch.hxx.gch -c /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release/Src/CMakeFiles/auxid-validator.dir/cmake_pch.hxx.cxx",
+  "file": "/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release/Src/CMakeFiles/auxid-validator.dir/cmake_pch.hxx.cxx",
+  "output": "Src/CMakeFiles/auxid-validator.dir/cmake_pch.hxx.gch"
 },
 {
   "directory": "/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release",
-  "command": "/usr/bin/c++ -D_GNU_SOURCE -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/hpp -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/../../Include -O3 -DNDEBUG -std=c++20 -Winvalid-pch -include /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release/Src/CMakeFiles/oxide-validator.dir/cmake_pch.hxx -o Src/CMakeFiles/oxide-validator.dir/cpp/Main.cpp.o -c /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/cpp/Main.cpp",
+  "command": "/usr/bin/c++ -D_GNU_SOURCE -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/hpp -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/../../Include -O3 -DNDEBUG -std=c++20 -Winvalid-pch -include /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release/Src/CMakeFiles/auxid-validator.dir/cmake_pch.hxx -o Src/CMakeFiles/auxid-validator.dir/cpp/Main.cpp.o -c /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/cpp/Main.cpp",
   "file": "/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/cpp/Main.cpp",
-  "output": "Src/CMakeFiles/oxide-validator.dir/cpp/Main.cpp.o"
+  "output": "Src/CMakeFiles/auxid-validator.dir/cpp/Main.cpp.o"
 },
 {
   "directory": "/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release",
-  "command": "/usr/bin/c++ -D_GNU_SOURCE -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/hpp -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/../../Include -O3 -DNDEBUG -std=c++20 -Winvalid-pch -include /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release/Src/CMakeFiles/oxide-validator.dir/cmake_pch.hxx -o Src/CMakeFiles/oxide-validator.dir/cpp/Validator.cpp.o -c /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/cpp/Validator.cpp",
+  "command": "/usr/bin/c++ -D_GNU_SOURCE -DEXPERIMENTAL_KEY_INSTRUCTIONS -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/hpp -I/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/../../Include -O3 -DNDEBUG -std=c++20 -Winvalid-pch -include /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/out/build/release/Src/CMakeFiles/auxid-validator.dir/cmake_pch.hxx -o Src/CMakeFiles/auxid-validator.dir/cpp/Validator.cpp.o -c /home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/cpp/Validator.cpp",
   "file": "/home/dev0/IA/OSS/RustyPP/Dev/rustypp/Validator/Src/cpp/Validator.cpp",
-  "output": "Src/CMakeFiles/oxide-validator.dir/cpp/Validator.cpp.o"
+  "output": "Src/CMakeFiles/auxid-validator.dir/cpp/Validator.cpp.o"
 }
 ]

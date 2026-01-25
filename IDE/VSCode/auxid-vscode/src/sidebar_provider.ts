@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-export class OxideSidebarProvider implements vscode.WebviewViewProvider {
+export class AuxidSidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
@@ -18,11 +18,11 @@ export class OxideSidebarProvider implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
         case "onToggle": {
-          vscode.commands.executeCommand("oxide.toggle");
+          vscode.commands.executeCommand("auxid.toggle");
           break;
         }
         case "onAnalyze": {
-          vscode.commands.executeCommand("oxide.analyzeWorkspace");
+          vscode.commands.executeCommand("auxid.analyzeWorkspace");
           break;
         }
         case "onJump": {

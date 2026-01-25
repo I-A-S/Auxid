@@ -3,28 +3,28 @@ set(SRC_FILES
     cpp/Validator.cpp
 )
 
-add_executable(oxide-validator ${SRC_FILES})
+add_executable(auxid-validator ${SRC_FILES})
 
-target_link_libraries(oxide-validator
+target_link_libraries(auxid-validator
     PRIVATE
     clang-cpp
     LLVM
 )
 
-target_include_directories(oxide-validator PRIVATE
+target_include_directories(auxid-validator PRIVATE
     "hpp"
     "../../Include"
     ${LLVM_INCLUDE_DIRS}
     ${CLANG_INCLUDE_DIRS}
 )
 
-target_link_directories(oxide-validator PRIVATE
+target_link_directories(auxid-validator PRIVATE
     ${LLVM_LIBRARY_DIRS}
     ${CLANG_LIBRARY_DIRS}
 )
 
-target_compile_definitions(oxide-validator PRIVATE
+target_compile_definitions(auxid-validator PRIVATE
     ${LLVM_DEFINITIONS}
 )
 
-target_precompile_headers(oxide-validator PRIVATE hpp/PCH.hpp)
+target_precompile_headers(auxid-validator PRIVATE hpp/PCH.hpp)

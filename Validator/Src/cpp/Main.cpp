@@ -1,4 +1,4 @@
-// Oxide: Rust like safety and syntax for C++
+// Auxid: Rust like safety and syntax for C++
 // Copyright (C) 2026 IAS (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,16 +15,16 @@
 
 #include <Validator.hpp>
 
-using namespace Oxide;
-using namespace Oxide::Validator;
+using namespace Auxid;
+using namespace Auxid::Validator;
 
-static Mut<cl::OptionCategory> oxide_category("oxide-validator options");
+static Mut<cl::OptionCategory> auxid_category("auxid-validator options");
 static Const<cl::extrahelp> COMMON_HELP(CommonOptionsParser::HelpMessage);
 static Const<cl::extrahelp>
-    MORE_HELP("\nEnforces Oxide explicit mutability rules.\n");
+    MORE_HELP("\nEnforces Auxid explicit mutability rules.\n");
 
 Mut<cl::opt<bool>> raw_output("raw", cl::desc("Disable pretty printing"),
-                              cl::cat(oxide_category));
+                              cl::cat(auxid_category));
 
 auto get_clang_resource_dir() -> Result<String> {
   Mut<Array<char, 128>> buffer;
@@ -98,7 +98,7 @@ auto main(Const<int> argc, Const<const char **> argv) -> int {
   Mut<int> new_argc = static_cast<int>(new_argv.size());
 
   Mut<llvm::Expected<CommonOptionsParser>> expected_parser =
-      CommonOptionsParser::create(new_argc, new_argv.data(), oxide_category);
+      CommonOptionsParser::create(new_argc, new_argv.data(), auxid_category);
   if (!expected_parser) {
     llvm::errs() << expected_parser.takeError();
     return 1;

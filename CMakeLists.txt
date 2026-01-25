@@ -1,4 +1,4 @@
 
-add_library(Oxide INTERFACE)
+add_library(Auxid INTERFACE)
 
-target_include_directories(Oxide INTERFACE "Include/")
+target_include_directories(Auxid INTERFACE "Include/")

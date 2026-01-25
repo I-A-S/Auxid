@@ -1,4 +1,4 @@
-// Oxide: Rust like safety and syntax for C++
+// Auxid: Rust like safety and syntax for C++
 // Copyright (C) 2026 IAS (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,13 +15,13 @@
 
 #include <Validator.hpp>
 
-extern ox::Mut<llvm::cl::opt<bool>> raw_output;
+extern au::Mut<llvm::cl::opt<bool>> raw_output;
 
-namespace Oxide::Validator {
+namespace Auxid::Validator {
 
 auto MutabilityMatchHandler::is_type_safe(MutRef<StringRef> ty) -> bool {
-  if (ty.starts_with("Oxide::")) {
-    ty.consume_front("Oxide::");
+  if (ty.starts_with("Auxid::")) {
+    ty.consume_front("Auxid::");
   } else if (ty.starts_with("ox::")) {
     ty.consume_front("ox::");
   }
@@ -127,7 +127,7 @@ auto MutabilityMatchHandler::run(Ref<MatchFinder::MatchResult> result) -> void {
     if (raw_output) {
       llvm::outs() << file_path << ":" << full_loc.getSpellingLineNumber()
                    << ":" << full_loc.getSpellingColumnNumber()
-                   << ": [Oxide] Violation: "
+                   << ": [Auxid] Violation: "
                    << "Variable '" << var_decl->getNameAsString()
                    << "' has unsafe type '" << type_text << "'. "
                    << "Must be wrapped in Mut<T>, Const<T>, Ref<T>, "
@@ -144,4 +144,4 @@ auto MutabilityMatchHandler::run(Ref<MatchFinder::MatchResult> result) -> void {
     }
   }
 }
-} // namespace Oxide::Validator
+} // namespace Auxid::Validator

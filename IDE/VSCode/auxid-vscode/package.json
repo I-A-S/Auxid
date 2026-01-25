@@ -1,9 +1,9 @@
 {
-  "name": "oxide-vscode",
-  "displayName": "oxide-vscode",
-  "description": "Oxide Extension for VSCode",
+  "name": "auxid-vscode",
+  "displayName": "auxid-vscode",
+  "description": "Auxid Extension for VSCode",
   "version": "0.1.0",
-  "repository": "https://github.com/I-A-S/Oxide",
+  "repository": "https://github.com/I-A-S/Auxid",
   "icon": "logo.png",
   "publisher": "I-A-S",
   "engines": {
@@ -16,14 +16,14 @@
   "contributes": {
     "commands": [
       {
-        "command": "oxide.toggle",
-        "title": "Oxide: Toggle Validator",
-        "category": "Oxide"
+        "command": "auxid.toggle",
+        "title": "Auxid: Toggle Validator",
+        "category": "Auxid"
       }
     ],
     "keybindings": [
       {
-        "command": "oxide.toggle",
+        "command": "auxid.toggle",
         "key": "ctrl+q",
         "mac": "cmd+q",
         "when": "editorTextFocus"
@@ -32,31 +32,31 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "oxide-sidebar-view",
-          "title": "Oxide",
+          "id": "auxid-sidebar-view",
+          "title": "Auxid",
           "icon": "logo.png"
         }
       ]
     },
     "views": {
-      "oxide-sidebar-view": [
+      "auxid-sidebar-view": [
         {
           "type": "webview",
-          "id": "oxide.sidebar",
-          "name": "Oxide Controls",
+          "id": "auxid.sidebar",
+          "name": "Auxid Controls",
           "icon": "logo.png"
         }
       ]
     },
     "configuration": {
-        "title": "Oxide",
+        "title": "Auxid",
         "properties": {
-            "oxide.validatorPath": {
+            "auxid.validatorPath": {
                 "type": "string",
-                "default": "oxide-validator",
-                "description": "Path to the compiled oxide-validator executable."
+                "default": "auxid-validator",
+                "description": "Path to the compiled auxid-validator executable."
             },
-            "oxide.buildPath": {
+            "auxid.buildPath": {
                 "type": "string",
                 "default": "${workspaceFolder}",
                 "description": "Path to the folder containing compile_commands.json."

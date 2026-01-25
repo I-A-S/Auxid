@@ -1,4 +1,4 @@
-// Oxide: Rust like safety and syntax for C++
+// Auxid: Rust like safety and syntax for C++
 // Copyright (C) 2026 IAS (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,6 @@
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/CommandLine.h>
 
-#include <oxide/oxide.hpp>
+#include <auxid/auxid.hpp>
 
-namespace Oxide::Validator {} // namespace Oxide::Validator
+namespace Auxid::Validator {} // namespace Auxid::Validator
