@@ -109,8 +109,28 @@ template <typename T, typename... Args>
 }
 
 template <typename T, typename... Args>
+inline Box<T> max_box_protected(ForwardRef<Args>... args) {
+  struct make_box_enabler : public T {
+    make_box_enabler(ForwardRef<Args>... args)
+        : T(std::forward<Args>(args)...) {}
+  };
+
+  return std::make_unique<make_box_enabler>(std::forward<Args>(args)...);
+}
+
+template <typename T, typename... Args>
 [[nodiscard]] inline auto make_arc(ForwardRef<Args>... args) -> Arc<T> {
   return std::make_shared<T>(std::forward<Args>(args)...);
+}
+
+template <typename T, typename... Args>
+inline Arc<T> make_arc_protected(ForwardRef<Args>... args) {
+  struct make_arc_enabler : public T {
+    make_arc_enabler(ForwardRef<Args>... args)
+        : T(std::forward<Args>(args)...) {}
+  };
+
+  return std::make_shared<make_arc_enabler>(std::forward<Args>(args)...);
 }
 
 // =============================================================================
