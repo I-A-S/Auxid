@@ -16,10 +16,9 @@ Auxid is a header-only library that brings Rust's ownership semantics, safety pr
 
 ## ✨ Features
 
-* ****Explicit Mutability:**** `Mut<T>` vs `Const<T>` (enforced by tooling).  
+* ****Explicit Mutability:**** `Mut<T>` vs `const T` (enforced by tooling).  
 * ****Error Handling:**** `Result<T, E>` with `AU_TRY` macros for ergonomic error propagation.  
 * ****Rust Types:**** `Vec`, `String`, `Option`, `Result`, `Box`, `Arc`.  
-* ****Statement Expressions:**** Rust-like block expressions (e.g., `let x = { ... };`) **[GCC/Clang only]**.  
 * ****Safety Validator:**** A Clang-based tool to ban unsafe raw C++ declarations.
 
 ## 📦 Installation
