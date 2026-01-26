@@ -30,6 +30,10 @@ jobs:
             mingw-w64-x86_64-clang-tools-extra
             mingw-w64-x86_64-llvm
 
+      - name: Fetch IACore
+        run: |
+          git submodule update --init
+
       - name: Configure CMake
         run: |
           cmake -S ./Validator -B build -G "Ninja" \
