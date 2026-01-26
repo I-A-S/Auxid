@@ -48,7 +48,7 @@ auto count() -> Result<void> {
     // 1. Explicit Mutability  
     // Raw 'i32 x;' is banned by the AuxidValidator!  
     Mut<i32> counter = 0;  
-    Const<i32> limit = 10;
+    const i32 limit = 10;
 
     // 2. Error Handling with AU_TRY  
     // Automatically propagates errors if safe_divide fails  
@@ -56,7 +56,7 @@ auto count() -> Result<void> {
 
     // 3. Statement Expressions (GCC/Clang Only)  
     // Initialize complex variables in a single expression block  
-    Const<String> message = AU_TRY({  
+    const String message = AU_TRY({  
         if (result > 50.0f) {  
             fail("Result too large"); // returns Result<String>  
         }  
@@ -85,7 +85,7 @@ And demands:
 
 ```cpp 
 Mut<int> x = 5;   // ✅ Allowed  
-Const<int> x = 5; // ✅ Allowed
+const int x = 5; // ✅ Allowed
 ```
 
 ### **Validator Setup**
