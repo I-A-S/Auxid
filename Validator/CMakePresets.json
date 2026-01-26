@@ -1,33 +1,48 @@
 {
-  "version": 3,
+  "version": 4,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28
+  },
   "configurePresets": [
     {
-      "name": "debug",
-      "displayName": "Debug",
-      "description": "Debug Build",
-      "generator": "Ninja",
+      "name": "auxid-validator-x64-linux",
+      "displayName": "Auxid Validator Linux x64 (Clang)",
+      "inherits": "x64-linux",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACore/CMake/Toolchains/x64-linux-clang.cmake"
       }
     },
     {
-      "name": "release",
-      "displayName": "Release",
-      "description": "Release Build",
-      "generator": "Ninja",
+      "name": "auxid-validator-arm64-linux",
+      "displayName": "Auxid Validator Linux ARM64 (Clang Cross)",
+      "inherits": "arm64-linux",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACore/CMake/Toolchains/arm64-linux-clang.cmake"
+      }
+    },
+    {
+      "name": "auxid-validator-x64-windows",
+      "displayName": "Auxid Validator Windows x64 (Clang)",
+      "inherits": "x64-windows",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACore/CMake/Toolchains/x64-windows-clang.cmake"
+      }
+    },
+    {
+      "name": "auxid-validator-arm64-windows",
+      "displayName": "Auxid Validator Windows ARM64 (Clang Cross)",
+      "inherits": "arm64-windows",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACore/CMake/Toolchains/arm64-windows-clang.cmake"
       }
     }
   ],
-  "buildPresets": [
-    {
-      "name": "debug-build",
-      "configurePreset": "debug"
-    },
-    {
-      "name": "release-build",
-      "configurePreset": "release"
-    }
+  "include": [
+    "IACore/CMakePresets.json"
   ]
 }

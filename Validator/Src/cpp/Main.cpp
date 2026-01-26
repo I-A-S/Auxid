@@ -110,6 +110,7 @@ auto main(Const<int> argc, Const<const char **> argv) -> int {
   tool.appendArgumentsAdjuster(
       [](Ref<clang::tooling::CommandLineArguments> args,
          Mut<llvm::StringRef> filename) {
+        AU_UNUSED(filename);
         Mut<clang::tooling::CommandLineArguments> new_args;
 
         if (!args.empty()) {

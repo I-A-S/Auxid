@@ -8,7 +8,6 @@
 			"targets": [
 				"all"
 			],
-			"preset": "release-build",
 			"group": {
 				"kind": "build",
 				"isDefault": true

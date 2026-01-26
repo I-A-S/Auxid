@@ -88,12 +88,16 @@ using isize = std::ptrdiff_t;
 // Template Types
 // =============================================================================
 
-template <typename T> using Const = const T;
 template <typename T> using Mut = T;
 
 template <typename T> using Ref = const T &;
 template <typename T> using MutRef = T &;
 template <typename T> using ForwardRef = T &&;
+
+template <typename T>
+[[nodiscard]] constexpr decltype(auto) mut(T&& arg) noexcept {
+    return std::forward<T>(arg);
+}
 
 // =============================================================================
 // Memory & Ownership
@@ -157,11 +161,11 @@ template <typename... Args>
 
 namespace Env {
 #if defined(NDEBUG)
-constexpr Const<bool> IS_DEBUG = false;
-constexpr Const<bool> IS_RELEASE = true;
+constexpr bool IS_DEBUG = false;
+constexpr bool IS_RELEASE = true;
 #else
-constexpr Const<bool> IS_DEBUG = true;
-constexpr Const<bool> IS_RELEASE = false;
+constexpr bool IS_DEBUG = true;
+constexpr bool IS_RELEASE = false;
 #endif
 } // namespace Env
 
@@ -174,7 +178,7 @@ panic(Ref<std::string> msg,
 }
 
 inline void
-ensure(Const<bool> condition, Ref<std::string> msg,
+ensure(bool condition, Ref<std::string> msg,
        Ref<std::source_location> loc = std::source_location::current()) {
   if (Env::IS_DEBUG && !condition) {
     std::cerr << "\n[assert] " << msg << "\n            At: " << loc.file_name()

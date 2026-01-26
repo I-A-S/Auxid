@@ -7,13 +7,13 @@ add_executable(auxid-validator ${SRC_FILES})
 
 target_link_libraries(auxid-validator
     PRIVATE
+    IACore
     clang-cpp
     LLVM
 )
 
 target_include_directories(auxid-validator PRIVATE
     "hpp"
-    "../../Include"
     ${LLVM_INCLUDE_DIRS}
     ${CLANG_INCLUDE_DIRS}
 )
