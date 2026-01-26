@@ -15,27 +15,41 @@
 
 #pragma once
 
-#if __cplusplus >= 202302L
-#include <expected>
-namespace Auxid {
-namespace Internal {
-template <typename T, typename E> using Expected = std::expected<T, E>;
+#if __cplusplus >= 202302L && __has_include(<expected>)
+#  include <expected>
 
-template <typename E> auto make_unexpected(E &&e) {
-  return std::unexpected(std::forward<E>(e));
-}
-} // namespace Internal
+#  if defined(__cpp_lib_expected)
+namespace Auxid
+{
+  namespace Internal
+  {
+    template<typename T, typename E> using Expected = std::expected<T, E>;
+
+    template<typename E> auto make_unexpected(E &&e)
+    {
+      return std::unexpected(std::forward<E>(e));
+    }
+  } // namespace Internal
 } // namespace Auxid
-#else
-#include "tl/expected.hpp"
-namespace Auxid {
-namespace Internal {
-template <typename T, typename E> using Expected = tl::expected<T, E>;
 
-template <typename E> auto make_unexpected(E &&e) {
-  return tl::make_unexpected(std::forward<E>(e));
-}
-} // namespace Internal
+#    define AUXID_USE_STD_EXPECTED
+#  endif
+#endif
+
+#ifndef AUXID_USE_STD_EXPECTED
+#  include "tl/expected.hpp"
+
+namespace Auxid
+{
+  namespace Internal
+  {
+    template<typename T, typename E> using Expected = tl::expected<T, E>;
+
+    template<typename E> auto make_unexpected(E &&e)
+    {
+      return tl::make_unexpected(std::forward<E>(e));
+    }
+  } // namespace Internal
 } // namespace Auxid
 #endif
 
