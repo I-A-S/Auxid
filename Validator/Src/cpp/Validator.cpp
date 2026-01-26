@@ -28,25 +28,24 @@ auto MutabilityMatchHandler::is_type_safe(MutRef<StringRef> ty) -> bool {
 
   ty = ty.trim();
 
-  Const<usize> word_end = ty.find_first_not_of(
+  usize word_end = ty.find_first_not_of(
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
 
   if (word_end == StringRef::npos || word_end == 0) {
     return false;
   }
 
-  Const<StringRef> name = ty.substr(0, word_end);
-  Const<StringRef> suffix = ty.substr(word_end);
+  StringRef name = ty.substr(0, word_end);
+  StringRef suffix = ty.substr(word_end);
 
-  Const<bool> is_valid_keyword =
-      (name == "Mut" || name == "Const" || name == "Ref" || name == "MutRef" ||
-       name == "ForwardRef");
+  bool is_valid_keyword = (name == "Mut" || name == "Const" || name == "Ref" ||
+                           name == "MutRef" || name == "ForwardRef");
 
   if (!is_valid_keyword) {
     return false;
   }
 
-  Const<usize> bracket_pos = suffix.find_first_not_of(" \t\n\r");
+  usize bracket_pos = suffix.find_first_not_of(" \t\n\r");
 
   if (bracket_pos == StringRef::npos || suffix[bracket_pos] != '<') {
     return false;
@@ -56,8 +55,7 @@ auto MutabilityMatchHandler::is_type_safe(MutRef<StringRef> ty) -> bool {
 }
 
 auto MutabilityMatchHandler::run(Ref<MatchFinder::MatchResult> result) -> void {
-  Const<const VarDecl *> var_decl =
-      result.Nodes.getNodeAs<clang::VarDecl>("var");
+  const VarDecl *var_decl = result.Nodes.getNodeAs<clang::VarDecl>("var");
   if (!var_decl) {
     return;
   }
@@ -71,14 +69,14 @@ auto MutabilityMatchHandler::run(Ref<MatchFinder::MatchResult> result) -> void {
     return;
   }
 
-  Const<SourceLocation> loc = var_decl->getLocation();
+  SourceLocation loc = var_decl->getLocation();
   if (result.SourceManager->isInSystemHeader(loc) ||
       !result.SourceManager->isInMainFile(loc) || !loc.isValid()) {
     return;
   }
 
-  if (Const<ParmVarDecl> *parm = dyn_cast<ParmVarDecl>(var_decl)) {
-    if (Const<FunctionDecl> *func =
+  if (const ParmVarDecl *parm = dyn_cast<ParmVarDecl>(var_decl)) {
+    if (const FunctionDecl *func =
             dyn_cast<FunctionDecl>(parm->getDeclContext())) {
       if (func->isDeleted()) {
         return;
@@ -86,17 +84,17 @@ auto MutabilityMatchHandler::run(Ref<MatchFinder::MatchResult> result) -> void {
     }
   }
 
-  Const<TypeSourceInfo *> tsi = var_decl->getTypeSourceInfo();
+  TypeSourceInfo *tsi = var_decl->getTypeSourceInfo();
   if (!tsi) {
     return;
   }
 
   Mut<TypeLoc> tl = tsi->getTypeLoc();
-  while (Const<ArrayTypeLoc> arr = tl.getAs<ArrayTypeLoc>()) {
+  while (ArrayTypeLoc arr = tl.getAs<ArrayTypeLoc>()) {
     tl = arr.getElementLoc();
   }
 
-  Const<SourceRange> range = tl.getSourceRange();
+  SourceRange range = tl.getSourceRange();
 
   Mut<StringRef> type_text = Lexer::getSourceText(
       CharSourceRange::getTokenRange(range), *result.SourceManager,
@@ -107,22 +105,22 @@ auto MutabilityMatchHandler::run(Ref<MatchFinder::MatchResult> result) -> void {
   }
 
   if (!is_type_safe(type_text)) {
-    Const<FullSourceLoc> full_loc = result.Context->getFullLoc(loc);
+    FullSourceLoc full_loc = result.Context->getFullLoc(loc);
 
-    Const<const FileEntry *> file_entry = full_loc.getFileEntry();
-    Const<String> file_path =
+    const FileEntry *file_entry = full_loc.getFileEntry();
+    String file_path =
         file_entry ? file_entry->tryGetRealPathName().str() : String();
     Mut<String> display_path = file_path;
 
     Mut<std::error_code> ec;
-    Const<std::filesystem::path> rel_path = std::filesystem::relative(
+    std::filesystem::path rel_path = std::filesystem::relative(
         file_path, std::filesystem::current_path(), ec);
     if (!ec) {
       display_path = rel_path.string();
     }
 
-    Const<const char *> ansi_yellow = "\033[33m";
-    Const<const char *> ansi_reset = "\033[0m";
+    const char *ansi_yellow = "\033[33m";
+    const char *ansi_reset = "\033[0m";
 
     if (raw_output) {
       llvm::outs() << file_path << ":" << full_loc.getSpellingLineNumber()
@@ -130,7 +128,7 @@ auto MutabilityMatchHandler::run(Ref<MatchFinder::MatchResult> result) -> void {
                    << ": [Auxid] Violation: "
                    << "Variable '" << var_decl->getNameAsString()
                    << "' has unsafe type '" << type_text << "'. "
-                   << "Must be wrapped in Mut<T>, Const<T>, Ref<T>, "
+                   << "Must be wrapped in Mut<T>, T, Ref<T>, "
                       "MutRef<T>, or ForwardRef<T>.\n";
     } else {
       llvm::outs() << ansi_yellow << " \u26A0\ufe0f  [WARNING]  "
@@ -138,7 +136,7 @@ auto MutabilityMatchHandler::run(Ref<MatchFinder::MatchResult> result) -> void {
                    << ":" << full_loc.getSpellingColumnNumber() << ": "
                    << "Variable '" << var_decl->getNameAsString()
                    << "' has unsafe type '" << type_text << "'. "
-                   << "Must be wrapped in Mut<T>, Const<T>, Ref<T>, "
+                   << "Must be wrapped in Mut<T>, T, Ref<T>, "
                       "MutRef<T>, or ForwardRef<T>."
                    << ansi_reset << "\n";
     }

@@ -43,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand('auxid.analyzeWorkspace', async () => {
-        const excludePattern = '**/{out,build,_deps,deps,CMakeFiles,Vendor,External,node_modules,.git}/**';
+        const excludePattern = '**/{out,build,_deps,deps,IACore,CMakeFiles,Vendor,External,node_modules,.git}/**';
         const files = await vscode.workspace.findFiles('**/*.{cpp,h,hpp,c}', excludePattern);
 
         let totalIssues = 0;

@@ -15,9 +15,6 @@
 
 #pragma once
 
-#include <cstdio>
-#include <filesystem>
-
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Lex/Lexer.h>

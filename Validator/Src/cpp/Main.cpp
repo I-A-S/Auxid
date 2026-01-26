@@ -19,9 +19,8 @@ using namespace Auxid;
 using namespace Auxid::Validator;
 
 static Mut<cl::OptionCategory> auxid_category("auxid-validator options");
-static Const<cl::extrahelp> COMMON_HELP(CommonOptionsParser::HelpMessage);
-static Const<cl::extrahelp>
-    MORE_HELP("\nEnforces Auxid explicit mutability rules.\n");
+static cl::extrahelp common_help(CommonOptionsParser::HelpMessage);
+static cl::extrahelp more_help("\nEnforces Auxid explicit mutability rules.\n");
 
 Mut<cl::opt<bool>> raw_output("raw", cl::desc("Disable pretty printing"),
                               cl::cat(auxid_category));
@@ -31,9 +30,9 @@ auto get_clang_resource_dir() -> Result<String> {
   Mut<String> result;
 
 #ifdef _WIN32
-  Const<FILE *> pipe = _popen("clang -print-resource-dir 2>NUL", "r");
+  FILE *pipe = _popen("clang -print-resource-dir 2>NUL", "r");
 #else
-  Const<FILE *> pipe = popen("clang -print-resource-dir 2>/dev/null", "r");
+  FILE *pipe = popen("clang -print-resource-dir 2>/dev/null", "r");
 #endif
 
   if (!pipe) {
@@ -58,7 +57,7 @@ auto get_clang_resource_dir() -> Result<String> {
   return result + "/include";
 }
 
-auto main(Const<int> argc, Const<const char **> argv) -> int {
+auto main(int argc, const char **argv) -> int {
   if (argc < 2) {
     llvm::outs() << "Usage: " << argv[0] << " <file.cpp> [options]\n";
     return 1;
@@ -66,7 +65,7 @@ auto main(Const<int> argc, Const<const char **> argv) -> int {
 
   Mut<bool> has_resource_arg = false;
   for (Mut<i32> i = 0; i < argc; ++i) {
-    Const<StringRef> arg(argv[i]);
+    StringRef arg(argv[i]);
 
     if (arg.contains("-I") && arg.contains("clang") &&
         arg.contains("include")) {
