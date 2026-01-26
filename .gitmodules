@@ -1,0 +1,3 @@
+[submodule "Validator/IACore"]
+	path = Validator/IACore
+	url = https://github.com/I-A-S/IACore

@@ -109,7 +109,7 @@ template <typename T, typename... Args>
 }
 
 template <typename T, typename... Args>
-inline Box<T> make_bau_protected(ForwardRef<Args>... args) {
+inline Box<T> make_box_protected(ForwardRef<Args>... args) {
   struct make_bau_enabler : public T {
     make_bau_enabler(ForwardRef<Args>... args)
         : T(std::forward<Args>(args)...) {}
