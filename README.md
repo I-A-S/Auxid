@@ -33,8 +33,8 @@ Auxid is a ****header-only**** library.
 ```cpp  
 #include <auxid/auxid.hpp>
 
-// Optional: Use the short alias namespace 'ox'  
-using namespace ox;
+// Optional: Use the short alias namespace 'au'  
+using namespace au;
 
 auto safe_divide(f32 a, f32 b) -> Result<f32> {  
     if (b == 0.0f) {  
@@ -48,6 +48,13 @@ auto count() -> Result<void> {
     // Raw 'i32 x;' is banned by the AuxidValidator!  
     Mut<i32> counter = 0;  
     const i32 limit = 10;
+
+    const auto flags = get_flags();
+
+    auto buffer = mut(get_buffer());
+
+    AU_UNUSED(flags);
+    AU_UNUSED(buffer);
 
     // 2. Error Handling with AU_TRY  
     // Automatically propagates errors if safe_divide fails  
@@ -85,6 +92,9 @@ And demands:
 ```cpp 
 Mut<int> x = 5;   // ✅ Allowed  
 const int x = 5; // ✅ Allowed
+
+const auto x = 5; // ✅ Allowed
+auto x = mut(5); // ✅ Allowed
 ```
 
 ### **Validator Setup**
