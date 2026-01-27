@@ -15,131 +15,177 @@
 
 #include <Validator.hpp>
 
-extern au::Mut<llvm::cl::opt<bool>> raw_output;
+static llvm::cl::OptionCategory auxid_category("auxid-validator options");
+static cl::extrahelp common_help(CommonOptionsParser::HelpMessage);
 
-namespace Auxid::Validator {
+namespace Auxid
+{
+  class SingleCommandDatabase : public CompilationDatabase
+  {
+    const CompilationDatabase &m_base;
 
-auto MutabilityMatchHandler::is_type_safe(MutRef<StringRef> ty) -> bool {
-  if (ty.starts_with("Auxid::")) {
-    ty.consume_front("Auxid::");
-  } else if (ty.starts_with("ox::")) {
-    ty.consume_front("ox::");
+public:
+    SingleCommandDatabase(Ref<CompilationDatabase> base) : m_base(base)
+    {
+    }
+
+    [[nodiscard]] Vec<CompileCommand> getCompileCommands(StringRef file_path) const override
+    {
+      auto cmds = m_base.getCompileCommands(file_path);
+      if (cmds.size() > 1)
+        cmds.resize(1);
+      return cmds;
+    }
+
+    [[nodiscard]] Vec<String> getAllFiles() const override
+    {
+      return m_base.getAllFiles();
+    }
+
+    [[nodiscard]] Vec<CompileCommand> getAllCompileCommands() const override
+    {
+      return m_base.getAllCompileCommands();
+    }
+  };
+
+  ValidationMatcher::ValidationMatcher(ForwardRef<DeclarationMatcher> pattern,
+                                       ForwardRef<Box<MatchFinder::MatchCallback>> callback)
+      : pattern(std::move(pattern)), callback(std::move(callback))
+  {
+    Validator::instance().add_matcher(this);
   }
 
-  ty = ty.trim();
-
-  usize word_end = ty.find_first_not_of(
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_");
-
-  if (word_end == StringRef::npos || word_end == 0) {
-    return false;
+  auto Validator::add_matcher(ValidationMatcher *matcher) -> void
+  {
+    m_matchers.push_back(matcher);
   }
 
-  StringRef name = ty.substr(0, word_end);
-  StringRef suffix = ty.substr(word_end);
+  auto Validator::run(i32 argc, const char *argv[]) -> Result<i32>
+  {
+    llvm::sys::PrintStackTraceOnErrorSignal(argv[0]);
 
-  bool is_valid_keyword = (name == "Mut" || name == "Const" || name == "Ref" ||
-                           name == "MutRef" || name == "ForwardRef");
+    auto expected_parser = CommonOptionsParser::create(argc, argv, auxid_category);
+    if (!expected_parser)
+    {
+      llvm::errs() << expected_parser.takeError();
+      return 1;
+    }
+    CommonOptionsParser &options_parser = expected_parser.get();
 
-  if (!is_valid_keyword) {
-    return false;
-  }
+    SingleCommandDatabase single_cmd_db(options_parser.getCompilations());
 
-  usize bracket_pos = suffix.find_first_not_of(" \t\n\r");
+    ClangTool tool(single_cmd_db, options_parser.getSourcePathList());
 
-  if (bracket_pos == StringRef::npos || suffix[bracket_pos] != '<') {
-    return false;
-  }
+    const auto resource_dir = get_clang_resource_dir();
 
-  return true;
-}
+    tool.appendArgumentsAdjuster([&](const CommandLineArguments &args, StringRef) {
+      CommandLineArguments new_args;
 
-auto MutabilityMatchHandler::run(Ref<MatchFinder::MatchResult> result) -> void {
-  const VarDecl *var_decl = result.Nodes.getNodeAs<clang::VarDecl>("var");
-  if (!var_decl) {
-    return;
-  }
+      if (!args.empty())
+        new_args.push_back(args[0]);
 
-  if (var_decl->isConstexpr()) {
-    return;
-  }
-
-  if (var_decl->getDeclContext()->isDependentContext() ||
-      var_decl->getType()->isDependentType()) {
-    return;
-  }
-
-  SourceLocation loc = var_decl->getLocation();
-  if (result.SourceManager->isInSystemHeader(loc) ||
-      !result.SourceManager->isInMainFile(loc) || !loc.isValid()) {
-    return;
-  }
-
-  if (const ParmVarDecl *parm = dyn_cast<ParmVarDecl>(var_decl)) {
-    if (const FunctionDecl *func =
-            dyn_cast<FunctionDecl>(parm->getDeclContext())) {
-      if (func->isDeleted()) {
-        return;
+      if (!resource_dir.empty())
+      {
+        new_args.push_back("-resource-dir");
+        new_args.push_back(resource_dir);
       }
+
+      for (size_t i = 1; i < args.size(); ++i)
+      {
+        StringRef arg = args[i];
+
+        if (arg == "-Xclang" && i + 1 < args.size())
+        {
+          StringRef next_arg = args[i + 1];
+          bool should_strip_next = false;
+
+          if (next_arg == "-include-pch" || next_arg == "-pch-is-pch")
+          {
+            should_strip_next = true;
+          }
+          else if (next_arg == "-include")
+          {
+            size_t file_idx = i + 2;
+            if (file_idx < args.size() && args[file_idx] == "-Xclang")
+              file_idx++;
+
+            if (file_idx < args.size() && args[file_idx].contains("cmake_pch"))
+            {
+              should_strip_next = true;
+            }
+          }
+
+          if (should_strip_next)
+          {
+            continue;
+          }
+        }
+
+        if (arg == "-include-pch" || arg == "-pch-is-pch")
+        {
+          if (arg == "-include-pch" && i + 1 < args.size())
+            i++;
+          continue;
+        }
+
+        if (arg == "-include")
+        {
+          size_t next_idx = i + 1;
+          if (next_idx < args.size() && args[next_idx] == "-Xclang")
+            next_idx++;
+
+          if (next_idx < args.size() && args[next_idx].contains("cmake_pch"))
+          {
+            i = next_idx;
+            continue;
+          }
+        }
+
+        if (arg.contains("cmake_pch") && (arg.ends_with(".hxx") || arg.ends_with(".pch")))
+        {
+          continue;
+        }
+
+        new_args.push_back(std::string(arg));
+      }
+      return new_args;
+    });
+
+    MatchFinder finder;
+
+    for (const auto &m : m_matchers)
+    {
+      finder.addMatcher(m->pattern, m->callback.get());
     }
+
+    return tool.run(newFrontendActionFactory(&finder).get());
   }
 
-  TypeSourceInfo *tsi = var_decl->getTypeSourceInfo();
-  if (!tsi) {
-    return;
+  auto Validator::get_clang_resource_dir() -> String
+  {
+    Mut<String> result;
+
+#if defined(_WIN32)
+    FILE *const pipe = _popen("clang -print-resource-dir", "r");
+#else
+    FILE *const pipe = popen("clang -print-resource-dir", "r");
+#endif
+    if (!pipe)
+      return "";
+
+    char buffer[128];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
+      result += buffer;
+
+#if defined(_WIN32)
+    _pclose(pipe);
+#else
+    pclose(pipe);
+#endif
+
+    while (!result.empty() && (result.back() == '\n' || result.back() == '\r'))
+      result.pop_back();
+
+    return result;
   }
-
-  Mut<TypeLoc> tl = tsi->getTypeLoc();
-  while (ArrayTypeLoc arr = tl.getAs<ArrayTypeLoc>()) {
-    tl = arr.getElementLoc();
-  }
-
-  SourceRange range = tl.getSourceRange();
-
-  Mut<StringRef> type_text = Lexer::getSourceText(
-      CharSourceRange::getTokenRange(range), *result.SourceManager,
-      result.Context->getLangOpts());
-
-  if (type_text.empty()) {
-    return;
-  }
-
-  if (!is_type_safe(type_text)) {
-    FullSourceLoc full_loc = result.Context->getFullLoc(loc);
-
-    const FileEntry *file_entry = full_loc.getFileEntry();
-    String file_path =
-        file_entry ? file_entry->tryGetRealPathName().str() : String();
-    Mut<String> display_path = file_path;
-
-    Mut<std::error_code> ec;
-    std::filesystem::path rel_path = std::filesystem::relative(
-        file_path, std::filesystem::current_path(), ec);
-    if (!ec) {
-      display_path = rel_path.string();
-    }
-
-    const char *ansi_yellow = "\033[33m";
-    const char *ansi_reset = "\033[0m";
-
-    if (raw_output) {
-      llvm::outs() << file_path << ":" << full_loc.getSpellingLineNumber()
-                   << ":" << full_loc.getSpellingColumnNumber()
-                   << ": [Auxid] Violation: "
-                   << "Variable '" << var_decl->getNameAsString()
-                   << "' has unsafe type '" << type_text << "'. "
-                   << "Must be wrapped in Mut<T>, T, Ref<T>, "
-                      "MutRef<T>, or ForwardRef<T>.\n";
-    } else {
-      llvm::outs() << ansi_yellow << " \u26A0\ufe0f  [WARNING]  "
-                   << display_path << ":" << full_loc.getSpellingLineNumber()
-                   << ":" << full_loc.getSpellingColumnNumber() << ": "
-                   << "Variable '" << var_decl->getNameAsString()
-                   << "' has unsafe type '" << type_text << "'. "
-                   << "Must be wrapped in Mut<T>, T, Ref<T>, "
-                      "MutRef<T>, or ForwardRef<T>."
-                   << ansi_reset << "\n";
-    }
-  }
-}
-} // namespace Auxid::Validator
+} // namespace Auxid

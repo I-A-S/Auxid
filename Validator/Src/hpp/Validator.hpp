@@ -17,19 +17,47 @@
 
 #include <PCH.hpp>
 
-namespace Auxid::Validator {
+#define REGISTER_MATCHER(name, ...)                                                                                    \
+  class __matcher_##name : public MatchFinder::MatchCallback                                                           \
+  {                                                                                                                    \
+public:                                                                                                                \
+    virtual void run(Auxid::Ref<MatchFinder::MatchResult> result) override;                                            \
+  };                                                                                                                   \
+  Auxid::ValidationMatcher __##name{__VA_ARGS__, Auxid::make_box<__matcher_##name>()};                                 \
+  void __matcher_##name ::run(Auxid::Ref<MatchFinder::MatchResult> result)
 
-using namespace clang;
-using namespace clang::ast_matchers;
-using namespace clang::tooling;
-using namespace llvm;
+namespace Auxid
+{
+  struct ValidationMatcher
+  {
+    DeclarationMatcher pattern;
+    Box<MatchFinder::MatchCallback> callback;
 
-class MutabilityMatchHandler : public MatchFinder::MatchCallback {
+    ValidationMatcher(ForwardRef<DeclarationMatcher> pattern, ForwardRef<Box<MatchFinder::MatchCallback>> callback);
+  };
+
+  class Validator
+  {
 public:
-  auto run(Ref<MatchFinder::MatchResult> result) -> void override;
+    static Validator &instance()
+    {
+      static Validator s_instance{};
+      return s_instance;
+    }
+
+    ~Validator() = default;
+
+public:
+    auto run(i32 argc, const char *argv[]) -> Result<i32>;
+
+    auto add_matcher(ValidationMatcher *matcher) -> void;
 
 private:
-  auto is_type_safe(MutRef<StringRef> ty) -> bool;
-};
+    Vec<ValidationMatcher *> m_matchers;
 
-} // namespace Auxid::Validator
+    auto get_clang_resource_dir() -> String;
+
+private:
+    Validator() = default;
+  };
+} // namespace Auxid

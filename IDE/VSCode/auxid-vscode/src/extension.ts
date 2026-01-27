@@ -143,8 +143,6 @@ function runValidatorCli(document: vscode.TextDocument): Promise<{ issueCount: n
             args.push(`--extra-arg=-I${clangInclude}`);
         }
 
-        args.push('--raw');
-
         cp.execFile(validatorPath, args, { cwd: path.dirname(document.fileName) }, (err, stdout, stderr) => {
             if (err && (err as any).code === 'ENOENT') {
                 vscode.window.showErrorMessage(`Auxid Validator not found at: ${validatorPath}`);

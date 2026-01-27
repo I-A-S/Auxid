@@ -40,6 +40,15 @@
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACore/CMake/Toolchains/arm64-windows-clang.cmake"
       }
+    },
+    {
+      "name": "auxid-validator-x64-windows-cross",
+      "displayName": "Auxid Validator Windows x64 (Clang Cross)",
+      "inherits": "x64-windows-cross",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACore/CMake/Toolchains/x64-windows-cross-clang.cmake"
+      }
     }
   ],
   "include": [

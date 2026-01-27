@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include <IACore/PCH.hpp>
+
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Lex/Lexer.h>
@@ -22,7 +24,13 @@
 #include <clang/Tooling/Tooling.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/CommandLine.h>
+#include <llvm/Support/Signals.h>
 
-#include <auxid/auxid.hpp>
+using namespace clang;
+using namespace clang::ast_matchers;
+using namespace clang::tooling;
+using namespace llvm;
 
-namespace Auxid::Validator {} // namespace Auxid::Validator
+namespace Auxid
+{
+} // namespace Auxid

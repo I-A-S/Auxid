@@ -1,10 +1,9 @@
----
 Language: Cpp
 Standard: c++20
 BasedOnStyle: Microsoft
 
-IndentWidth: 4
-TabWidth: 4
+IndentWidth: 2
+TabWidth: 2
 UseTab: Never
 AccessModifierOffset: -4
 
@@ -28,5 +27,4 @@ SpaceInEmptyParentheses: false
 SpacesInAngles: false
 
 SeparateDefinitionBlocks: Always
-SortIncludes: false
----
+SortIncludes: Never
