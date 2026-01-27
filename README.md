@@ -10,25 +10,58 @@
   </p>
 </div>
 
-## 📖 Description
+## **Description**
 
 Auxid is a header-only library that brings Rust's ownership semantics, safety primitives, and explicit mutability to C++. It aims to make C++ code safer, more expressive, and easier to reason about by adopting Rust's "strict" philosophy.
 
-## ✨ Features
+## **Features**
 
 * ****Explicit Mutability:**** `Mut<T>` vs `const T` (enforced by tooling).  
 * ****Error Handling:**** `Result<T, E>` with `AU_TRY` macros for ergonomic error propagation.  
 * ****Rust Types:**** `Vec`, `String`, `Option`, `Result`, `Box`, `Arc`.  
 * ****Safety Validator:**** A Clang-based tool to ban unsafe raw C++ declarations.
 
-## 📦 Installation
+## **Roadmap**
+
+Auxid is an ever evolving project with the goal of bringing compile-time memory safety to C++ through static analysis, here's our roadmap!
+
+### Phase 1: The Foundation (Strict Immutability)
+#### Focus: Enforcing "Immutable by Default" and establishing core Rust-like types.
+
+- [x] Core Library: Mut<T> vs Const<T> syntax.
+- [x] Core Library: Result<T, E> and Option<T> with AU_TRY macros.
+- [x] Validator: Ban "naked" C++ variable declarations (e.g., int x;).
+- [x] Tooling: Basic VS Code Extension for real-time validation.
+
+### Phase 2: Ownership & Move Semantics (Current Focus)
+#### Focus: Preventing "Use-After-Move" errors and managing resource ownership.
+
+- [ ] Validator: Control Flow Graph (CFG) integration for data flow analysis.
+- [ ] Validator: Detect and block usage of moved-from variables ("Use-After-Move").
+- [ ] Library: Expanded Smart Pointer support (Box, Arc) with ownership tracking.
+- [ ] Tooling: Auto-fix suggestions in VS Code.
+
+### Phase 3: Lifetime Safety
+#### Focus: Detecting dangling references and memory corruption.
+
+- [ ] Validator: "Use-After-Free" detection for raw pointers and references.
+- [ ] Validator: Escape analysis (preventing references from outliving their owners).
+- [ ] Library: Thread-safety primitives (analogues to Rust's Send and Sync).
+
+### Phase 4: The "Borrow Checker"
+#### Focus: Full aliasing rules and mutation exclusivity.
+
+- [ ] Validator: Enforce "One Mutable OR Many Immutable" references rule.
+- [ ] Validator: Cross-function lifetime analysis.
+
+## **Installation**
 
 Auxid is a ****header-only**** library.
 
 1.  Copy the `Include/auxid` folder to your project's include directory.  
 2.  Include the main header: `#include <auxid/auxid.hpp>`
 
-## 🚀 Quick Start
+## **Quick Start**
 
 ```cpp  
 #include <auxid/auxid.hpp>
@@ -71,7 +104,7 @@ auto count() -> Result<void> {
 }
 ```
 
-## **🛡️ Tooling: AuxidValidator**
+## **Tooling: AuxidValidator**
 
 Auxid is more than just a library; it's a discipline. The **AuxidValidator** is a standalone Clang-based tool that enforces strict mutability.
 
@@ -109,7 +142,7 @@ The validator requires a compilation database (compile_commands.json) to underst
    ./auxid-validator <path/to/file.cpp> -p <path/to/compile_commands_folder>
    ```
 
-## **🧩 VS Code Extension**
+## **VS Code Extension**
 
 This repository includes a VS Code extension (auxid-vscode) that integrates the validator directly into your editor, highlighting unsafe declarations as warnings/errors in real-time.
 
@@ -118,13 +151,13 @@ This repository includes a VS Code extension (auxid-vscode) that integrates the 
 * auxid.validatorPath: Path to the compiled auxid-validator executable.  
 * auxid.buildPath: Path to the folder containing your compile_commands.json (defaults to workspace root).
 
-## **⚠️ Requirements**
+## **Requirements**
 
 * **C++ Standard:** C++20 or newer.  
 * **Compilers:**  
   * **Linux/macOS:** GCC or Clang (Required for Statement Expressions).  
   * **Windows:** clang-cl is recommended. MSVC is **not supported** due to lack of Statement Expression support.
 
-## **📄 License**
+## **License**
 
 Copyright (C) 2026 IAS. Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
