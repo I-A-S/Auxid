@@ -11,7 +11,7 @@
       "inherits": "x64-linux",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACore/CMake/Toolchains/x64-linux-clang.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACrux/cmake/toolchains//x64-linux-clang.cmake"
       }
     },
     {
@@ -20,7 +20,7 @@
       "inherits": "arm64-linux",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACore/CMake/Toolchains/arm64-linux-clang.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACrux/cmake/toolchains//arm64-linux-clang.cmake"
       }
     },
     {
@@ -29,7 +29,7 @@
       "inherits": "x64-windows",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACore/CMake/Toolchains/x64-windows-clang.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACrux/cmake/toolchains//x64-windows-clang.cmake"
       }
     },
     {
@@ -38,7 +38,7 @@
       "inherits": "arm64-windows",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACore/CMake/Toolchains/arm64-windows-clang.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACrux/cmake/toolchains//arm64-windows-clang.cmake"
       }
     },
     {
@@ -47,11 +47,11 @@
       "inherits": "x64-windows-cross",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACore/CMake/Toolchains/x64-windows-cross-clang.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/IACrux/cmake/toolchains//x64-windows-cross-clang.cmake"
       }
     }
   ],
   "include": [
-    "IACore/CMakePresets.json"
+    "IACrux/CMakePresets.json"
   ]
 }

@@ -13,14 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <IACore/IACore.hpp>
-
 #include <Validator.hpp>
 
-IACORE_MAIN()
+int main(int argc, char *argv[])
 {
-  IA_UNUSED(selfPath);
-  IA_UNUSED(args);
+  ia::crux::initialize();
 
-  return auxid::Validator::instance().run(argc, (const char **) argv);
+  const auto result = auxid::Validator::instance().run(argc, (const char **) argv);
+  if (!result)
+  {
+    std::cerr << result.error() << "\n";
+    exit(-1);
+  }
+
+  ia::crux::terminate();
+
+  return 0;
 }

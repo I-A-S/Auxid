@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <IACore/PCH.hpp>
+#include <crux/crux.hpp>
 
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>

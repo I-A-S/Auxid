@@ -8,7 +8,7 @@ set(SRC_FILES
 add_executable(auxid-validator ${SRC_FILES})
 
 target_link_libraries(auxid-validator PRIVATE
-    IACore
+    IACrux
 )
 
 if(MSVC)

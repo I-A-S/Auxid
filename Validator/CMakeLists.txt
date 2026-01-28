@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(AuxidValidator)
 
-add_subdirectory(IACore)
+add_subdirectory(IACrux)
 
-iacore_setup_project()
+crux_setup_project()
 
 include(CMake/FindDeps.cmake)
 

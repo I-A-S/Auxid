@@ -109,7 +109,7 @@ public:
             if (file_idx < args.size() && args[file_idx] == "-Xclang")
               file_idx++;
 
-            if (file_idx < args.size() && args[file_idx].contains("cmake_pch"))
+            if (file_idx < args.size() && (args[file_idx].find("cmake_pch") != String::npos))
             {
               should_strip_next = true;
             }
@@ -134,7 +134,7 @@ public:
           if (next_idx < args.size() && args[next_idx] == "-Xclang")
             next_idx++;
 
-          if (next_idx < args.size() && args[next_idx].contains("cmake_pch"))
+          if (next_idx < args.size() && (args[next_idx].find("cmake_pch") != String::npos))
           {
             i = next_idx;
             continue;

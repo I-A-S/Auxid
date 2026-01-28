@@ -17,6 +17,48 @@
 
 namespace auxid
 {
+  // [IATODO]: Group these into a util namespace
+  static bool fits_in_register(const VarDecl *vd)
+  {
+    ASTContext &ctx = vd->getASTContext();
+    QualType t = vd->getType();
+
+    if (t.isNull() || t->isIncompleteType())
+      return false;
+
+    return ctx.getTypeSize(t) <= 64;
+  }
+
+  static bool is_string_view(QualType t)
+  {
+    QualType base_t = t.getNonReferenceType();
+
+    QualType canonical_t = base_t.getCanonicalType();
+
+    if (const CXXRecordDecl *rd = canonical_t->getAsCXXRecordDecl())
+    {
+      if (rd->isInStdNamespace() && rd->getName() == "basic_string_view")
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static bool is_cheap_to_copy(const VarDecl *vd)
+  {
+    ASTContext &ctx = vd->getASTContext();
+    QualType t = vd->getType();
+
+    if (t.isNull() || t->isIncompleteType())
+      return false;
+
+    if ((ctx.getTypeSize(t) <= 64) || is_string_view(t))
+      return true;
+
+    return false;
+  }
+
   static auto is_type_safe(MutRef<StringRef> ty) -> bool
   {
     if (ty.starts_with("Auxid::"))
@@ -68,11 +110,14 @@ namespace auxid
 
     if (result.SourceManager->isInSystemHeader(loc) || !result.SourceManager->isInMainFile(loc) || !loc.isValid() ||
         var->getDeclContext()->isDependentContext() || var->getType()->isDependentType() || var->isConstexpr() ||
-        var->getType().isConstQualified() || (result.Nodes.getNodeAs<clang::Type>("is_template") != nullptr))
+        var->getType().isConstQualified() || var->getType()->isReferenceType() ||
+        (result.Nodes.getNodeAs<clang::Type>("is_template") != nullptr))
       return;
 
     if (const ParmVarDecl *parm = dyn_cast<ParmVarDecl>(var))
     {
+      if (is_cheap_to_copy(parm))
+        return;
       if (const FunctionDecl *func = dyn_cast<FunctionDecl>(parm->getDeclContext()))
       {
         if (func->isDeleted())
