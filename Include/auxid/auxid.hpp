@@ -167,7 +167,7 @@ template <typename... Args>
 // Utilities
 // =============================================================================
 
-namespace Env {
+namespace env {
 #if defined(NDEBUG)
 constexpr bool IS_DEBUG = false;
 constexpr bool IS_RELEASE = true;
@@ -175,7 +175,7 @@ constexpr bool IS_RELEASE = true;
 constexpr bool IS_DEBUG = true;
 constexpr bool IS_RELEASE = false;
 #endif
-} // namespace Env
+} // namespace env
 
 [[noreturn]] inline void
 panic(Ref<std::string> msg,
@@ -188,7 +188,7 @@ panic(Ref<std::string> msg,
 inline void
 ensure(bool condition, Ref<std::string> msg,
        Ref<std::source_location> loc = std::source_location::current()) {
-  if (Env::IS_DEBUG && !condition) {
+  if (env::IS_DEBUG && !condition) {
     std::cerr << "\n[assert] " << msg << "\n            At: " << loc.file_name()
               << ":" << loc.line() << "\n";
     std::abort();
