@@ -26,7 +26,7 @@ public:                                                                         
   Auxid::ValidationMatcher __##name{__VA_ARGS__, Auxid::make_box<__matcher_##name>()};                                 \
   void __matcher_##name ::run(Auxid::Ref<MatchFinder::MatchResult> result)
 
-namespace Auxid
+namespace auxid
 {
   struct ValidationMatcher
   {
@@ -60,4 +60,4 @@ private:
 private:
     Validator() = default;
   };
-} // namespace Auxid
+} // namespace auxid

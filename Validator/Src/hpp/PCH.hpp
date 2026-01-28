@@ -31,6 +31,6 @@ using namespace clang::ast_matchers;
 using namespace clang::tooling;
 using namespace llvm;
 
-namespace Auxid
+namespace auxid
 {
-} // namespace Auxid
+} // namespace auxid

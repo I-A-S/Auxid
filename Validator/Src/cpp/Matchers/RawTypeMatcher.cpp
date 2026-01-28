@@ -15,7 +15,7 @@
 
 #include <Validator.hpp>
 
-namespace Auxid
+namespace auxid
 {
   static auto is_type_safe(MutRef<StringRef> ty) -> bool
   {
@@ -122,4 +122,4 @@ namespace Auxid
                       "`MutRef<T>`, or `ForwardRef<T>`.\n";
     }
   }
-} // namespace Auxid
+} // namespace auxid

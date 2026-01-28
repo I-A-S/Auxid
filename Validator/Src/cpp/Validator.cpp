@@ -18,7 +18,7 @@
 static llvm::cl::OptionCategory auxid_category("auxid-validator options");
 static cl::extrahelp common_help(CommonOptionsParser::HelpMessage);
 
-namespace Auxid
+namespace auxid
 {
   class SingleCommandDatabase : public CompilationDatabase
   {
@@ -188,4 +188,4 @@ public:
 
     return result;
   }
-} // namespace Auxid
+} // namespace auxid

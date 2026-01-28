@@ -16,41 +16,35 @@
 #pragma once
 
 #if __cplusplus >= 202302L && __has_include(<expected>)
-#  include <expected>
+#include <expected>
 
-#  if defined(__cpp_lib_expected)
-namespace Auxid
-{
-  namespace Internal
-  {
-    template<typename T, typename E> using Expected = std::expected<T, E>;
+#if defined(__cpp_lib_expected)
+namespace auxid {
+namespace internal {
+template <typename T, typename E> using Expected = std::expected<T, E>;
 
-    template<typename E> auto make_unexpected(E &&e)
-    {
-      return std::unexpected(std::forward<E>(e));
-    }
-  } // namespace Internal
-} // namespace Auxid
+template <typename E> auto make_unexpected(E &&e) {
+  return std::unexpected(std::forward<E>(e));
+}
+} // namespace internal
+} // namespace auxid
 
-#    define AUXID_USE_STD_EXPECTED
-#  endif
+#define AUXID_USE_STD_EXPECTED
+#endif
 #endif
 
 #ifndef AUXID_USE_STD_EXPECTED
-#  include "tl/expected.hpp"
+#include "tl/expected.hpp"
 
-namespace Auxid
-{
-  namespace Internal
-  {
-    template<typename T, typename E> using Expected = tl::expected<T, E>;
+namespace auxid {
+namespace internal {
+template <typename T, typename E> using Expected = tl::expected<T, E>;
 
-    template<typename E> auto make_unexpected(E &&e)
-    {
-      return tl::make_unexpected(std::forward<E>(e));
-    }
-  } // namespace Internal
-} // namespace Auxid
+template <typename E> auto make_unexpected(E &&e) {
+  return tl::make_unexpected(std::forward<E>(e));
+}
+} // namespace internal
+} // namespace auxid
 #endif
 
 #include <array>
@@ -76,7 +70,7 @@ namespace Auxid
 
 #define AU_UNUSED(v) (void)(v)
 
-namespace Auxid {
+namespace auxid {
 
 // =============================================================================
 // Primitive Types
@@ -109,8 +103,8 @@ template <typename T> using MutRef = T &;
 template <typename T> using ForwardRef = T &&;
 
 template <typename T>
-[[nodiscard]] constexpr decltype(auto) mut(T&& arg) noexcept {
-    return std::forward<T>(arg);
+[[nodiscard]] constexpr decltype(auto) mut(T &&arg) noexcept {
+  return std::forward<T>(arg);
 }
 
 // =============================================================================
@@ -156,16 +150,16 @@ inline Arc<T> make_arc_protected(ForwardRef<Args>... args) {
 // =============================================================================
 
 template <typename T, typename E = std::string>
-using Result = Auxid::Internal::Expected<T, E>;
+using Result = auxid::internal::Expected<T, E>;
 
 template <typename E> [[nodiscard]] inline auto fail(ForwardRef<E> error) {
-  return Auxid::Internal::make_unexpected(std::forward<E>(error));
+  return auxid::internal::make_unexpected(std::forward<E>(error));
 }
 
 template <typename... Args>
 [[nodiscard]] inline auto fail(Ref<std::format_string<Args...>> fmt,
                                ForwardRef<Args>... args) {
-  return Auxid::Internal::make_unexpected(
+  return auxid::internal::make_unexpected(
       std::format(fmt, std::forward<Args>(args)...));
 }
 
@@ -210,34 +204,34 @@ template <typename T> using Span = std::span<T>;
 template <typename T1, typename T2> using Pair = std::pair<T1, T2>;
 template <typename T, usize Count> using Array = std::array<T, Count>;
 
-} // namespace Auxid
+} // namespace auxid
 
-#define AU_TRY_PURE(expr)                                                     \
+#define AU_TRY_PURE(expr)                                                      \
   {                                                                            \
-    auto _au_res = (expr);                                                    \
-    if (!_au_res) {                                                           \
-      return Auxid::Internal::make_unexpected(std::move(_au_res.error()));  \
+    auto _au_res = (expr);                                                     \
+    if (!_au_res) {                                                            \
+      return auxid::internal::make_unexpected(std::move(_au_res.error()));     \
     }                                                                          \
   }
 
-#define AU_TRY(expr)                                                          \
+#define AU_TRY(expr)                                                           \
   __extension__({                                                              \
-    auto _au_res = (expr);                                                    \
-    if (!_au_res) {                                                           \
-      return Auxid::Internal::make_unexpected(std::move(_au_res.error()));  \
+    auto _au_res = (expr);                                                     \
+    if (!_au_res) {                                                            \
+      return auxid::internal::make_unexpected(std::move(_au_res.error()));     \
     }                                                                          \
-    std::move(*_au_res);                                                      \
+    std::move(*_au_res);                                                       \
   })
 
-#define AU_TRY_DISCARD(expr)                                                  \
+#define AU_TRY_DISCARD(expr)                                                   \
   {                                                                            \
-    auto _au_res = (expr);                                                    \
-    if (!_au_res) {                                                           \
-      return Auxid::Internal::make_unexpected(std::move(_au_res.error()));  \
+    auto _au_res = (expr);                                                     \
+    if (!_au_res) {                                                            \
+      return auxid::internal::make_unexpected(std::move(_au_res.error()));     \
     }                                                                          \
-    AU_UNUSED(*_au_res);                                                     \
+    AU_UNUSED(*_au_res);                                                       \
   }
 
 #if !defined(AUXID_DONT_ALIAS_TO_AU)
-namespace au = Auxid;
+namespace au = auxid;
 #endif
