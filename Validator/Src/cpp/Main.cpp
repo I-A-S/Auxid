@@ -22,5 +22,5 @@ IACORE_MAIN()
   IA_UNUSED(selfPath);
   IA_UNUSED(args);
 
-  return Auxid::Validator::instance().run(argc, (const char **) argv);
+  return auxid::Validator::instance().run(argc, (const char **) argv);
 }

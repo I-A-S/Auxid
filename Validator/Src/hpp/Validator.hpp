@@ -1,4 +1,4 @@
-// Auxid: Rust like safety and syntax for C++
+// auxid: Rust like safety and syntax for C++
 // Copyright (C) 2026 IAS (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,10 +21,10 @@
   class __matcher_##name : public MatchFinder::MatchCallback                                                           \
   {                                                                                                                    \
 public:                                                                                                                \
-    virtual void run(Auxid::Ref<MatchFinder::MatchResult> result) override;                                            \
+    virtual void run(auxid::Ref<MatchFinder::MatchResult> result) override;                                            \
   };                                                                                                                   \
-  Auxid::ValidationMatcher __##name{__VA_ARGS__, Auxid::make_box<__matcher_##name>()};                                 \
-  void __matcher_##name ::run(Auxid::Ref<MatchFinder::MatchResult> result)
+  auxid::ValidationMatcher __##name{__VA_ARGS__, auxid::make_box<__matcher_##name>()};                                 \
+  void __matcher_##name ::run(auxid::Ref<MatchFinder::MatchResult> result)
 
 namespace auxid
 {
