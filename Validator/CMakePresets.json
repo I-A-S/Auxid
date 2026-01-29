@@ -43,7 +43,7 @@
     },
     {
       "name": "auxid-validator-x64-windows-cross",
-      "displayName": "Auxid Validator Windows x64 (Clang Cross)",
+      "displayName": "Auxid Validator Windows x64 (Clang Cross Linux Host)",
       "inherits": "x64-windows-cross",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {

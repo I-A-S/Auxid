@@ -1,3 +1,4 @@
 [submodule "Validator/IACrux"]
 	path = Validator/IACrux
 	url = https://github.com/I-A-S/IACrux
+	branch = main

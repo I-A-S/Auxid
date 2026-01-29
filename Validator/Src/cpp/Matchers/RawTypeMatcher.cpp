@@ -151,6 +151,17 @@ namespace auxid
 
     if (!is_type_safe(type_text))
     {
+      u32 start_col = 0;
+
+      if (const auto tsi = var->getTypeSourceInfo())
+      {
+        const auto loc = tsi->getTypeLoc().getBeginLoc();
+        if (loc.isValid())
+        {
+          start_col = var->getASTContext().getSourceManager().getSpellingColumnNumber(loc);
+        }
+      }
+
       FullSourceLoc full_loc = result.Context->getFullLoc(loc);
 
       const FileEntry *file_entry = full_loc.getFileEntry();
@@ -160,9 +171,10 @@ namespace auxid
       std::filesystem::path rel_path = std::filesystem::relative(file_path, std::filesystem::current_path(), ec);
       const String display_path = ec ? file_path : rel_path.string();
 
-      llvm::outs() << file_path << ":" << full_loc.getSpellingLineNumber() << ":" << full_loc.getSpellingColumnNumber()
-                   << ": [Auxid] Violation: "
-                   << "Variable '" << var->getNameAsString() << "' has unsafe type '" << type_text << "'. "
+      llvm::outs() << file_path << ":" << full_loc.getSpellingLineNumber() << ":" << start_col << ":"
+                   << full_loc.getSpellingColumnNumber() + var->getNameAsString().length()
+                   << ": [Auxid] Violation: " << "Variable '" << var->getNameAsString() << "' has unsafe type '"
+                   << type_text << "'. "
                    << "Must either be marked `const` or be wrapped in `Mut<T>`, `Ref<T>`, "
                       "`MutRef<T>`, or `ForwardRef<T>`.\n";
     }

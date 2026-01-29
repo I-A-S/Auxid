@@ -8,7 +8,8 @@ import { AuxidSidebarProvider } from './sidebar_provider';
 interface AuxidIssue {
     file: string;
     line: number;
-    col: number;
+    startCol: number;
+    endCol: number;
     msg: string;
 }
 
@@ -151,7 +152,7 @@ function runValidatorCli(document: vscode.TextDocument): Promise<{ issueCount: n
             }
 
             const lines = stdout.split('\n');
-            const regex = /^.+:(\d+):(\d+):\s+\[Auxid\]\s+Violation:\s+(.+)$/;
+            const regex = /^.+:(\d+):(\d+):(\d+):\s+\[Auxid\]\s+Violation:\s+(.+)$/;
 
             const foundIssues: AuxidIssue[] = [];
             const diagnostics: vscode.Diagnostic[] = [];
@@ -160,18 +161,20 @@ function runValidatorCli(document: vscode.TextDocument): Promise<{ issueCount: n
                 const match = line.match(regex);
                 if (match) {
                     const lineNum = parseInt(match[1]) - 1;
-                    const colNum = parseInt(match[2]) - 1;
-                    const msg = match[3];
+                    const startColNum = parseInt(match[2]) - 1;
+                    const endColNum = parseInt(match[3]) - 1;
+                    const msg = match[4];
 
                     foundIssues.push({
                         file: document.fileName,
                         line: lineNum,
-                        col: colNum,
+                        startCol: startColNum,
+                        endCol: endColNum,
                         msg: msg
                     });
 
                     if (isLinterEnabled) {
-                        const range = new vscode.Range(lineNum, colNum, lineNum, Number.MAX_VALUE);
+                        const range = new vscode.Range(lineNum, startColNum, lineNum, endColNum);
                         const diagnostic = new vscode.Diagnostic(
                             range,
                             msg,
