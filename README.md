@@ -28,8 +28,8 @@ Auxid is an ever evolving project with the goal of bringing compile-time memory 
 ### Phase 1: The Foundation (Strict Immutability)
 #### Focus: Enforcing "Immutable by Default" and establishing core Rust-like types.
 
-- [x] Core Library: Mut<T> vs Const<T> syntax.
-- [x] Core Library: Result<T, E> and Option<T> with AU_TRY macros.
+- [x] Library: Mut<T> vs Const<T> syntax.
+- [x] Library: Result<T, E> and Option<T> with AU_TRY macros.
 - [x] Validator: Ban "naked" C++ variable declarations (e.g., int x;).
 - [x] Tooling: Basic VS Code Extension for real-time validation.
 
@@ -44,9 +44,10 @@ Auxid is an ever evolving project with the goal of bringing compile-time memory 
 ### Phase 3: Lifetime Safety
 #### Focus: Detecting dangling references and memory corruption.
 
-- [ ] Validator: Escape analysis (preventing references from outliving their owners).
 - [ ] Library: Expanded Smart Pointer support (Box, Arc) with ownership tracking.
 - [ ] Library: Thread-safety primitives (analogues to Rust's Send and Sync).
+- [ ] Validator: `const_fn` and `pure_fn` usage validation.
+- [ ] Validator: Escape analysis (preventing references from outliving their owners).
 
 ### Phase 4: The "Borrow Checker"
 #### Focus: Full aliasing rules and mutation exclusivity.
