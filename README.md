@@ -38,14 +38,14 @@ Auxid is an ever evolving project with the goal of bringing compile-time memory 
 
 - [ ] Validator: Control Flow Graph (CFG) integration for data flow analysis.
 - [ ] Validator: Detect and block usage of moved-from variables ("Use-After-Move").
-- [ ] Library: Expanded Smart Pointer support (Box, Arc) with ownership tracking.
+- [ ] Validator: "Use-After-Free" detection for raw pointers and references.
 - [ ] Tooling: Auto-fix suggestions in VS Code.
 
 ### Phase 3: Lifetime Safety
 #### Focus: Detecting dangling references and memory corruption.
 
-- [ ] Validator: "Use-After-Free" detection for raw pointers and references.
 - [ ] Validator: Escape analysis (preventing references from outliving their owners).
+- [ ] Library: Expanded Smart Pointer support (Box, Arc) with ownership tracking.
 - [ ] Library: Thread-safety primitives (analogues to Rust's Send and Sync).
 
 ### Phase 4: The "Borrow Checker"
