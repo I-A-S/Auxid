@@ -63,44 +63,50 @@ Auxid is a ****header-only**** library.
 
 ## **Quick Start**
 
+> [!NOTE]
+> What are `pure_fn` and `const_fn` below?
+> 
+> `pure_fn` is a function that has no effects except for its return value, and cannot read nor write the global state. It should only depend on its arguments!
+>
+> `const_fn` is a function that may read global state, but cannot modify it.
+
 ```cpp  
 #include <auxid/auxid.hpp>
 
 // Optional: Use the short alias namespace 'au'  
 using namespace au;
 
-auto safe_divide(f32 a, f32 b) -> Result<f32> {  
+pure_fn auto safe_divide(f32 a, f32 b) -> Result<f32> {  
     if (b == 0.0f) {  
         return fail("Division by zero");  
     }  
     return a / b;  
 }
 
-auto count() -> Result<void> {  
-    // 1. Explicit Mutability  
-    // Raw 'i32 x;' is banned by the AuxidValidator!  
+const_fn auto calc_margin(f32 value) -> Result<f32> {  
+    // Automatically propagates errors if safe_divide fails  
+    f32 result = AU_TRY(safe_divide(value, 2.0f));
+
+    if (result > 50.0f) {
+        return fail("Margin is too large");
+    }
+    
+    return result;
+}
+
+auto my_func() -> void {
+    // Explicit Mutability
+    // Raw 'i32 x;' is banned by the `AuxidValidator`  
     Mut<i32> counter = 0;  
     const i32 limit = 10;
 
+    // When using `auto`, either should be marked const
+    // or passed through `mut` function (zero runtime cost)
     const auto flags = get_flags();
-
     auto buffer = mut(get_buffer());
 
     AU_UNUSED(flags);
     AU_UNUSED(buffer);
-
-    // 2. Error Handling with AU_TRY  
-    // Automatically propagates errors if safe_divide fails  
-    f32 result = AU_TRY(safe_divide(100.0f, 2.0f));
-
-    // 3. Statement Expressions (GCC/Clang Only)  
-    // Initialize complex variables in a single expression block  
-    const String message = AU_TRY({  
-        if (result > 50.0f) {  
-            fail("Result too large"); // returns Result<String>  
-        }  
-        Auxid::Internal::make_unexpected("Success"); // returns Result<String>  
-    });
 }
 ```
 

@@ -95,12 +95,12 @@ using isize = std::ptrdiff_t;
 #undef pure
 #undef const_fn 
 
-// 'pure_fn': The function has no effects except the return value.
+// 'pure_fn': The function may not read nor modify the global state.
 // maps to GCC/Clang __attribute__((const))
 // example usage: pure_fn i32 add(i32 a, i32 b);
 #define pure_fn __attribute__((const)) [[nodiscard]]
 
-// 'const_fn': The function may read global memory, but cannot modify it.
+// 'const_fn': The function may read the global state, but not modify it.
 // maps to GCC/Clang __attribute__((pure))
 // example usage: const_fn i32 get_global_counter();
 #define const_fn __attribute__((pure)) [[nodiscard]]
