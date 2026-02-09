@@ -5,6 +5,6 @@ add_subdirectory(IACrux)
 
 crux_setup_project()
 
-include(CMake/FindDeps.cmake)
+include(cmake/find_deps.cmake)
 
-add_subdirectory(Src/)
+add_subdirectory(src/)

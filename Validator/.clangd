@@ -1,3 +1,5 @@
 CompileFlags:
   Add: [-Wno-missing-field-initializers, -Wno-missing-designated-field-initializers]
-  
+
+Completion:
+  HeaderInsertion: Never

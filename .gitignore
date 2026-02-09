@@ -1,6 +1,7 @@
 # --- Clangd & Cache ---
 .clangd/
 .cache/
+.local
 
 # --- Node.js ---
 node_modules/

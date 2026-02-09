@@ -15,22 +15,17 @@
 
 #pragma once
 
-#include <crux/crux.hpp>
-
-#include <clang/ASTMatchers/ASTMatchFinder.h>
-#include <clang/ASTMatchers/ASTMatchers.h>
-#include <clang/Lex/Lexer.h>
-#include <clang/Tooling/CommonOptionsParser.h>
-#include <clang/Tooling/Tooling.h>
-#include <llvm/ADT/StringRef.h>
-#include <llvm/Support/CommandLine.h>
-#include <llvm/Support/Signals.h>
-
-using namespace clang;
-using namespace clang::ast_matchers;
-using namespace clang::tooling;
-using namespace llvm;
+#include <fixpoint/fixpoint.hpp>
 
 namespace auxid
 {
+  using namespace ia;
+
+  class RawTypePolice : public fixpoint::DeclPolice
+  {
+public:
+    auto police(const fixpoint::Decl *decl, Ref<fixpoint::SourceLocation> loc) -> void override;
+
+    [[nodiscard]] auto get_matcher() const -> fixpoint::DeclarationMatcher override;
+  };
 } // namespace auxid
