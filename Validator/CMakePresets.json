@@ -51,6 +51,16 @@
       }
     }
   ],
+  "buildPresets": [
+    {
+      "name": "auxid-validator-x64-linux",
+      "configurePreset": "auxid-validator-x64-linux"
+    },
+    {
+      "name": "auxid-validator-x64-windows",
+      "configurePreset": "auxid-validator-x64-windows"
+    }
+  ],
   "include": [
     "IACrux/CMakePresets.json"
   ]
