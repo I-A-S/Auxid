@@ -36,9 +36,9 @@ Auxid is an ever evolving project with the goal of bringing compile-time memory 
 ### Phase 2: Ownership & Move Semantics (Current Focus)
 #### Focus: Preventing "Use-After-Move" errors and managing resource ownership.
 
-- [ ] Validator: Control Flow Graph (CFG) integration for data flow analysis.
-- [ ] Validator: Detect and block usage of moved-from variables ("Use-After-Move").
-- [ ] Validator: "Use-After-Free" detection for raw pointers and references.
+- [x] Validator: Control Flow Graph (CFG) integration for data flow analysis.
+- [x] Validator: Detect and block usage of moved-from variables ("Use-After-Move").
+- [x] Validator: "Use-After-Free" detection for raw pointers and references.
 - [ ] Tooling: Auto-fix suggestions in VS Code.
 
 ### Phase 3: Lifetime Safety
