@@ -158,19 +158,18 @@ jobs:
 
       - name: Prepare Assets
         run: |
-          # Zip Windows files
           cd windows-build
           zip -r ../auxid-validator-windows.zip .
           cd ..
           
-          # Move Linux binary and make executable
-          mv linux-build/auxid-validator auxid-validator-linux
-          chmod +x auxid-validator-linux
+          cd linux-build
+          zip -r ../auxid-validator-linux.zip .
+          cd ..
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            auxid-validator-linux
+            auxid-validator-linux.zip
             auxid-validator-windows.zip
             extension-build/*.vsix
