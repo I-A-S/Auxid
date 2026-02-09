@@ -27,17 +27,14 @@ jobs:
           sudo ./llvm.sh 21 all
           sudo apt install -y llvm-21-dev libclang-21-dev
 
-      - name: Change to Validator Directory
-        run: cd Validator
-
       - name: Update Submodules
         run: git submodule update --init
 
       - name: Configure
-        run: cmake --preset ${{ matrix.target }} -DLLVM_DIR=/usr/lib/llvm-21/lib/cmake/llvm -DClang_DIR=/usr/lib/llvm-21/lib/cmake/clang
+        run: cd Validator && cmake --preset ${{ matrix.target }} -DLLVM_DIR=/usr/lib/llvm-21/lib/cmake/llvm -DClang_DIR=/usr/lib/llvm-21/lib/cmake/clang
 
       - name: Build
-        run: cmake --build --preset ${{ matrix.target }} --config Release
+        run: cd Validator && cmake --build --preset ${{ matrix.target }} --config Release
 
   build-windows:
       runs-on: windows-latest
@@ -80,14 +77,11 @@ jobs:
 
             echo "$DestDir\bin" >> $env:GITHUB_PATH
 
-        - name: Change to Validator Directory
-          run: cd Validator
-
         - name: Update Submodules
           run: git submodule update --init
 
         - name: Configure
-          run: cmake --preset ${{ matrix.target }}
+          run: cd Validator && cmake --preset ${{ matrix.target }}
 
         - name: Build
-          run: cmake --build --preset ${{ matrix.target }} --config Release
+          run: cd Validator && cmake --build --preset ${{ matrix.target }} --config Release
