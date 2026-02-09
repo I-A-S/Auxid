@@ -49,24 +49,24 @@
       ]
     },
     "configuration": {
-        "title": "Auxid",
-        "properties": {
-            "auxid.validatorPath": {
-                "type": "string",
-                "default": "auxid-validator",
-                "description": "Path to the compiled auxid-validator executable."
-            },
-            "auxid.buildPath": {
-                "type": "string",
-                "default": "${workspaceFolder}",
-                "description": "Path to the folder containing compile_commands.json."
-            }
+      "title": "Auxid",
+      "properties": {
+        "auxid.validatorPath": {
+          "type": "string",
+          "default": "auxid-validator",
+          "description": "Path to the compiled auxid-validator executable."
+        },
+        "auxid.buildPath": {
+          "type": "string",
+          "default": "${workspaceFolder}",
+          "description": "Path to the folder containing compile_commands.json."
         }
+      }
     }
   },
   "activationEvents": [
-      "onLanguage:cpp",
-      "onLanguage:c"
+    "onLanguage:cpp",
+    "onLanguage:c"
   ],
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -77,13 +77,14 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.108.1",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "typescript-eslint": "^8.52.0",
+    "@types/vscode": "^1.108.1",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.7.1",
     "eslint": "^9.39.2",
     "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "typescript-eslint": "^8.52.0"
   }
 }
