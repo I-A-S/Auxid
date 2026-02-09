@@ -103,8 +103,12 @@ namespace auxid
 
     if (!is_type_safe(type_text))
     {
+      clang::TypeSourceInfo *tsi = var->getTypeSourceInfo();
+      if (!tsi)
+        return;
+
       const auto type_name = type_text.str();
-      if (type_name == "auto")
+      if ((type_name == "auto") && !(tsi->getType().isConstQualified() || tsi->getType().isLocalConstQualified()))
         ViolationReporter::report_decl_violation(match_result.Context->getFullLoc(loc), var,
                                                  "Variable '{}' has unsafe type 'auto'. Must either be passed through "
                                                  "`mut()` or be marked "

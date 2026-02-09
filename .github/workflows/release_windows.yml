@@ -4,8 +4,12 @@ on:
   workflow_dispatch:
   push:
     branches: [ "main" ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
+
+permissions:
+  contents: write
 
 jobs:
   build-linux:
@@ -106,3 +110,68 @@ jobs:
           with:
             name: auxid-validator-windows
             path: Validator/out/build/${{ matrix.target }}/bin/Release
+
+  build-extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        working-directory: ./IDE/VSCode/auxid-vscode 
+        run: npm ci
+
+      - name: Package Extension
+        working-directory: ./IDE/VSCode/auxid-vscode
+        run: npx vsce package
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension
+          path: IDE/VSCode/auxid-vscode/*.vsix
+
+  release:
+    needs: [build-linux, build-windows, build-extension]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: auxid-validator-linux
+          path: linux-build
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: auxid-validator-windows
+          path: windows-build
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: vscode-extension
+          path: extension-build
+
+      - name: Prepare Assets
+        run: |
+          # Zip Windows files
+          cd windows-build
+          zip -r ../auxid-validator-windows.zip .
+          cd ..
+          
+          # Move Linux binary and make executable
+          mv linux-build/auxid-validator auxid-validator-linux
+          chmod +x auxid-validator-linux
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            auxid-validator-linux
+            auxid-validator-windows.zip
+            extension-build/*.vsix
+            

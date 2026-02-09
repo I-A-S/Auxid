@@ -165,20 +165,22 @@ function runValidatorCli(document: vscode.TextDocument): Promise<{ issueCount: n
                     const endColNum = parseInt(match[3]) - 1;
                     const msg = match[4];
 
+                    const endCol = (startColNum === endColNum) ? Number.MAX_SAFE_INTEGER : endColNum;
+
                     foundIssues.push({
                         file: document.fileName,
                         line: lineNum,
                         startCol: startColNum,
-                        endCol: endColNum,
+                        endCol: endCol,
                         msg: msg
                     });
 
                     if (isLinterEnabled) {
-                        const range = new vscode.Range(lineNum, startColNum, lineNum, endColNum);
+                        const range = new vscode.Range(lineNum, startColNum, lineNum, endCol);
                         const diagnostic = new vscode.Diagnostic(
                             range,
                             msg,
-                            vscode.DiagnosticSeverity.Warning
+                            vscode.DiagnosticSeverity.Error
                         );
                         diagnostic.source = 'Auxid';
                         diagnostics.push(diagnostic);
