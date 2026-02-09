@@ -1,61 +1,93 @@
-name: Build Windows Binary
+name: CI
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build-linux:
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-
-    defaults:
-      run:
-        shell: msys2 {0}
-
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [auxid-validator-x64-linux]
+        
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup MSYS2
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          install: >-
-            git
-            mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-ninja
-            mingw-w64-x86_64-clang
-            mingw-w64-x86_64-clang-tools-extra
-            mingw-w64-x86_64-llvm
-
-      - name: Fetch IACore
+      - name: Install LLVM/Clang
         run: |
-          git submodule update --init
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21 all
+          sudo apt install -y llvm-21-dev libclang-21-dev
 
-      - name: Configure CMake
-        run: |
-          cmake -S ./Validator -B build -G "Ninja" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_COMPILER=clang++ \
-            -DCMAKE_C_COMPILER=clang \
-            -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++"
+      - name: Change to Validator Directory
+        run: cd Validator
+
+      - name: Update Submodules
+        run: git submodule update --init
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.target }} -DLLVM_DIR=/usr/lib/llvm-21/lib/cmake/llvm -DClang_DIR=/usr/lib/llvm-21/lib/cmake/clang
 
       - name: Build
-        run: cmake --build build
+        run: cmake --build --preset ${{ matrix.target }} --config Release
 
-      - name: Bundle DLLs
-        run: |
-          cp /mingw64/bin/*.dll build/
+  build-windows:
+      runs-on: windows-latest
+      permissions:
+        contents: read
+      strategy:
+        fail-fast: false
+        matrix:
+          target: [auxid-validator-x64-windows]
 
-          echo "DLLs bundled successfully."
+      env:
+        LLVM_VERSION: 21.1.8 
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: AuxidValidator-Windows
-          path: |
-            build/**/*.exe
-            build/*.dll
-          retention-days: 5
+      steps:
+        - uses: actions/checkout@v4
+
+        - uses: ilammy/msvc-dev-cmd@v1
+
+        - name: Install LLVM/Clang ${{ env.LLVM_VERSION }}
+          shell: pwsh
+          run: |
+            $Version = $env:LLVM_VERSION
+            $Filename = "clang+llvm-$Version-x86_64-pc-windows-msvc.tar.xz"
+            $Url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-$Version/$Filename"
+            $DestDir = "C:\llvm"
+
+            echo "Downloading LLVM $Version from $Url..."
+            curl -L -o $Filename $Url
+
+            echo "Extracting..."
+            7z x $Filename -so | 7z x -si -ttar -o"$DestDir"
+
+            $ExtractedRoot = Get-ChildItem -Path "$DestDir" -Directory | Select-Object -First 1
+            $FinalPath = "$DestDir\final"
+            Move-Item -Path "$ExtractedRoot\*" -Destination "$DestDir"
+
+            echo "LLVM_ROOT=$DestDir" >> $env:GITHUB_ENV
+            echo "LLVM_DIR=$DestDir\lib\cmake\llvm" >> $env:GITHUB_ENV
+            echo "Clang_DIR=$DestDir\lib\cmake\clang" >> $env:GITHUB_ENV
+
+            echo "$DestDir\bin" >> $env:GITHUB_PATH
+
+        - name: Change to Validator Directory
+          run: cd Validator
+
+        - name: Update Submodules
+          run: git submodule update --init
+
+        - name: Configure
+          run: cmake --preset ${{ matrix.target }}
+
+        - name: Build
+          run: cmake --build --preset ${{ matrix.target }} --config Release
