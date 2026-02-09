@@ -36,6 +36,12 @@ jobs:
       - name: Build
         run: cd Validator && cmake --build --preset ${{ matrix.target }} --config Release
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: auxid-validator-linux
+          path: Validator/out/build/${{ matrix.target }}/bin/**/auxid-validator
+
   build-windows:
       runs-on: windows-latest
       permissions:
@@ -85,3 +91,18 @@ jobs:
 
         - name: Build
           run: cd Validator && cmake --build --preset ${{ matrix.target }} --config Release
+
+        - name: Bundle Artifacts
+          shell: pwsh
+          run: |
+            $BuildDir = "Validator/out/build/${{ matrix.target }}/bin/Release"
+            $LlvmBin = "C:\llvm\bin"
+            
+            echo "Copying DLLs from $LlvmBin to $BuildDir..."
+            Copy-Item "$LlvmBin\*.dll" -Destination "$BuildDir" -Force
+
+        - name: Upload Artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: auxid-validator-windows
+            path: Validator/out/build/${{ matrix.target }}/bin/Release
