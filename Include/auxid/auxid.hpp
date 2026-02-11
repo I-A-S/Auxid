@@ -1,4 +1,4 @@
-// Auxid: Rust like safety and syntax for C++
+// Auxid: Explicit Safety and Syntax for C++20.
 // Copyright (C) 2026 IAS (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,49 +15,15 @@
 
 #pragma once
 
-#if __cplusplus >= 202302L && __has_include(<expected>)
-#include <expected>
-
-#if defined(__cpp_lib_expected)
-namespace auxid {
-namespace internal {
-template <typename T, typename E> using Expected = std::expected<T, E>;
-
-template <typename E> auto make_unexpected(E &&e) {
-  return std::unexpected(std::forward<E>(e));
-}
-} // namespace internal
-} // namespace auxid
-
-#define AUXID_USE_STD_EXPECTED
-#endif
-#endif
-
-#ifndef AUXID_USE_STD_EXPECTED
-#include "tl/expected.hpp"
-
-namespace auxid {
-namespace internal {
-template <typename T, typename E> using Expected = tl::expected<T, E>;
-
-template <typename E> auto make_unexpected(E &&e) {
-  return tl::make_unexpected(std::forward<E>(e));
-}
-} // namespace internal
-} // namespace auxid
-#endif
-
-#include <array>
+#include <concepts>
 #include <cstdint>
-#include <cstdlib>
-#include <format>
-#include <iostream>
-#include <memory>
-#include <optional>
+#include <new>
 #include <source_location>
-#include <span>
+#include <type_traits>
+#include <utility>
+
+#include <format>
 #include <string>
-#include <vector>
 
 #if !defined(__clang__) && !defined(__GNUC__)
 #error                                                                         \
@@ -68,6 +34,15 @@ template <typename E> auto make_unexpected(E &&e) {
 #error "Auxid requires C++20 or newer."
 #endif
 
+// =============================================================================
+// Definitions
+// =============================================================================
+
+#undef pure_fn
+#undef const_fn
+
+#define pure_fn __attribute__((const)) [[nodiscard]]
+#define const_fn __attribute__((pure)) [[nodiscard]]
 #define AU_UNUSED(v) (void)(v)
 
 namespace auxid {
@@ -92,25 +67,7 @@ using f64 = double;
 using usize = std::size_t;
 using isize = std::ptrdiff_t;
 
-#undef pure
-#undef const_fn 
-
-// 'pure_fn': The function may not read nor modify the global state.
-// maps to GCC/Clang __attribute__((const))
-// example usage: pure_fn i32 add(i32 a, i32 b);
-#define pure_fn __attribute__((const)) [[nodiscard]]
-
-// 'const_fn': The function may read the global state, but not modify it.
-// maps to GCC/Clang __attribute__((pure))
-// example usage: const_fn i32 get_global_counter();
-#define const_fn __attribute__((pure)) [[nodiscard]]
-
-// =============================================================================
-// Template Types
-// =============================================================================
-
 template <typename T> using Mut = T;
-
 template <typename T> using Ref = const T &;
 template <typename T> using MutRef = T &;
 template <typename T> using ForwardRef = T &&;
@@ -121,130 +78,183 @@ template <typename T>
 }
 
 // =============================================================================
-// Memory & Ownership
-// =============================================================================
-
-template <typename T> using Box = std::unique_ptr<T>;
-template <typename T> using Arc = std::shared_ptr<T>;
-template <typename T> using Weak = std::weak_ptr<T>;
-
-template <typename T, typename... Args>
-[[nodiscard]] inline auto make_box(ForwardRef<Args>... args) -> Box<T> {
-  return std::make_unique<T>(std::forward<Args>(args)...);
-}
-
-template <typename T, typename... Args>
-inline Box<T> make_box_protected(ForwardRef<Args>... args) {
-  struct make_box_enabler : public T {
-    make_box_enabler(ForwardRef<Args>... args)
-        : T(std::forward<Args>(args)...) {}
-  };
-
-  return std::make_unique<make_box_enabler>(std::forward<Args>(args)...);
-}
-
-template <typename T, typename... Args>
-[[nodiscard]] inline auto make_arc(ForwardRef<Args>... args) -> Arc<T> {
-  return std::make_shared<T>(std::forward<Args>(args)...);
-}
-
-template <typename T, typename... Args>
-inline Arc<T> make_arc_protected(ForwardRef<Args>... args) {
-  struct make_arc_enabler : public T {
-    make_arc_enabler(ForwardRef<Args>... args)
-        : T(std::forward<Args>(args)...) {}
-  };
-
-  return std::make_shared<make_arc_enabler>(std::forward<Args>(args)...);
-}
-
-// =============================================================================
 // Error Handling
 // =============================================================================
 
-template <typename T, typename E = std::string>
-using Result = auxid::internal::Expected<T, E>;
+template <typename E> struct Unexpected {
+  E val;
+  constexpr explicit Unexpected(E &&v) : val(std::move(v)) {}
+  constexpr explicit Unexpected(const E &v) : val(v) {}
+};
 
-template <typename E> [[nodiscard]] inline auto fail(ForwardRef<E> error) {
-  return auxid::internal::make_unexpected(std::forward<E>(error));
+template <typename E> [[nodiscard]] constexpr auto fail(E &&error) {
+  return Unexpected<std::decay_t<E>>(std::forward<E>(error));
+}
+
+struct ErrorMsg {
+  const char *msg;
+  constexpr ErrorMsg(const char *m) : msg(m) {}
+};
+
+extern void panic_handler(const char *msg, const char *file, u32 line);
+
+[[noreturn]] inline void
+panic(const char *msg,
+      std::source_location loc = std::source_location::current()) {
+  panic_handler(msg, loc.file_name(), loc.line());
+  __builtin_trap();
 }
 
 template <typename... Args>
-[[nodiscard]] inline auto fail(Ref<std::format_string<Args...>> fmt,
-                               ForwardRef<Args>... args) {
-  return auxid::internal::make_unexpected(
-      std::format(fmt, std::forward<Args>(args)...));
+[[noreturn]] inline void panic(std::format_string<Args...> fmt,
+                               Args &&...args) {
+  std::string s = std::format(fmt, std::forward<Args>(args)...);
+  panic(s.c_str());
 }
 
 // =============================================================================
-// Utilities
+// Result
 // =============================================================================
 
-namespace env {
-#if defined(NDEBUG)
-constexpr bool IS_DEBUG = false;
-constexpr bool IS_RELEASE = true;
-#else
-constexpr bool IS_DEBUG = true;
-constexpr bool IS_RELEASE = false;
-#endif
-} // namespace env
+struct Unit {};
 
-[[noreturn]] inline void
-panic(Ref<std::string> msg,
-      Ref<std::source_location> loc = std::source_location::current()) {
-  std::cerr << "\n[panic] " << msg << "\n           At: " << loc.file_name()
-            << ":" << loc.line() << "\n";
-  std::abort();
-}
+template <typename T, typename E = ErrorMsg> class [[nodiscard]] Result {
+  union {
+    T m_val;
+    E m_err;
+  };
+  bool m_is_ok;
 
-inline void
-ensure(bool condition, Ref<std::string> msg,
-       Ref<std::source_location> loc = std::source_location::current()) {
-  if (env::IS_DEBUG && !condition) {
-    std::cerr << "\n[assert] " << msg << "\n            At: " << loc.file_name()
-              << ":" << loc.line() << "\n";
-    std::abort();
+public:
+  constexpr Result(const T &val) : m_val(val), m_is_ok(true) {}
+  constexpr Result(T &&val) : m_val(std::move(val)), m_is_ok(true) {}
+
+  template <typename ErrT>
+  constexpr Result(Unexpected<ErrT> &&failure)
+      : m_err(std::move(failure.val)), m_is_ok(false) {}
+
+  constexpr Result(Result &&other) noexcept : m_is_ok(other.m_is_ok) {
+    if (m_is_ok)
+      std::construct_at(&m_val, std::move(other.m_val));
+    else
+      std::construct_at(&m_err, std::move(other.m_err));
   }
-}
 
-using String = std::string;
-using StringView = std::string_view;
+  constexpr ~Result() {
+    if (m_is_ok) {
+      if constexpr (!std::is_trivially_destructible_v<T>)
+        std::destroy_at(&m_val);
+    } else {
+      if constexpr (!std::is_trivially_destructible_v<E>)
+        std::destroy_at(&m_err);
+    }
+  }
 
-template <typename T> using Option = std::optional<T>;
-template <typename T> using Vec = std::vector<T>;
-template <typename T> using Span = std::span<T>;
-template <typename T1, typename T2> using Pair = std::pair<T1, T2>;
-template <typename T, usize Count> using Array = std::array<T, Count>;
+  constexpr T &
+  unwrap(std::source_location loc = std::source_location::current()) & {
+    if (!m_is_ok)
+      auxid::panic("Called unwrap() on an Error Result", loc);
+    return m_val;
+  }
+
+  constexpr const T &
+  unwrap(std::source_location loc = std::source_location::current()) const & {
+    if (!m_is_ok)
+      auxid::panic("Called unwrap() on an Error Result", loc);
+    return m_val;
+  }
+
+  constexpr T
+  unwrap(std::source_location loc = std::source_location::current()) && {
+    if (!m_is_ok)
+      auxid::panic("Called unwrap() on an Error Result", loc);
+    return std::move(m_val);
+  }
+
+  constexpr E &
+  unwrap_err(std::source_location loc = std::source_location::current()) & {
+    if (m_is_ok)
+      auxid::panic("Called unwrap_err() on an Ok Result", loc);
+    return m_err;
+  }
+
+  [[nodiscard]] constexpr bool is_ok() const { return m_is_ok; }
+  [[nodiscard]] constexpr bool is_err() const { return !m_is_ok; }
+
+  constexpr T &operator*() & { return unwrap(); }
+  constexpr const T &operator*() const & { return unwrap(); }
+  constexpr T *operator->() { return &unwrap(); }
+};
+
+template <typename E> class [[nodiscard]] Result<void, E> {
+  union {
+    E m_err;
+  };
+  bool m_is_ok;
+
+public:
+  constexpr Result() : m_is_ok(true) {}
+
+  template <typename ErrT>
+  constexpr Result(Unexpected<ErrT> &&failure)
+      : m_err(std::move(failure.val)), m_is_ok(false) {}
+
+  constexpr Result(Result &&other) noexcept : m_is_ok(other.m_is_ok) {
+    if (!m_is_ok)
+      std::construct_at(&m_err, std::move(other.m_err));
+  }
+
+  constexpr ~Result() {
+    if (!m_is_ok) {
+      if constexpr (!std::is_trivially_destructible_v<E>)
+        std::destroy_at(&m_err);
+    }
+  }
+
+  constexpr void
+  unwrap(std::source_location loc = std::source_location::current()) const {
+    if (!m_is_ok)
+      auxid::panic("Called unwrap() on an Error Result", loc);
+  }
+
+  [[nodiscard]] constexpr bool is_ok() const { return m_is_ok; }
+  [[nodiscard]] constexpr bool is_err() const { return !m_is_ok; }
+
+  constexpr E &
+  unwrap_err(std::source_location loc = std::source_location::current()) & {
+    if (m_is_ok)
+      auxid::panic("Called unwrap_err() on an Ok Result", loc);
+    return m_err;
+  }
+};
 
 } // namespace auxid
+
+// =============================================================================
+// Macros
+// =============================================================================
 
 #define AU_TRY_PURE(expr)                                                      \
   {                                                                            \
     auto _au_res = (expr);                                                     \
-    if (!_au_res) {                                                            \
-      return auxid::internal::make_unexpected(std::move(_au_res.error()));     \
+    if (_au_res.is_err()) {                                                    \
+      return auxid::fail(std::move(_au_res.unwrap_err()));                     \
     }                                                                          \
   }
 
 #define AU_TRY(expr)                                                           \
   __extension__({                                                              \
     auto _au_res = (expr);                                                     \
-    if (!_au_res) {                                                            \
-      return auxid::internal::make_unexpected(std::move(_au_res.error()));     \
+    if (_au_res.is_err()) {                                                    \
+      return auxid::fail(std::move(_au_res.unwrap_err()));                     \
     }                                                                          \
-    std::move(*_au_res);                                                       \
+    std::move(_au_res.unwrap());                                               \
   })
 
 #define AU_TRY_DISCARD(expr)                                                   \
   {                                                                            \
     auto _au_res = (expr);                                                     \
-    if (!_au_res) {                                                            \
-      return auxid::internal::make_unexpected(std::move(_au_res.error()));     \
+    if (_au_res.is_err()) {                                                    \
+      return auxid::fail(std::move(_au_res.unwrap_err()));                     \
     }                                                                          \
-    AU_UNUSED(*_au_res);                                                       \
   }
-
-#if !defined(AUXID_DONT_ALIAS_TO_AU)
-namespace au = auxid;
-#endif
