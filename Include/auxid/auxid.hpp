@@ -163,20 +163,20 @@ public:
     return std::move(m_val);
   }
 
-  constexpr E &
-  unwrap_err(std::source_location loc = std::source_location::current()) & {
+  constexpr const E &
+  unwrap_err(std::source_location loc = std::source_location::current()) const & {
     if (m_is_ok)
       auxid::panic("Called unwrap_err() on an Ok Result", loc);
     return m_err;
   }
 
-  constexpr E &
-  err(std::source_location loc = std::source_location::current()) & {
+  constexpr const E &
+  err(std::source_location loc = std::source_location::current()) const & {
     return unwrap_err(loc);
   }
 
-  constexpr E &
-  error(std::source_location loc = std::source_location::current()) & {
+  constexpr const E &
+  error(std::source_location loc = std::source_location::current()) const & {
     return unwrap_err(loc);
   }
 
@@ -224,20 +224,20 @@ public:
   [[nodiscard]] constexpr bool is_ok() const { return m_is_ok; }
   [[nodiscard]] constexpr bool is_err() const { return !m_is_ok; }
 
-  constexpr E &
-  unwrap_err(std::source_location loc = std::source_location::current()) & {
+  constexpr const E &
+  unwrap_err(std::source_location loc = std::source_location::current()) const & {
     if (m_is_ok)
       auxid::panic("Called unwrap_err() on an Ok Result", loc);
     return m_err;
   }
 
-  constexpr E &
-  err(std::source_location loc = std::source_location::current()) & {
+  constexpr const E &
+  err(std::source_location loc = std::source_location::current()) const & {
     return unwrap_err(loc);
   }
 
-  constexpr E &
-  error(std::source_location loc = std::source_location::current()) & {
+  constexpr const E &
+  error(std::source_location loc = std::source_location::current()) const & {
     return unwrap_err(loc);
   }
 
