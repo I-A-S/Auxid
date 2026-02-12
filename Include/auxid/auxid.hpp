@@ -187,6 +187,7 @@ public:
   constexpr T &operator*() & { return unwrap(); }
   constexpr const T &operator*() const & { return unwrap(); }
   constexpr T *operator->() { return &unwrap(); }
+  constexpr const T *operator->() const { return &unwrap(); }
 
   constexpr operator bool() const { return is_ok(); }
 };
