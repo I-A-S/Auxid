@@ -178,12 +178,24 @@ public:
     return m_err;
   }
 
+  constexpr E &
+  err(std::source_location loc = std::source_location::current()) & {
+    return unwrap_err(loc);
+  }
+
+  constexpr E &
+  error(std::source_location loc = std::source_location::current()) & {
+    return unwrap_err(loc);
+  }
+
   [[nodiscard]] constexpr bool is_ok() const { return m_is_ok; }
   [[nodiscard]] constexpr bool is_err() const { return !m_is_ok; }
 
   constexpr T &operator*() & { return unwrap(); }
   constexpr const T &operator*() const & { return unwrap(); }
   constexpr T *operator->() { return &unwrap(); }
+
+  constexpr operator bool() const { return is_ok(); }
 };
 
 template <typename E> class [[nodiscard]] Result<void, E> {

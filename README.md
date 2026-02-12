@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/standard-C%2B%2B20-yellow.svg" alt="C++ Standard"/>
 
   <p style="padding-top: 0.2rem;">
-    <b>Rust-like Safety and Syntax for C++20.</b>
+    <b>Explicit Safety and Syntax for C++20.</b>
   </p>
 </div>
 
