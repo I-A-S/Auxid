@@ -15,12 +15,10 @@
 
 #pragma once
 
-#include <concepts>
-#include <cstdint>
-#include <new>
-#include <source_location>
-#include <type_traits>
 #include <utility>
+#include <cstdint>
+#include <type_traits>
+#include <source_location>
 
 #include <format>
 #include <string>
@@ -91,11 +89,6 @@ template <typename E> [[nodiscard]] constexpr auto fail(E &&error) {
   return Unexpected<std::decay_t<E>>(std::forward<E>(error));
 }
 
-struct ErrorMsg {
-  const char *msg;
-  constexpr ErrorMsg(const char *m) : msg(m) {}
-};
-
 extern void panic_handler(const char *msg, const char *file, u32 line);
 
 [[noreturn]] inline void
@@ -118,7 +111,7 @@ template <typename... Args>
 
 struct Unit {};
 
-template <typename T, typename E = ErrorMsg> class [[nodiscard]] Result {
+template <typename T, typename E> class [[nodiscard]] ResultT {
   union {
     T m_val;
     E m_err;
@@ -126,21 +119,21 @@ template <typename T, typename E = ErrorMsg> class [[nodiscard]] Result {
   bool m_is_ok;
 
 public:
-  constexpr Result(const T &val) : m_val(val), m_is_ok(true) {}
-  constexpr Result(T &&val) : m_val(std::move(val)), m_is_ok(true) {}
+  constexpr ResultT(const T &val) : m_val(val), m_is_ok(true) {}
+  constexpr ResultT(T &&val) : m_val(std::move(val)), m_is_ok(true) {}
 
   template <typename ErrT>
-  constexpr Result(Unexpected<ErrT> &&failure)
+  constexpr ResultT(Unexpected<ErrT> &&failure)
       : m_err(std::move(failure.val)), m_is_ok(false) {}
 
-  constexpr Result(Result &&other) noexcept : m_is_ok(other.m_is_ok) {
+  constexpr ResultT(ResultT &&other) noexcept : m_is_ok(other.m_is_ok) {
     if (m_is_ok)
       std::construct_at(&m_val, std::move(other.m_val));
     else
       std::construct_at(&m_err, std::move(other.m_err));
   }
 
-  constexpr ~Result() {
+  constexpr ~ResultT() {
     if (m_is_ok) {
       if constexpr (!std::is_trivially_destructible_v<T>)
         std::destroy_at(&m_val);
@@ -198,25 +191,25 @@ public:
   constexpr operator bool() const { return is_ok(); }
 };
 
-template <typename E> class [[nodiscard]] Result<void, E> {
+template <typename E> class [[nodiscard]] ResultT<void, E> {
   union {
     E m_err;
   };
   bool m_is_ok;
 
 public:
-  constexpr Result() : m_is_ok(true) {}
+  constexpr ResultT() : m_is_ok(true) {}
 
   template <typename ErrT>
-  constexpr Result(Unexpected<ErrT> &&failure)
+  constexpr ResultT(Unexpected<ErrT> &&failure)
       : m_err(std::move(failure.val)), m_is_ok(false) {}
 
-  constexpr Result(Result &&other) noexcept : m_is_ok(other.m_is_ok) {
+  constexpr ResultT(ResultT &&other) noexcept : m_is_ok(other.m_is_ok) {
     if (!m_is_ok)
       std::construct_at(&m_err, std::move(other.m_err));
   }
 
-  constexpr ~Result() {
+  constexpr ~ResultT() {
     if (!m_is_ok) {
       if constexpr (!std::is_trivially_destructible_v<E>)
         std::destroy_at(&m_err);
