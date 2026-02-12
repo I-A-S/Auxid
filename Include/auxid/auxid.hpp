@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <utility>
 #include <cstdint>
-#include <type_traits>
 #include <source_location>
+#include <type_traits>
+#include <utility>
 
 #include <format>
 #include <string>
@@ -41,6 +41,7 @@
 
 #define pure_fn __attribute__((const)) [[nodiscard]]
 #define const_fn __attribute__((pure)) [[nodiscard]]
+
 #define AU_UNUSED(v) (void)(v)
 
 namespace auxid {
@@ -108,8 +109,6 @@ template <typename... Args>
 // =============================================================================
 // Result
 // =============================================================================
-
-struct Unit {};
 
 template <typename T, typename E> class [[nodiscard]] ResultT {
   union {
@@ -231,6 +230,18 @@ public:
       auxid::panic("Called unwrap_err() on an Ok Result", loc);
     return m_err;
   }
+
+  constexpr E &
+  err(std::source_location loc = std::source_location::current()) & {
+    return unwrap_err(loc);
+  }
+
+  constexpr E &
+  error(std::source_location loc = std::source_location::current()) & {
+    return unwrap_err(loc);
+  }
+
+  constexpr operator bool() const { return is_ok(); }
 };
 
 } // namespace auxid
