@@ -182,6 +182,7 @@ public:
 
   [[nodiscard]] constexpr bool is_ok() const { return m_is_ok; }
   [[nodiscard]] constexpr bool is_err() const { return !m_is_ok; }
+  [[nodiscard]] constexpr bool has_value() const { return m_is_ok; }
 
   constexpr T &operator*() & { return unwrap(); }
   constexpr const T &operator*() const & { return unwrap(); }
@@ -223,6 +224,7 @@ public:
 
   [[nodiscard]] constexpr bool is_ok() const { return m_is_ok; }
   [[nodiscard]] constexpr bool is_err() const { return !m_is_ok; }
+  [[nodiscard]] constexpr bool has_value() const { return m_is_ok; }
 
   constexpr const E &
   unwrap_err(std::source_location loc = std::source_location::current()) const & {
