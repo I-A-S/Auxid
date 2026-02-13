@@ -211,3 +211,8 @@ private:
   template<typename Container> Span(const Container &) -> Span<const typename Container::value_type>;
 
 } // namespace au::containers
+
+namespace au
+{
+  template<typename T> using Span = containers::Span<T>;
+}

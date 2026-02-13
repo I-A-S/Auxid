@@ -310,3 +310,8 @@ private:
     }
   };
 } // namespace au::containers
+
+namespace au
+{
+  template<typename K, typename V> using HashMap = containers::HashMap<K, V>;
+}

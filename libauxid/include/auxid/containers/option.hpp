@@ -17,9 +17,6 @@
 
 #include <auxid/pch.hpp>
 
-#include <functional>
-#include <utility>
-
 namespace au::containers
 {
   struct NullOptType
@@ -264,3 +261,8 @@ public:
   };
 
 } // namespace au::containers
+
+namespace au
+{
+  template<typename T> using Option = containers::Option<T>;
+}

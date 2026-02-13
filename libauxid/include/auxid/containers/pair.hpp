@@ -35,3 +35,8 @@ namespace au::containers
     }
   };
 } // namespace au::containers
+
+namespace au
+{
+  template<typename T1, typename T2> using Pair = containers::Pair<T1, T2>;
+}

@@ -19,8 +19,10 @@
 #include <utility>
 #include <malloc.h>
 #include <stdint.h>
-#include <source_location>
+#include <assert.h>
+#include <functional>
 #include <type_traits>
+#include <source_location>
 
 #if !defined(__clang__) && !defined(__GNUC__)
 #  error "Auxid requires Clang or GCC for Statement Expressions ({...}). Use clang-cl on Windows."

@@ -253,3 +253,8 @@ private:
     }
   };
 } // namespace au::containers
+
+namespace au
+{
+  template<typename T> using HashSet = containers::HashSet<T>;
+}

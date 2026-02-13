@@ -15,9 +15,20 @@
 
 #pragma once
 
-#include <auxid/result.hpp>
+#include <auxid/pch.hpp>
+#include <auxid/containers/string.hpp>
 
 namespace au
 {
+  template<typename T> using Result = ResultT<T, String>;
 
-}
+  template<typename... Args> [[nodiscard]] inline auto fail(const char *fmt, Args &&...args)
+  {
+    return fail(String::format(fmt, std::forward<Args>(args)...));
+  }
+
+  template<typename... Args> [[noreturn]] void panic(const char *fmt, Args &&...args)
+  {
+    panic(String::format(fmt, std::forward(args)...));
+  }
+} // namespace au

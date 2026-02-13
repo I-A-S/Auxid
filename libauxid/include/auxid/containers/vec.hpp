@@ -388,3 +388,10 @@ private:
     }
   };
 } // namespace au::containers
+
+namespace au
+{
+  template<typename T> using Vec = containers::VecT<T, usize>;
+  template<typename T> using TinyVec = containers::VecT<T, u16>;
+  template<typename T> using CompactVec = containers::VecT<T, u32>;
+} // namespace au

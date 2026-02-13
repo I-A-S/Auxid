@@ -680,3 +680,8 @@ namespace au::containers
     return result;
   }
 } // namespace au::containers
+
+namespace au
+{
+  using String = containers::String;
+}

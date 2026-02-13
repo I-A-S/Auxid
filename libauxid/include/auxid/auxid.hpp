@@ -15,34 +15,7 @@
 
 #pragma once
 
-#include <auxid/containers/hash_map.hpp>
-#include <auxid/containers/hash_set.hpp>
-#include <auxid/containers/option.hpp>
-#include <auxid/containers/pair.hpp>
-#include <auxid/containers/string.hpp>
-#include <auxid/containers/vec.hpp>
-
-namespace au
-{
-  using StringView = StringView;
-  using String = containers::String;
-  template<typename T> using Vec = containers::VecT<T, usize>;
-  template<typename T> using TinyVec = containers::VecT<T, u16>;
-  template<typename T> using CompactVec = containers::VecT<T, u32>;
-  template<typename T> using Span = containers::Span<T>;
-  template<typename T1, typename T2> using Pair = containers::Pair<T1, T2>;
-  template<typename K, typename V> using HashMap = containers::HashMap<K, V>;
-  template<typename T> using Option = containers::Option<T>;
-  template<typename T> using HashSet = containers::HashSet<T>;
-
-  template<typename T> using Result = ResultT<T, String>;
-
-  template<typename... Args> [[noreturn]] inline void panic(const char *fmt, Args &&...args)
-  {
-    panic(String::format(fmt, std::forward(args)...));
-  }
-
-} // namespace au
+#include <auxid/result.hpp>
 
 namespace au
 {
@@ -70,11 +43,6 @@ namespace au
     constexpr const usize MAX_PATH_LEN = 4096;
 
   } // namespace env
-
-  template<typename... Args> [[nodiscard]] inline auto fail(const char *fmt, Args &&...args)
-  {
-    return fail(String::format(fmt, std::forward<Args>(args)...));
-  }
 
   // =============================================================================
   // Versioning
@@ -113,6 +81,9 @@ namespace au
     auto initialize_main_thread() -> void;
     auto terminate_main_thread() -> void;
 
+    // Must be called on all *manually* spawned threads.
+    // If you're using Auxid Threads (au::ThreadT, au::NThread, au::JThread),
+    // this is handled automatically for you.
     auto initialize_worker_thread() -> void;
     auto terminate_worker_thread() -> void;
 
