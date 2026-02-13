@@ -1,0 +1,30 @@
+Language: Cpp
+Standard: c++20
+BasedOnStyle: Microsoft
+
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+AccessModifierOffset: -4
+
+IndentPPDirectives: AfterHash
+IndentRequiresClause: true
+BreakBeforeConceptDeclarations: true
+SpaceAfterTemplateKeyword: false
+
+FixNamespaceComments: true
+NamespaceIndentation: All
+CompactNamespaces: true
+
+AlignAfterOpenBracket: Align
+AlignOperands: Align
+AlignTrailingComments: true
+
+SpaceAfterCStyleCast: true
+SpaceAfterLogicalNot: false
+SpaceBeforeAssignmentOperators: true
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+
+SeparateDefinitionBlocks: Always
+SortIncludes: Never

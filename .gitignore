@@ -1,0 +1,9 @@
+.clangd/
+.cache/
+.local/
+
+node_modules/
+
+build/
+out/
+[Rr]elease/

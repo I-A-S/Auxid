@@ -1,0 +1,109 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28
+  },
+  "configurePresets": [
+    {
+      "name": "auxid-base",
+      "hidden": true,
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/${presetName}-clang.cmake"
+      }
+    },
+    {
+      "name": "x64-linux",
+      "displayName": "Auxid Linux x64 (Clang)",
+      "inherits": "auxid-base",
+      "cacheVariables": {}
+    },
+    {
+      "name": "arm64-linux",
+      "displayName": "Auxid Linux ARM64 (Clang Cross)",
+      "inherits": "auxid-base",
+      "cacheVariables": {}
+    },
+    {
+      "name": "x64-windows",
+      "displayName": "Auxid Windows x64 (Clang)",
+      "inherits": "auxid-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
+      }
+    },
+    {
+      "name": "arm64-windows",
+      "displayName": "Auxid Windows ARM64 (Clang Cross)",
+      "inherits": "auxid-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
+      }
+    },
+    {
+      "name": "wasm32-emscripten",
+      "displayName": "Auxid WebAssembly (Clang)",
+      "inherits": "auxid-base",
+      "cacheVariables": {}
+    },
+    {
+      "name": "x64-windows-cross",
+      "displayName": "Auxid Windows x64 (Clang Cross Linux Host)",
+      "inherits": "auxid-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "x64-linux",
+      "configurePreset": "x64-linux"
+    },
+    {
+      "name": "arm64-linux",
+      "configurePreset": "arm64-linux"
+    },
+    {
+      "name": "x64-windows",
+      "configurePreset": "x64-windows"
+    },
+    {
+      "name": "arm64-windows",
+      "configurePreset": "arm64-windows"
+    },
+    {
+      "name": "wasm32-emscripten",
+      "configurePreset": "wasm32-emscripten"
+    },
+    {
+      "name": "x64-windows-cross",
+      "configurePreset": "x64-windows-cross"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "x64-linux",
+      "configurePreset": "x64-linux",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "x64-windows",
+      "configurePreset": "x64-windows",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}
