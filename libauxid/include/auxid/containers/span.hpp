@@ -16,7 +16,10 @@
 #pragma once
 
 #include <auxid/pch.hpp>
+
+#include <ranges>
 #include <iterator>
+#include <algorithm>
 #include <type_traits>
 
 namespace au::containers
@@ -52,28 +55,29 @@ public:
     {
     }
 
-    template<typename Container>
-      requires(!std::is_same_v<std::remove_cvref_t<Container>, Span> &&
-               requires(Container &c) {
-                 { std::data(c) } -> std::convertible_to<pointer>;
-                 { std::size(c) } -> std::convertible_to<size_type>;
-               })
-    constexpr Span(Container &cont) noexcept : m_ptr(std::data(cont)), m_len(std::size(cont))
+    constexpr Span(std::initializer_list<value_type> il) noexcept
+      requires(std::is_const_v<element_type>)
+        : m_ptr(il.begin()), m_len(static_cast<size_type>(il.size()))
     {
     }
 
-    template<typename Container>
-      requires(!std::is_same_v<std::remove_cvref_t<Container>, Span> && std::is_const_v<element_type> &&
-               requires(const Container &c) {
-                 { std::data(c) } -> std::convertible_to<pointer>;
-                 { std::size(c) } -> std::convertible_to<size_type>;
-               })
-    constexpr Span(const Container &cont) noexcept : m_ptr(std::data(cont)), m_len(std::size(cont))
+    template<typename Range>
+      requires(!std::is_same_v<std::remove_cvref_t<Range>, Span> && std::ranges::contiguous_range<Range> &&
+               std::ranges::sized_range<Range> && std::ranges::borrowed_range<Range> &&
+               std::is_convertible_v<std::ranges::range_reference_t<Range>, reference>)
+    constexpr Span(Range &&r) noexcept
+        : m_ptr(std::ranges::data(r)), m_len(static_cast<size_type>(std::ranges::size(r)))
     {
     }
 
     constexpr Span(const Span &other) noexcept = default;
     constexpr Span &operator=(const Span &other) noexcept = default;
+
+    template<typename U>
+      requires(std::is_convertible_v<U (*)[], element_type (*)[]>)
+    constexpr Span(const Span<U> &other) noexcept : m_ptr(other.data()), m_len(other.size())
+    {
+    }
 
 public:
     [[nodiscard]] constexpr pointer data() const noexcept
@@ -183,16 +187,57 @@ public:
     }
 
 public:
-    [[nodiscard]] auto as_bytes() const noexcept
+    template<size_type Count> [[nodiscard]] constexpr Span<T> first() const
     {
-      if constexpr (std::is_const_v<T>)
+#if !defined(NDEBUG)
+      if (Count > m_len)
+        panic("Span::first<N>() count > size");
+#endif
+      return Span<T>(m_ptr, Count);
+    }
+
+    template<size_type Count> [[nodiscard]] constexpr Span<T> last() const
+    {
+#if !defined(NDEBUG)
+      if (Count > m_len)
+        panic("Span::last<N>() count > size");
+#endif
+      return Span<T>(m_ptr + (m_len - Count), Count);
+    }
+
+    template<size_type Offset, size_type Count = static_cast<size_type>(-1)>
+    [[nodiscard]] constexpr Span<T> subspan() const
+    {
+#if !defined(NDEBUG)
+      if (Offset > m_len)
+        panic("Span::subspan<Offset, Count>() offset > size");
+#endif
+
+      if constexpr (Count == static_cast<size_type>(-1))
       {
-        return Span<const u8>(reinterpret_cast<const u8 *>(m_ptr), m_len * sizeof(T));
+        return Span<T>(m_ptr + Offset, m_len - Offset);
       }
       else
       {
-        return Span<const u8>(reinterpret_cast<const u8 *>(m_ptr), m_len * sizeof(T));
+#if !defined(NDEBUG)
+        if (Count > m_len - Offset)
+          panic("Span::subspan<Offset, Count>() count > remaining");
+#endif
+        return Span<T>(m_ptr + Offset, Count);
       }
+    }
+
+    template<typename U>
+    [[nodiscard]] constexpr bool operator==(const Span<U> &rhs) const noexcept
+      requires(requires { std::ranges::equal(*this, rhs); })
+    {
+      return std::ranges::equal(*this, rhs);
+    }
+
+public:
+    [[nodiscard]] auto as_bytes() const noexcept
+    {
+      return Span<const u8>(reinterpret_cast<const u8 *>(m_ptr), m_len * sizeof(T));
     }
 
     [[nodiscard]] auto as_writable_bytes() const noexcept
@@ -207,8 +252,9 @@ private:
   };
 
   template<typename T, usize N> Span(T (&)[N]) -> Span<T>;
-  template<typename Container> Span(Container &) -> Span<typename Container::value_type>;
-  template<typename Container> Span(const Container &) -> Span<const typename Container::value_type>;
+  template<typename T> Span(std::initializer_list<T>) -> Span<const T>;
+  template<std::ranges::contiguous_range Range>
+  Span(Range &&) -> Span<std::remove_reference_t<std::ranges::range_reference_t<Range>>>;
 
 } // namespace au::containers
 
@@ -216,3 +262,5 @@ namespace au
 {
   template<typename T> using Span = containers::Span<T>;
 }
+
+template<typename T> inline constexpr bool std::ranges::enable_borrowed_range<au::containers::Span<T>> = true;

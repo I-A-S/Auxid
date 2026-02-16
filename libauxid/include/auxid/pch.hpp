@@ -372,6 +372,9 @@ public:
 #define AU_LIKELY(v) (v) [[likely]]
 #define AU_UNLIKELY(v) (v) [[unlikely]]
 
+#define AU_ENSURE_CLASS_HAS_CONCEPT(cls, cpt)                                                                          \
+  static_assert(cpt<cls>, "Class '" #cls "' must satisfy concept '" #cpt "'.")
+
 #define AU_TRY_PURE(expr)                                                                                              \
   {                                                                                                                    \
     auto _au_res = (expr);                                                                                             \

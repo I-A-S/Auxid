@@ -558,6 +558,11 @@ public:
       return StringView(*this).find(StringView(s), pos);
     }
 
+    auto operator+=(StringView other) -> void
+    {
+      append(other);
+    }
+
 public:
     static String format(const char *fmt, ...)
     {

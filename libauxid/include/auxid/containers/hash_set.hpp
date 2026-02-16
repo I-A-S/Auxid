@@ -65,9 +65,9 @@ public:
     void clear()
     {
       m_entries.clear();
-      if (m_buckets.size() > 0)
+      if (!m_buckets.empty())
       {
-        std::memset(m_buckets.data(), 0xFF, m_buckets.size() * sizeof(u32));
+        std::fill(m_buckets.begin(), m_buckets.end(), INDEX_INVALID);
       }
     }
 
@@ -168,7 +168,7 @@ private:
       m_buckets.clear();
       m_buckets.reserve(new_cap);
 
-      m_buckets.resize(new_cap, 0xFF);
+      m_buckets.resize(new_cap, INDEX_INVALID);
 
       m_mask = new_cap - 1;
 
