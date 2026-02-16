@@ -5,7 +5,7 @@ set(SRC_FILES
 add_executable(auxid ${SRC_FILES})
 
 target_link_libraries(auxid PRIVATE
-  auxid-rt
+  auxid-platform
 )
 
 target_include_directories(auxid PRIVATE

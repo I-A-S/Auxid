@@ -15,15 +15,38 @@
 
 #include <auxid/auxid.hpp>
 
+#include <auxid/thread/thread.hpp>
+#include <auxid/containers/hash_map.hpp>
+
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
 #  include <auxid/vendor/rpmalloc/rpmalloc.h>
 #endif
 
-namespace au
+namespace au::auxid
 {
-  // [IATODO]: IMPL MultiCall Protection (DEP: Thread)
+  struct State
+  {
+    Mut<Thread::ThreadID> main_thread_id{};
+    Mut<HashMap<Thread::ThreadID, i32>> thread_init_counter{};
+  };
+
+  auto get_state() -> State &
+  {
+    static Mut<State> s_state{};
+    return s_state;
+  }
+
   auto initialize_main_thread() -> void
   {
+    auto &state = get_state();
+
+    const auto thread_id = Thread::get_calling_thread_id();
+    state.thread_init_counter[thread_id]++;
+    if (state.thread_init_counter[thread_id] > 1)
+      return;
+
+    state.main_thread_id = thread_id;
+
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
     rpmalloc_initialize(nullptr);
 #endif
@@ -31,6 +54,13 @@ namespace au
 
   auto terminate_main_thread() -> void
   {
+    auto &state = get_state();
+
+    const auto thread_id = Thread::get_calling_thread_id();
+    state.thread_init_counter[thread_id]--;
+    if (state.thread_init_counter[thread_id] > 0)
+      return;
+
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
     rpmalloc_finalize();
 #endif
@@ -38,6 +68,13 @@ namespace au
 
   auto initialize_worker_thread() -> void
   {
+    auto &state = get_state();
+
+    const auto thread_id = Thread::get_calling_thread_id();
+    state.thread_init_counter[thread_id]++;
+    if (state.thread_init_counter[thread_id] > 1)
+      return;
+
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
     rpmalloc_thread_initialize();
 #endif
@@ -45,6 +82,13 @@ namespace au
 
   auto terminate_worker_thread() -> void
   {
+    auto &state = get_state();
+
+    const auto thread_id = Thread::get_calling_thread_id();
+    state.thread_init_counter[thread_id]--;
+    if (state.thread_init_counter[thread_id] > 0)
+      return;
+
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
     rpmalloc_thread_finalize();
 #endif
@@ -52,18 +96,14 @@ namespace au
 
   auto is_main_thread() -> bool
   {
-    // [IATODO]: IMPL
-    panic("Not Implemented!");
-    return false;
+    return get_state().main_thread_id == Thread::get_calling_thread_id();
   }
 
   auto is_thread_initialized() -> bool
   {
-    // [IATODO]: IMPL
-    panic("Not Implemented!");
-    return false;
+    return get_state().thread_init_counter[Thread::get_calling_thread_id()] > 0;
   }
-} // namespace au
+} // namespace au::auxid
 
 namespace au
 {

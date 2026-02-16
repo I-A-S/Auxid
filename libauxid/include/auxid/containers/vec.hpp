@@ -75,7 +75,7 @@ public:
       {
         clear();
         if (m_data)
-          m_allocator.free(m_data, m_capacity * sizeof(T));
+          m_allocator.free(m_data, m_capacity * sizeof(T), alignof(T));
 
         m_allocator = std::move(other.m_allocator);
         m_data = other.m_data;
@@ -138,7 +138,7 @@ public:
     {
       clear();
       if (m_data)
-        m_allocator.free(m_data, m_capacity * sizeof(T));
+        m_allocator.free(m_data, m_capacity * sizeof(T), alignof(T));
     }
 
 public:
@@ -241,7 +241,7 @@ public:
             std::destroy_at(&m_data[i]);
           }
         }
-        m_allocator.free(m_data, m_capacity * sizeof(T));
+        m_allocator.free(m_data, m_capacity * sizeof(T), alignof(T));
       }
 
       m_data = new_data;

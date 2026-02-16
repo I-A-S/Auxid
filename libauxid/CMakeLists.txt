@@ -5,12 +5,12 @@ set(SRC_FILES
   "src/cpp/vendor/tinycthread/tinycthread.c"
 )
 
-add_library(auxid-rt STATIC ${SRC_FILES})
+add_library(libauxid STATIC ${SRC_FILES})
 
-target_include_directories(auxid-rt PUBLIC
+target_include_directories(libauxid PUBLIC
   "include"
 )
 
-target_include_directories(auxid-rt PRIVATE
+target_include_directories(libauxid PRIVATE
   "src/hpp"
 )

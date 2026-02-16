@@ -151,8 +151,7 @@ private:
   };
 
   // Non Joining Thread
-  using NThread = ThreadT<false>;
-
+  using Thread = ThreadT<false>;
   // Joining Thread
   using JThread = ThreadT<true>;
 } // namespace au
