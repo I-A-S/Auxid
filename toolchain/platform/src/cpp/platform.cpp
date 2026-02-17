@@ -23,8 +23,8 @@ namespace au::platform
 {
   auto download_file(String url, String dst_path) -> Result<void>
   {
-    const auto write_chunk = [](void *ptr, usize size, usize nmemb, FILE *stream) -> usize {
-      return fwrite(ptr, size, nmemb, stream);
+    const auto write_chunk = [](void *ptr, usize size, usize nmemb, void *userdata) -> usize {
+      return fwrite(ptr, size, nmemb, static_cast<FILE *>(userdata));
     };
 
     const auto dst_file = fopen(dst_path.c_str(), "wb");

@@ -8,15 +8,11 @@ target_include_directories(auxid-platform PUBLIC
   include
 )
 
-target_include_directories(auxid-platform PUBLIC
+target_include_directories(auxid-platform PRIVATE
   src/hpp
 )
 
 target_link_libraries(auxid-platform PUBLIC
   curl  
   libauxid
-)
-
-target_precompile_headers(auxid-platform PUBLIC 
-  "include/platform/pch.hpp"
 )

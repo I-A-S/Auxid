@@ -13,22 +13,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <auxid/builder/builder.hpp>
+#include <cli.hpp>
 
-// https://pub-5ec75d0235134a70af964a07bf3e1493.r2.dev
+// https://pkg.auxid.dev/libauxid.zip
 
-namespace au::compiler
+namespace au
 {
-  auto main(i32 argc, const char *argv[]) -> Result<void>
+  auto main(i32 argc, char *argv[]) -> Result<void>
   {
+    CLI cli;
+
+    const auto cmd = AU_TRY(cli.parse(argc, argv));
+
+    switch (cmd)
+    {
+    case CLI::ECommand::Workspace_New:
+      break;
+    case CLI::ECommand::Workspace_Build:
+      break;
+    case CLI::ECommand::Workspace_Clean:
+      break;
+    case CLI::ECommand::Workspace_Repair:
+      break;
+
+    case CLI::ECommand::Package_Install:
+      break;
+    case CLI::ECommand::Package_InstallAll:
+      break;
+    case CLI::ECommand::Package_Remove:
+      break;
+    case CLI::ECommand::Package_Update:
+      break;
+    }
+
     return {};
   }
-} // namespace au::compiler
+} // namespace au
 
 extern "C" int main(int argc, char *argv[])
 {
   au::auxid::initialize_main_thread();
-  const auto result = au::compiler::main(argc, (const char **) argv);
+  const auto result = au::main(argc, argv);
   if (!result)
   {
     printf("[FATAL ERROR]: %s\n", result.error().c_str());

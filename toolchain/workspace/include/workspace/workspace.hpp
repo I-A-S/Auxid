@@ -17,11 +17,7 @@
 
 #include <auxid/auxid.hpp>
 
-#include <auxid/containers/vec.hpp>
-#include <auxid/containers/pair.hpp>
-
-namespace au::platform
+namespace au::workspace
 {
-  auto download_file(String url, String dst_path) -> Result<void>;
-  auto spawn_process(std::initializer_list<const char *> command_line) -> Result<Pair<i32, String>>;
-} // namespace au::platform
+
+}

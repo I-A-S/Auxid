@@ -18,10 +18,31 @@
 #include <auxid/auxid.hpp>
 
 #include <auxid/containers/vec.hpp>
-#include <auxid/containers/pair.hpp>
 
-namespace au::platform
+namespace au
 {
-  auto download_file(String url, String dst_path) -> Result<void>;
-  auto spawn_process(std::initializer_list<const char *> command_line) -> Result<Pair<i32, String>>;
-} // namespace au::platform
+  class CLI
+  {
+public:
+    enum class ECommand
+    {
+      Workspace_New,
+      Workspace_Build,
+      Workspace_Clean,
+      Workspace_Repair,
+
+      Package_Install,
+      Package_InstallAll,
+      Package_Remove,
+      Package_Update,
+    };
+
+public:
+    auto parse(i32 argc, char *argv[]) -> Result<ECommand>;
+
+    [[nodiscard]] auto get_arg(i32 index) const -> Result<String>;
+
+private:
+    Vec<String> m_args;
+  };
+} // namespace au

@@ -20,7 +20,6 @@
 #include <malloc.h>
 #include <stdint.h>
 #include <assert.h>
-#include <functional>
 #include <type_traits>
 #include <source_location>
 

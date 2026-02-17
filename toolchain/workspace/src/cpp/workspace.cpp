@@ -13,14 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include <workspace/workspace.hpp>
 
-#include <auxid/auxid.hpp>
-
-#include <auxid/containers/vec.hpp>
-#include <auxid/containers/pair.hpp>
-
-namespace au::platform
+namespace au::workspace
 {
 
 }
