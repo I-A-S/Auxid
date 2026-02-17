@@ -13,6 +13,7 @@ target_include_directories(auxid-platform PUBLIC
 )
 
 target_link_libraries(auxid-platform PUBLIC
+  curl  
   libauxid
 )
 

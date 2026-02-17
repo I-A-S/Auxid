@@ -19,5 +19,6 @@
 
 namespace au::platform
 {
+  auto download_file(String url, String dst_path) -> Result<void>;
   auto spawn_process(std::initializer_list<const char *> command_line) -> Result<Pair<i32, String>>;
-}
+} // namespace au::platform

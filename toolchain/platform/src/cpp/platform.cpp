@@ -17,8 +17,53 @@
 
 #include <vendor/sheredom/subprocess.h>
 
+#include <curl/curl.h>
+
 namespace au::platform
 {
+  auto download_file(String url, String dst_path) -> Result<void>
+  {
+    const auto write_chunk = [](void *ptr, usize size, usize nmemb, FILE *stream) -> usize {
+      return fwrite(ptr, size, nmemb, stream);
+    };
+
+    const auto dst_file = fopen(dst_path.c_str(), "wb");
+    if (!dst_file)
+      return fail("failed to open file '%s' for writing", dst_path.c_str());
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    const auto curl = curl_easy_init();
+
+    if (!curl)
+    {
+      fclose(dst_file);
+      curl_global_cleanup();
+      return fail("failed to initialize curl");
+    }
+
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_chunk);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, dst_file);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+
+    const auto res = curl_easy_perform(curl);
+    if (res != CURLE_OK)
+    {
+      fclose(dst_file);
+      curl_easy_cleanup(curl);
+      curl_global_cleanup();
+      return fail("failed to download file with error '%s'", curl_easy_strerror(res));
+    }
+
+    fclose(dst_file);
+    curl_easy_cleanup(curl);
+
+    curl_global_cleanup();
+
+    return {};
+  }
+
   auto spawn_process(std::initializer_list<const char *> command_line) -> Result<Pair<i32, String>>
   {
     Vec<const char *> cl;
