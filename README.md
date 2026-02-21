@@ -43,7 +43,7 @@ The Auxid platform is split across multiple repositories for modularity and main
 
 ## **Quick Start (CMake Integration)**
 
-Auxid is designed to be highly adaptable. You do not need to abandon your current build system to use it. You can drop LibAuxid into any existing CMake pipeline using FetchContent.
+Auxid is designed to be highly adaptable. You can drop LibAuxid into any existing CMake pipeline using FetchContent.
 
 > [!NOTE]
 > To respect developer workflows, Auxid does not force platform-specific compile and link options (such as `-nostdlib++`, `-ffreestanding`, or `-fno-exceptions`) onto your projects by default.
