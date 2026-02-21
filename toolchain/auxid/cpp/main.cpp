@@ -15,7 +15,7 @@
 
 #include <cli.hpp>
 
-// https://pkg.auxid.dev/libauxid.zip
+#include <workspace/workspace.hpp>
 
 namespace au
 {
@@ -28,7 +28,9 @@ namespace au
     switch (cmd)
     {
     case CLI::ECommand::Workspace_New:
+      AU_TRY_PURE(workspace::create_new(AU_TRY(cli.get_arg(0))));
       break;
+
     case CLI::ECommand::Workspace_Build:
       break;
     case CLI::ECommand::Workspace_Clean:

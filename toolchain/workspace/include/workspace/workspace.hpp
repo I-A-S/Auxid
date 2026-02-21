@@ -19,5 +19,8 @@
 
 namespace au::workspace
 {
-
-}
+  auto create_new(StringView name) -> Result<void>;
+  auto build() -> Result<void>;
+  auto clean() -> Result<void>;
+  auto repair() -> Result<void>;
+} // namespace au::workspace

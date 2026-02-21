@@ -15,7 +15,39 @@
 
 #include <workspace/workspace.hpp>
 
+#include <platform/platform.hpp>
+
 namespace au::workspace
 {
+  auto create_new(StringView name) -> Result<void>
+  {
+    if (platform::is_file_or_directory(name))
+      return fail("file named '%s' already exists", name.data());
 
-}
+    AU_TRY_PURE(platform::create_directory(name));
+    AU_TRY_PURE(platform::create_directory(String::format("%s/src", name)));
+    AU_TRY_PURE(platform::create_directory(String::format("%s/include", name)));
+    AU_TRY_PURE(platform::create_directory(String::format("%s/config", name)));
+
+    AU_TRY_PURE(platform::change_dir(name));
+
+    AU_TRY_PURE(platform::download_file("https://pkg.auxid.dev/libauxid.zip", "./libauxid.zip"));
+
+    return {};
+  }
+
+  auto build() -> Result<void>
+  {
+    return {};
+  }
+
+  auto clean() -> Result<void>
+  {
+    return {};
+  }
+
+  auto repair() -> Result<void>
+  {
+    return {};
+  }
+} // namespace au::workspace

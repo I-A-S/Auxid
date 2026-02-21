@@ -76,6 +76,7 @@ namespace au
   // =============================================================================
   // C++ STDLIB Polyfills
   // =============================================================================
+
   template<class T> constexpr T *addressof(T &arg) noexcept
   {
     return __builtin_addressof(arg);

@@ -19,17 +19,71 @@
 
 #include <curl/curl.h>
 
+#ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
+#else
+#  include <sys/stat.h>
+#  include <unistd.h>
+#  include <errno.h>
+#endif
+
 namespace au::platform
 {
-  auto download_file(String url, String dst_path) -> Result<void>
+  auto create_directory(StringView path) -> Result<void>
+  {
+#ifdef _WIN32
+    if (!CreateDirectoryA(path, nullptr))
+      return fail("couldn't create directory '%s'", path.data());
+
+    if (GetLastError() == ERROR_ALREADY_EXISTS)
+      return fail("directory '%s' already exists", path.data());
+
+    return {};
+#else
+    if (mkdir(path.data(), 0777))
+      return fail("couldn't create directory '%s'", path.data());
+
+    if (errno == EEXIST)
+      return fail("directory '%s' already exists", path.data());
+
+    return {};
+#endif
+  }
+
+  auto remove_directory(StringView path, bool recursive) -> Result<void>
+  {
+  }
+
+  auto is_file(StringView path) -> bool
+  {
+  }
+
+  auto is_directory(StringView path) -> bool
+  {
+  }
+
+  auto is_file_or_directory(StringView path) -> bool
+  {
+  }
+
+  auto get_file_modify_time(StringView path) -> Result<u64>
+  {
+  }
+
+  auto change_dir(StringView path) -> Result<void>
+  {
+  }
+
+  auto download_file(StringView url, StringView dst_path) -> Result<void>
   {
     const auto write_chunk = [](void *ptr, usize size, usize nmemb, void *userdata) -> usize {
       return fwrite(ptr, size, nmemb, static_cast<FILE *>(userdata));
     };
 
-    const auto dst_file = fopen(dst_path.c_str(), "wb");
+    const auto dst_file = fopen(dst_path.data(), "wb");
     if (!dst_file)
-      return fail("failed to open file '%s' for writing", dst_path.c_str());
+      return fail("failed to open file '%s' for writing", dst_path.data());
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
     const auto curl = curl_easy_init();
@@ -41,7 +95,7 @@ namespace au::platform
       return fail("failed to initialize curl");
     }
 
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_URL, url.data());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_chunk);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, dst_file);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -64,12 +118,12 @@ namespace au::platform
     return {};
   }
 
-  auto spawn_process(std::initializer_list<const char *> command_line) -> Result<Pair<i32, String>>
+  auto spawn_process(std::initializer_list<StringView> command_line) -> Result<Pair<i32, String>>
   {
     Vec<const char *> cl;
     cl.reserve(command_line.size() + 1);
     for (auto t : command_line)
-      cl.push_back(t);
+      cl.push_back(t.data());
     cl.push_back(nullptr);
 
     struct subprocess_s subprocess;

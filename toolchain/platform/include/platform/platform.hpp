@@ -22,6 +22,16 @@
 
 namespace au::platform
 {
-  auto download_file(String url, String dst_path) -> Result<void>;
-  auto spawn_process(std::initializer_list<const char *> command_line) -> Result<Pair<i32, String>>;
+  auto create_directory(StringView path) -> Result<void>;
+  auto remove_directory(StringView path, bool recursive) -> Result<void>;
+
+  auto is_file(StringView path) -> bool;
+  auto is_directory(StringView path) -> bool;
+  auto is_file_or_directory(StringView path) -> bool;
+  auto get_file_modify_time(StringView path) -> Result<u64>;
+
+  auto change_dir(StringView path) -> Result<void>;
+
+  auto download_file(StringView url, StringView dst_path) -> Result<void>;
+  auto spawn_process(std::initializer_list<StringView> command_line) -> Result<Pair<i32, String>>;
 } // namespace au::platform
