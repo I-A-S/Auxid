@@ -2,20 +2,11 @@ cmake_minimum_required(VERSION 3.20)
 
 project(Auxid ASM C CXX)
 
-if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|AppleClang)$")
-    message(FATAL_ERROR "Auxid requires Clang or Clang-CL. Current compiler detected: ${CMAKE_CXX_COMPILER_ID}")
-endif()
-
 enable_testing()
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+include(cmake/auxid_setup_project.cmake)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+auxid_setup_project()
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     set(AUXID_IS_TOP_LEVEL ON)
@@ -49,9 +40,9 @@ endif()
 set(AUXID_CXX_FLAGS "${AUXID_CXX_FLAGS_INTERNAL}" CACHE INTERNAL "Auxid compiler flags")
 set(AUXID_LINK_FLAGS "${AUXID_LINK_FLAGS_INTERNAL}" CACHE INTERNAL "Auxid linker flags")
 
-add_library(auxid_compile_options INTERFACE)
-target_compile_options(auxid_compile_options INTERFACE ${AUXID_CXX_FLAGS_INTERNAL})
-target_link_options(auxid_compile_options INTERFACE ${AUXID_LINK_FLAGS_INTERNAL})
+add_library(auxid_platform INTERFACE)
+target_compile_options(auxid_platform INTERFACE ${AUXID_CXX_FLAGS_INTERNAL})
+target_link_options(auxid_platform INTERFACE ${AUXID_LINK_FLAGS_INTERNAL})
 
 set(SRC_FILES
   "src/cpp/auxid.cpp"
@@ -70,4 +61,4 @@ target_include_directories(libauxid PRIVATE
   "src/hpp"
 )
 
-target_link_libraries(libauxid PRIVATE auxid_compile_options)
+target_link_libraries(libauxid PRIVATE auxid_platform)
