@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.20)
 
 project(Auxid ASM C CXX)
 
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|AppleClang)$")
+    message(FATAL_ERROR "Auxid requires Clang or Clang-CL. Current compiler detected: ${CMAKE_CXX_COMPILER_ID}")
+endif()
+
 enable_testing()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -21,20 +25,49 @@ endif()
 
 set(AUXID_ROOT "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "")
 
-option(Auxid_BUILD_TOOLCHAIN "Build Toolchain" ${AUXID_IS_TOP_LEVEL})
-option(Auxid_BUILD_IDE_EXTENSIONS "Build IDE Extensions" ${AUXID_IS_TOP_LEVEL})
+if(MSVC) 
+    set(AUXID_CXX_FLAGS_INTERNAL
+      "/clang:-nostdlib++"
+      "/clang:-ffreestanding"
+      "/EHs-c-" 
+    )
+    set(AUXID_LINK_FLAGS_INTERNAL
+      "/NODEFAULTLIB:libcpmt.lib"  
+      "/NODEFAULTLIB:msvcprt.lib"   
+    )
+else()
+    set(AUXID_CXX_FLAGS_INTERNAL
+      "-nostdlib++"
+      "-ffreestanding"
+      "-fno-exceptions"
+    )
+    set(AUXID_LINK_FLAGS_INTERNAL
+      "-nostdlib++"
+    )
+endif()
 
-add_compile_options(
-  "-nostdlib++"
-  "-ffreestanding"
+set(AUXID_CXX_FLAGS "${AUXID_CXX_FLAGS_INTERNAL}" CACHE INTERNAL "Auxid compiler flags")
+set(AUXID_LINK_FLAGS "${AUXID_LINK_FLAGS_INTERNAL}" CACHE INTERNAL "Auxid linker flags")
+
+add_library(auxid_compile_options INTERFACE)
+target_compile_options(auxid_compile_options INTERFACE ${AUXID_CXX_FLAGS_INTERNAL})
+target_link_options(auxid_compile_options INTERFACE ${AUXID_LINK_FLAGS_INTERNAL})
+
+set(SRC_FILES
+  "src/cpp/auxid.cpp"
+
+  "src/cpp/vendor/rpmalloc/rpmalloc.c"
+  "src/cpp/vendor/tinycthread/tinycthread.c"
 )
 
-add_subdirectory(libauxid)
+add_library(libauxid STATIC ${SRC_FILES})
 
-if(Auxid_BUILD_TOOLCHAIN)
-  add_subdirectory(toolchain)
-endif()
+target_include_directories(libauxid PUBLIC
+  "include"
+)
 
-if(Auxid_BUILD_IDE_EXTENSIONS)
-  add_subdirectory(ide)
-endif()
+target_include_directories(libauxid PRIVATE
+  "src/hpp"
+)
+
+target_link_libraries(libauxid PRIVATE auxid_compile_options)

@@ -1,200 +1,56 @@
 [
 {
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Debug\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -g -std=c++20 -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/Debug/src/cpp/auxid.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/auxid.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/auxid.cpp",
-  "output": "libauxid/CMakeFiles/libauxid.dir/Debug/src/cpp/auxid.cpp.o"
+  "directory": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows",
+  "command": "C:\\PROGRA~1\\MICROS~2\\18\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe --target=x86_64-pc-windows-msvc  /nologo -TP -DCMAKE_INTDIR=\\\"Debug\\\" -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\include -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\hpp  /arch:AVX2 /clang:-mfma /arch:AVX2 /clang:-mfma /Zi /Ob0 /Od /RTC1 -std:c++20 -MT /clang:-nostdlib++ /clang:-ffreestanding /EHs-c- /FoCMakeFiles\\libauxid.dir\\Debug\\src\\cpp\\auxid.cpp.obj /FdCMakeFiles\\libauxid.dir\\Debug\\libauxid.pdb -c -- C:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\cpp\\auxid.cpp",
+  "file": "C:/IA/OSS/Auxid/Repo/Auxid/src/cpp/auxid.cpp",
+  "output": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows/CMakeFiles/libauxid.dir/Debug/src/cpp/auxid.cpp.obj"
 },
 {
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Debug\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -g -std=c++20 -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/Debug/src/cpp/builder/target.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/target.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/target.cpp",
-  "output": "libauxid/CMakeFiles/libauxid.dir/Debug/src/cpp/builder/target.cpp.o"
+  "directory": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows",
+  "command": "C:\\PROGRA~1\\MICROS~2\\18\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe --target=x86_64-pc-windows-msvc  /nologo -DCMAKE_INTDIR=\\\"Debug\\\" -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\include -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\hpp  /arch:AVX2 /clang:-mfma /arch:AVX2 /clang:-mfma /Zi /Ob0 /Od /RTC1 -MT /clang:-nostdlib++ /clang:-ffreestanding /EHs-c- /FoCMakeFiles\\libauxid.dir\\Debug\\src\\cpp\\vendor\\rpmalloc\\rpmalloc.c.obj /FdCMakeFiles\\libauxid.dir\\Debug\\libauxid.pdb -c -- C:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\cpp\\vendor\\rpmalloc\\rpmalloc.c",
+  "file": "C:/IA/OSS/Auxid/Repo/Auxid/src/cpp/vendor/rpmalloc/rpmalloc.c",
+  "output": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows/CMakeFiles/libauxid.dir/Debug/src/cpp/vendor/rpmalloc/rpmalloc.c.obj"
 },
 {
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Debug\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -g -std=c++20 -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/Debug/src/cpp/builder/builder.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/builder.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/builder.cpp",
-  "output": "libauxid/CMakeFiles/libauxid.dir/Debug/src/cpp/builder/builder.cpp.o"
+  "directory": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows",
+  "command": "C:\\PROGRA~1\\MICROS~2\\18\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe --target=x86_64-pc-windows-msvc  /nologo -DCMAKE_INTDIR=\\\"Debug\\\" -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\include -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\hpp  /arch:AVX2 /clang:-mfma /arch:AVX2 /clang:-mfma /Zi /Ob0 /Od /RTC1 -MT /clang:-nostdlib++ /clang:-ffreestanding /EHs-c- /FoCMakeFiles\\libauxid.dir\\Debug\\src\\cpp\\vendor\\tinycthread\\tinycthread.c.obj /FdCMakeFiles\\libauxid.dir\\Debug\\libauxid.pdb -c -- C:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\cpp\\vendor\\tinycthread\\tinycthread.c",
+  "file": "C:/IA/OSS/Auxid/Repo/Auxid/src/cpp/vendor/tinycthread/tinycthread.c",
+  "output": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows/CMakeFiles/libauxid.dir/Debug/src/cpp/vendor/tinycthread/tinycthread.c.obj"
 },
 {
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Debug\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -g -std=c++20 -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/Debug/src/cpp/builder/ninja_generator.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/ninja_generator.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/ninja_generator.cpp",
-  "output": "libauxid/CMakeFiles/libauxid.dir/Debug/src/cpp/builder/ninja_generator.cpp.o"
+  "directory": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows",
+  "command": "C:\\PROGRA~1\\MICROS~2\\18\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe --target=x86_64-pc-windows-msvc  /nologo -TP -DCMAKE_INTDIR=\\\"Release\\\" -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\include -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\hpp  /arch:AVX2 /clang:-mfma /arch:AVX2 /clang:-mfma /O2 /Ob2 /DNDEBUG -std:c++20 -MT /clang:-nostdlib++ /clang:-ffreestanding /EHs-c- /FoCMakeFiles\\libauxid.dir\\Release\\src\\cpp\\auxid.cpp.obj /FdCMakeFiles\\libauxid.dir\\Release\\libauxid.pdb -c -- C:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\cpp\\auxid.cpp",
+  "file": "C:/IA/OSS/Auxid/Repo/Auxid/src/cpp/auxid.cpp",
+  "output": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows/CMakeFiles/libauxid.dir/Release/src/cpp/auxid.cpp.obj"
 },
 {
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang -DCMAKE_INTDIR=\\\"Debug\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -g -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/Debug/src/cpp/vendor/rpmalloc/rpmalloc.c.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/vendor/rpmalloc/rpmalloc.c",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/vendor/rpmalloc/rpmalloc.c",
-  "output": "libauxid/CMakeFiles/libauxid.dir/Debug/src/cpp/vendor/rpmalloc/rpmalloc.c.o"
+  "directory": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows",
+  "command": "C:\\PROGRA~1\\MICROS~2\\18\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe --target=x86_64-pc-windows-msvc  /nologo -DCMAKE_INTDIR=\\\"Release\\\" -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\include -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\hpp  /arch:AVX2 /clang:-mfma /arch:AVX2 /clang:-mfma /O2 /Ob2 /DNDEBUG -MT /clang:-nostdlib++ /clang:-ffreestanding /EHs-c- /FoCMakeFiles\\libauxid.dir\\Release\\src\\cpp\\vendor\\rpmalloc\\rpmalloc.c.obj /FdCMakeFiles\\libauxid.dir\\Release\\libauxid.pdb -c -- C:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\cpp\\vendor\\rpmalloc\\rpmalloc.c",
+  "file": "C:/IA/OSS/Auxid/Repo/Auxid/src/cpp/vendor/rpmalloc/rpmalloc.c",
+  "output": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows/CMakeFiles/libauxid.dir/Release/src/cpp/vendor/rpmalloc/rpmalloc.c.obj"
 },
 {
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang -DCMAKE_INTDIR=\\\"Debug\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -g -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/Debug/src/cpp/vendor/tinycthread/tinycthread.c.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/vendor/tinycthread/tinycthread.c",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/vendor/tinycthread/tinycthread.c",
-  "output": "libauxid/CMakeFiles/libauxid.dir/Debug/src/cpp/vendor/tinycthread/tinycthread.c.o"
+  "directory": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows",
+  "command": "C:\\PROGRA~1\\MICROS~2\\18\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe --target=x86_64-pc-windows-msvc  /nologo -DCMAKE_INTDIR=\\\"Release\\\" -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\include -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\hpp  /arch:AVX2 /clang:-mfma /arch:AVX2 /clang:-mfma /O2 /Ob2 /DNDEBUG -MT /clang:-nostdlib++ /clang:-ffreestanding /EHs-c- /FoCMakeFiles\\libauxid.dir\\Release\\src\\cpp\\vendor\\tinycthread\\tinycthread.c.obj /FdCMakeFiles\\libauxid.dir\\Release\\libauxid.pdb -c -- C:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\cpp\\vendor\\tinycthread\\tinycthread.c",
+  "file": "C:/IA/OSS/Auxid/Repo/Auxid/src/cpp/vendor/tinycthread/tinycthread.c",
+  "output": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows/CMakeFiles/libauxid.dir/Release/src/cpp/vendor/tinycthread/tinycthread.c.obj"
 },
 {
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Release\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -O3 -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/Release/src/cpp/auxid.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/auxid.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/auxid.cpp",
-  "output": "libauxid/CMakeFiles/libauxid.dir/Release/src/cpp/auxid.cpp.o"
+  "directory": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows",
+  "command": "C:\\PROGRA~1\\MICROS~2\\18\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe --target=x86_64-pc-windows-msvc  /nologo -TP -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\include -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\hpp  /arch:AVX2 /clang:-mfma /arch:AVX2 /clang:-mfma /Zi /O2 /Ob1 /DNDEBUG -std:c++20 -MT /clang:-nostdlib++ /clang:-ffreestanding /EHs-c- /FoCMakeFiles\\libauxid.dir\\RelWithDebInfo\\src\\cpp\\auxid.cpp.obj /FdCMakeFiles\\libauxid.dir\\RelWithDebInfo\\libauxid.pdb -c -- C:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\cpp\\auxid.cpp",
+  "file": "C:/IA/OSS/Auxid/Repo/Auxid/src/cpp/auxid.cpp",
+  "output": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/auxid.cpp.obj"
 },
 {
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Release\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -O3 -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/Release/src/cpp/builder/target.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/target.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/target.cpp",
-  "output": "libauxid/CMakeFiles/libauxid.dir/Release/src/cpp/builder/target.cpp.o"
+  "directory": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows",
+  "command": "C:\\PROGRA~1\\MICROS~2\\18\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe --target=x86_64-pc-windows-msvc  /nologo -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\include -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\hpp  /arch:AVX2 /clang:-mfma /arch:AVX2 /clang:-mfma /Zi /O2 /Ob1 /DNDEBUG -MT /clang:-nostdlib++ /clang:-ffreestanding /EHs-c- /FoCMakeFiles\\libauxid.dir\\RelWithDebInfo\\src\\cpp\\vendor\\rpmalloc\\rpmalloc.c.obj /FdCMakeFiles\\libauxid.dir\\RelWithDebInfo\\libauxid.pdb -c -- C:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\cpp\\vendor\\rpmalloc\\rpmalloc.c",
+  "file": "C:/IA/OSS/Auxid/Repo/Auxid/src/cpp/vendor/rpmalloc/rpmalloc.c",
+  "output": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/vendor/rpmalloc/rpmalloc.c.obj"
 },
 {
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Release\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -O3 -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/Release/src/cpp/builder/builder.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/builder.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/builder.cpp",
-  "output": "libauxid/CMakeFiles/libauxid.dir/Release/src/cpp/builder/builder.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Release\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -O3 -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/Release/src/cpp/builder/ninja_generator.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/ninja_generator.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/ninja_generator.cpp",
-  "output": "libauxid/CMakeFiles/libauxid.dir/Release/src/cpp/builder/ninja_generator.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang -DCMAKE_INTDIR=\\\"Release\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -O3 -DNDEBUG -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/Release/src/cpp/vendor/rpmalloc/rpmalloc.c.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/vendor/rpmalloc/rpmalloc.c",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/vendor/rpmalloc/rpmalloc.c",
-  "output": "libauxid/CMakeFiles/libauxid.dir/Release/src/cpp/vendor/rpmalloc/rpmalloc.c.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang -DCMAKE_INTDIR=\\\"Release\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -O3 -DNDEBUG -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/Release/src/cpp/vendor/tinycthread/tinycthread.c.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/vendor/tinycthread/tinycthread.c",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/vendor/tinycthread/tinycthread.c",
-  "output": "libauxid/CMakeFiles/libauxid.dir/Release/src/cpp/vendor/tinycthread/tinycthread.c.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -O2 -g -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/auxid.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/auxid.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/auxid.cpp",
-  "output": "libauxid/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/auxid.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -O2 -g -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/builder/target.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/target.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/target.cpp",
-  "output": "libauxid/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/builder/target.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -O2 -g -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/builder/builder.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/builder.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/builder.cpp",
-  "output": "libauxid/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/builder/builder.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -O2 -g -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/builder/ninja_generator.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/ninja_generator.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/builder/ninja_generator.cpp",
-  "output": "libauxid/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/builder/ninja_generator.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -O2 -g -DNDEBUG -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/vendor/rpmalloc/rpmalloc.c.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/vendor/rpmalloc/rpmalloc.c",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/vendor/rpmalloc/rpmalloc.c",
-  "output": "libauxid/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/vendor/rpmalloc/rpmalloc.c.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/hpp  -mavx2 -mfma -mxsave -msse4.2 -O2 -g -DNDEBUG -nostdlib++ -ffreestanding -o libauxid/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/vendor/tinycthread/tinycthread.c.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/vendor/tinycthread/tinycthread.c",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/src/cpp/vendor/tinycthread/tinycthread.c",
-  "output": "libauxid/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/vendor/tinycthread/tinycthread.c.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Debug\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -g -std=c++20 -nostdlib++ -ffreestanding -o toolchain/platform/CMakeFiles/auxid-platform.dir/Debug/src/cpp/platform.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/src/cpp/platform.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/src/cpp/platform.cpp",
-  "output": "toolchain/platform/CMakeFiles/auxid-platform.dir/Debug/src/cpp/platform.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Release\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -O3 -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o toolchain/platform/CMakeFiles/auxid-platform.dir/Release/src/cpp/platform.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/src/cpp/platform.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/src/cpp/platform.cpp",
-  "output": "toolchain/platform/CMakeFiles/auxid-platform.dir/Release/src/cpp/platform.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -O2 -g -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o toolchain/platform/CMakeFiles/auxid-platform.dir/RelWithDebInfo/src/cpp/platform.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/src/cpp/platform.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/src/cpp/platform.cpp",
-  "output": "toolchain/platform/CMakeFiles/auxid-platform.dir/RelWithDebInfo/src/cpp/platform.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Debug\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -g -std=c++20 -nostdlib++ -ffreestanding -o toolchain/workspace/CMakeFiles/auxid-workspace.dir/Debug/src/cpp/workspace.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/cpp/workspace.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/cpp/workspace.cpp",
-  "output": "toolchain/workspace/CMakeFiles/auxid-workspace.dir/Debug/src/cpp/workspace.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Release\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -O3 -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o toolchain/workspace/CMakeFiles/auxid-workspace.dir/Release/src/cpp/workspace.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/cpp/workspace.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/cpp/workspace.cpp",
-  "output": "toolchain/workspace/CMakeFiles/auxid-workspace.dir/Release/src/cpp/workspace.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -O2 -g -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o toolchain/workspace/CMakeFiles/auxid-workspace.dir/RelWithDebInfo/src/cpp/workspace.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/cpp/workspace.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/cpp/workspace.cpp",
-  "output": "toolchain/workspace/CMakeFiles/auxid-workspace.dir/RelWithDebInfo/src/cpp/workspace.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Debug\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -g -std=c++20 -nostdlib++ -ffreestanding -o toolchain/auxid/CMakeFiles/auxid.dir/Debug/cpp/cli.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/cli.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/cli.cpp",
-  "output": "toolchain/auxid/CMakeFiles/auxid.dir/Debug/cpp/cli.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Debug\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -g -std=c++20 -nostdlib++ -ffreestanding -o toolchain/auxid/CMakeFiles/auxid.dir/Debug/cpp/main.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/main.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/main.cpp",
-  "output": "toolchain/auxid/CMakeFiles/auxid.dir/Debug/cpp/main.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang -DCMAKE_INTDIR=\\\"Debug\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -g -nostdlib++ -ffreestanding -o toolchain/auxid/CMakeFiles/auxid.dir/Debug/cpp/vendor/cofyc/argparse.c.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/vendor/cofyc/argparse.c",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/vendor/cofyc/argparse.c",
-  "output": "toolchain/auxid/CMakeFiles/auxid.dir/Debug/cpp/vendor/cofyc/argparse.c.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Release\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -O3 -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o toolchain/auxid/CMakeFiles/auxid.dir/Release/cpp/cli.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/cli.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/cli.cpp",
-  "output": "toolchain/auxid/CMakeFiles/auxid.dir/Release/cpp/cli.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"Release\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -O3 -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o toolchain/auxid/CMakeFiles/auxid.dir/Release/cpp/main.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/main.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/main.cpp",
-  "output": "toolchain/auxid/CMakeFiles/auxid.dir/Release/cpp/main.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang -DCMAKE_INTDIR=\\\"Release\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -O3 -DNDEBUG -nostdlib++ -ffreestanding -o toolchain/auxid/CMakeFiles/auxid.dir/Release/cpp/vendor/cofyc/argparse.c.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/vendor/cofyc/argparse.c",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/vendor/cofyc/argparse.c",
-  "output": "toolchain/auxid/CMakeFiles/auxid.dir/Release/cpp/vendor/cofyc/argparse.c.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -O2 -g -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o toolchain/auxid/CMakeFiles/auxid.dir/RelWithDebInfo/cpp/cli.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/cli.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/cli.cpp",
-  "output": "toolchain/auxid/CMakeFiles/auxid.dir/RelWithDebInfo/cpp/cli.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang++ -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -O2 -g -DNDEBUG -std=c++20 -nostdlib++ -ffreestanding -o toolchain/auxid/CMakeFiles/auxid.dir/RelWithDebInfo/cpp/main.cpp.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/main.cpp",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/main.cpp",
-  "output": "toolchain/auxid/CMakeFiles/auxid.dir/RelWithDebInfo/cpp/main.cpp.o"
-},
-{
-  "directory": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/out/build/x64-linux",
-  "command": "/usr/bin/clang -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/workspace/src/hpp -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/platform/include -I/home/dev0/IA/OSS/Auxid/Repo/Auxid/libauxid/include  -mavx2 -mfma -mxsave -msse4.2 -O2 -g -DNDEBUG -nostdlib++ -ffreestanding -o toolchain/auxid/CMakeFiles/auxid.dir/RelWithDebInfo/cpp/vendor/cofyc/argparse.c.o -c /home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/vendor/cofyc/argparse.c",
-  "file": "/home/dev0/IA/OSS/Auxid/Repo/Auxid/toolchain/auxid/cpp/vendor/cofyc/argparse.c",
-  "output": "toolchain/auxid/CMakeFiles/auxid.dir/RelWithDebInfo/cpp/vendor/cofyc/argparse.c.o"
+  "directory": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows",
+  "command": "C:\\PROGRA~1\\MICROS~2\\18\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe --target=x86_64-pc-windows-msvc  /nologo -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\include -IC:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\hpp  /arch:AVX2 /clang:-mfma /arch:AVX2 /clang:-mfma /Zi /O2 /Ob1 /DNDEBUG -MT /clang:-nostdlib++ /clang:-ffreestanding /EHs-c- /FoCMakeFiles\\libauxid.dir\\RelWithDebInfo\\src\\cpp\\vendor\\tinycthread\\tinycthread.c.obj /FdCMakeFiles\\libauxid.dir\\RelWithDebInfo\\libauxid.pdb -c -- C:\\IA\\OSS\\Auxid\\Repo\\Auxid\\src\\cpp\\vendor\\tinycthread\\tinycthread.c",
+  "file": "C:/IA/OSS/Auxid/Repo/Auxid/src/cpp/vendor/tinycthread/tinycthread.c",
+  "output": "C:/IA/OSS/Auxid/Repo/Auxid/out/build/x64-windows/CMakeFiles/libauxid.dir/RelWithDebInfo/src/cpp/vendor/tinycthread/tinycthread.c.obj"
 }
 ]
