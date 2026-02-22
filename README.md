@@ -40,6 +40,7 @@ The Auxid platform is split across multiple repositories for modularity and main
 | **Validator** | Clang-based static analysis and validator tool   | https://github.com/I-A-S/Auxid-Validator |
 | **VSCode**    | Official VSCode Extension for Auxid integration            | https://github.com/I-A-S/Auxid-VSCode    |
 | **CLI**       | Command Line Utility for project scaffolding         | https://github.com/I-A-S/Auxid-CLI       |
+| **Project Template**       | Easy to use production-ready template for scaffolding new Auxid projects         | https://github.com/I-A-S/Auxid-Project-Template       |
 
 ## **Quick Start (CMake Integration)**
 
