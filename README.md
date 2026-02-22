@@ -15,7 +15,7 @@
 
 Auxid is a platform for building modern, high-performance C++ applications using the principles of Orthodox C++ and Data-Oriented Design (DOD).
 
-Modern C++ has become bogged down by massive template metaprogramming, glacial compile times, and a Standard Library (STL) whose node-based containers and rigid allocator model actively fight against CPU caches and Data-Oriented Design. Auxid strips the language back to its highly-performant, bare-metal roots.
+Modern C++ has become bogged down by massive template metaprogramming, glacial compile times, and a Standard Library (STL) whose node-based containers and rigid allocator model actively fight against CPU caches and Data-Oriented Design. Auxid strips the language back to its highly-performant, close-to-metal roots.
 
 LibAuxid completely replaces the C++ Standard Library. It compiles in a purely freestanding environment (`-nostdlib++`, `-ffreestanding`, `-fno-exceptions`) and provides a hyper-lean, DOD-friendly template library built around explicit heap and arena memory allocators.
 
@@ -47,9 +47,19 @@ The Auxid platform is split across multiple repositories for modularity and main
 Auxid is designed to be highly adaptable. You can drop LibAuxid into any existing CMake pipeline using FetchContent.
 
 > [!NOTE]
-> To respect developer workflows, Auxid does not force platform-specific compile and link options (such as `-nostdlib++`, `-ffreestanding`, or `-fno-exceptions`) onto your projects by default.
-> 
-> However, to write true "Orthodox C++" and harness the full performance benefits of the platform, we **STRONGLY** recommend linking your targets against `auxid_platform`. This automatically applies all the necessary bare-metal compiler and linker flags for you!
+> **Opt-In Bare-Metal Configuration**
+>
+> To remain unobtrusive to standard developer workflows, Auxid does not apply strict, platform-specific compiler or linker flags (such as `-nostdlib++`, `-ffreestanding`, or `-fno-exceptions`) by default.
+>
+> However, if your goal is to write absolute "Orthodox C++" and maximize platform performance, you can explicitly link your targets against `auxid_platform`. Doing so automatically applies the optimal close-to-metal configuration flags for your environment.
+
+> [!WARNING]
+> **STL Access is Disabled**
+>
+> Linking against `auxid_platform` configures your target for close-to-metal execution, which completely removes access to the C++ Standard Template Library (STL). Consequently, your project—and any external dependencies—cannot rely on STL features.
+> * **Existing Projects:** We strongly advise against linking `auxid_platform` in established codebases. If your project or its external libraries depend on the STL, this will break your build.
+>
+> * **New Projects:** We highly recommend this target for new, resource-constrained projects where maximum CPU and memory efficiency are critical, provided you can comfortably build without STL dependencies.
 
 ```cmake
 cmake_minimum_required(VERSION 3.20)
@@ -69,9 +79,6 @@ auxid_setup_project() # (OPTIONAL) Sets up cmake project settings
 add_executable(my_app main.cpp)
 
 target_link_libraries(my_app PRIVATE libauxid)
-
-# Add Auxid platform compile and link options to your project
-target_link_libraries(my_app PRIVATE auxid_platform)
 ```
 
 ### Example Usage

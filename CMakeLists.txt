@@ -61,4 +61,5 @@ target_include_directories(libauxid PRIVATE
   "src/hpp"
 )
 
-target_link_libraries(libauxid PRIVATE auxid_platform)
+target_compile_options(libauxid PRIVATE ${AUXID_CXX_FLAGS_INTERNAL})
+target_link_options(libauxid PRIVATE ${AUXID_LINK_FLAGS_INTERNAL})
