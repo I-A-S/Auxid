@@ -56,7 +56,7 @@ Auxid is designed to be highly adaptable. You can drop LibAuxid into any existin
 > [!WARNING]
 > **STL Access is Disabled**
 >
-> Linking against `auxid_platform` configures your target for close-to-metal execution, which completely removes access to the C++ Standard Template Library (STL). Consequently, your project—and any external dependencies—cannot rely on STL features.
+> If you opt-in to link against `auxid_platform`, Auxid configures your target for close-to-metal execution, which completely removes access to the C++ Standard Template Library (STL). Consequently, your project, and any external dependencies cannot rely on STL features.
 > * **Existing Projects:** We strongly advise against linking `auxid_platform` in established codebases. If your project or its external libraries depend on the STL, this will break your build.
 >
 > * **New Projects:** We highly recommend this target for new, resource-constrained projects where maximum CPU and memory efficiency are critical, provided you can comfortably build without STL dependencies.

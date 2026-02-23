@@ -96,7 +96,7 @@ public:
       if (error == thrd_success)
         return std::move(ThreadT(handle));
 
-      destroy_at(data);
+      au::destroy_at(data);
       allocator.free(data, sizeof(ThreadDataImpl<decltype(lambda)>), alignof(ThreadDataImpl<decltype(lambda)>));
 
       switch (error)

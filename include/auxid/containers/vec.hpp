@@ -184,7 +184,7 @@ public:
         m_size--;
         if constexpr (!std::is_trivially_destructible_v<T>)
         {
-          destroy_at(&m_data[m_size]);
+          au::destroy_at(&m_data[m_size]);
         }
       }
     }
@@ -200,7 +200,7 @@ public:
       {
         for (size_type i = 0; i < m_size; ++i)
         {
-          destroy_at(&m_data[i]);
+          au::destroy_at(&m_data[i]);
         }
       }
       m_size = 0;
@@ -238,7 +238,7 @@ public:
           for (size_type i = 0; i < m_size; ++i)
           {
             construct_at(&new_data[i], std::move(m_data[i]));
-            destroy_at(&m_data[i]);
+            au::destroy_at(&m_data[i]);
           }
         }
         m_allocator.free(m_data, m_capacity * sizeof(T), alignof(T));
@@ -265,7 +265,7 @@ public:
         {
           for (size_type i = new_size; i < m_size; ++i)
           {
-            destroy_at(&m_data[i]);
+            au::destroy_at(&m_data[i]);
           }
         }
       }
@@ -289,7 +289,7 @@ public:
         {
           for (size_type i = new_size; i < m_size; ++i)
           {
-            destroy_at(&m_data[i]);
+            au::destroy_at(&m_data[i]);
           }
         }
       }
@@ -358,6 +358,16 @@ public:
     const T *end() const
     {
       return m_data + m_size;
+    }
+
+    T &back()
+    {
+      return m_data[m_size - 1];
+    }
+
+    const T &back() const
+    {
+      return m_data[m_size - 1];
     }
 
     operator Span<T>()

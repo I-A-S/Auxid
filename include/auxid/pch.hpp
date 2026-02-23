@@ -98,7 +98,7 @@ namespace au
     if constexpr (std::is_array_v<T>)
     {
       for (auto &elem : *p)
-        destroy_at(__builtin_addressof(elem));
+        au::destroy_at(__builtin_addressof(elem));
     }
     else
     {
@@ -171,12 +171,12 @@ public:
       if (m_is_ok)
       {
         if constexpr (!std::is_trivially_destructible_v<T>)
-          destroy_at(&m_val);
+          au::destroy_at(&m_val);
       }
       else
       {
         if constexpr (!std::is_trivially_destructible_v<E>)
-          destroy_at(&m_err);
+          au::destroy_at(&m_err);
       }
     }
 
@@ -219,13 +219,13 @@ public:
         if (m_is_ok)
         {
           if constexpr (!std::is_trivially_destructible_v<T>)
-            destroy_at(&m_val);
+            au::destroy_at(&m_val);
           construct_at(&m_err, other.m_err);
         }
         else
         {
           if constexpr (!std::is_trivially_destructible_v<E>)
-            destroy_at(&m_err);
+            au::destroy_at(&m_err);
           construct_at(&m_val, other.m_val);
         }
         m_is_ok = other.m_is_ok;
@@ -252,13 +252,13 @@ public:
         if (m_is_ok)
         {
           if constexpr (!std::is_trivially_destructible_v<T>)
-            destroy_at(&m_val);
+            au::destroy_at(&m_val);
           construct_at(&m_err, std::move(other.m_err));
         }
         else
         {
           if constexpr (!std::is_trivially_destructible_v<E>)
-            destroy_at(&m_err);
+            au::destroy_at(&m_err);
           construct_at(&m_val, std::move(other.m_val));
         }
         m_is_ok = other.m_is_ok;
@@ -374,7 +374,7 @@ public:
       if (!m_is_ok)
       {
         if constexpr (!std::is_trivially_destructible_v<E>)
-          destroy_at(&m_err);
+          au::destroy_at(&m_err);
       }
     }
 

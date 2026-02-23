@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [x64-linux]
+        
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.target }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.target }} --config Release
+
+      - name: Test
+        run: ctest --preset ${{ matrix.target }} --output-on-failure
+
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [x64-windows]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.target }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.target }} --config Release
+
+      - name: Test
+        run: ctest --preset ${{ matrix.target }} --output-on-failure
+        

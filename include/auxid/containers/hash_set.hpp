@@ -88,7 +88,31 @@ public:
 
     bool contains(const K &key)
     {
-      return find(key) != nullptr;
+      if (m_buckets.empty())
+        return false;
+
+      auto h = hash_key(key);
+      auto idx = h & m_mask;
+      auto dist = 0;
+
+      while (true)
+      {
+        u32 entry_idx = m_buckets[idx];
+
+        if (entry_idx == INDEX_INVALID)
+          return false;
+
+        if (m_eq(m_entries[entry_idx], key))
+        {
+          return true;
+        }
+
+        dist++;
+        idx = (idx + 1) & m_mask;
+
+        if (dist > (i32) m_mask)
+          return false;
+      }
     }
 
     bool erase(const K &key)
@@ -106,7 +130,7 @@ public:
         if (entry_idx == INDEX_INVALID)
           return false;
 
-        if (m_eq(m_entries[entry_idx].first, key))
+        if (m_eq(m_entries[entry_idx], key))
         {
           remove_at_bucket(idx, entry_idx);
           return true;
@@ -174,7 +198,7 @@ private:
 
       for (u32 i = 0; i < m_entries.size(); ++i)
       {
-        insert_into_buckets(i, m_entries[i].first);
+        insert_into_buckets(i, m_entries[i]);
       }
     }
 
@@ -201,7 +225,7 @@ private:
       {
         m_entries[entry_idx_to_remove] = std::move(m_entries[last_idx]);
 
-        update_bucket_pointer(m_entries[entry_idx_to_remove].first, last_idx, entry_idx_to_remove);
+        update_bucket_pointer(m_entries[entry_idx_to_remove], last_idx, entry_idx_to_remove);
       }
 
       m_entries.pop();
@@ -218,7 +242,7 @@ private:
         if (entry_idx == INDEX_INVALID)
           break;
 
-        auto h = hash_key(m_entries[entry_idx].first);
+        auto h = hash_key(m_entries[entry_idx]);
         auto ideal_idx = h & m_mask;
 
         auto dist_current = (next - ideal_idx) & m_mask;

@@ -17,6 +17,8 @@
 
 #include <auxid/pch.hpp>
 
+#include <functional>
+
 namespace au::containers
 {
   struct NullOptType
@@ -256,7 +258,7 @@ public:
       {
         if constexpr (!std::is_trivially_destructible_v<T>)
         {
-          destroy_at(&m_val);
+          au::destroy_at(&m_val);
         }
         m_has_value = false;
       }

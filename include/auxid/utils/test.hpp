@@ -325,11 +325,11 @@ private:
       const f64 success_rate =
           m_test_count == 0 ? 0.0
                             : (100.0 * static_cast<f64>(m_test_count - m_fail_count) / static_cast<f64>(m_test_count));
-      printf("%s%zu OF %d TESTS FAILED\n%sSuccess Rate: %.2f%%\n", console::RED, m_fail_count, m_test_count,
+      printf("%s%zu OF %zu TESTS FAILED\n%sSuccess Rate: %.2f%%\n", console::RED, m_fail_count, m_test_count,
              console::YELLOW, success_rate);
     }
 
-    printf("%sRan %zu test(s) across %d block(s)\n%s-----------------------------------%s\n", console::MAGENTA,
+    printf("%sRan %zu test(s) across %zu block(s)\n%s-----------------------------------%s\n", console::MAGENTA,
            m_test_count, m_block_count, console::GREEN, console::RESET);
   }
 

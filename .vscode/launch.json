@@ -8,7 +8,7 @@
       "name": "Launch",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceRoot}/out/build/x64-linux/bin/Debug/auxid",
+      "program": "${workspaceRoot}/out/build/x64-linux/bin/Debug/TestSuite",
       "args": [],
       "cwd": "${workspaceRoot}",
       "preLaunchTask": "CMake Build"
