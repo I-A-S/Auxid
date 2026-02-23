@@ -62,7 +62,7 @@ public:
     {
       if (other.m_has_value)
       {
-        construct_at(&m_val, other.m_val);
+        au::construct_at(&m_val, other.m_val);
         m_has_value = true;
       }
       else
@@ -75,7 +75,7 @@ public:
     {
       if (other.m_has_value)
       {
-        construct_at(&m_val, std::move(other.m_val));
+        au::construct_at(&m_val, std::move(other.m_val));
         m_has_value = true;
       }
       else
@@ -111,7 +111,7 @@ public:
           }
           else
           {
-            construct_at(&m_val, other.m_val);
+            au::construct_at(&m_val, other.m_val);
             m_has_value = true;
           }
         }
@@ -135,7 +135,7 @@ public:
           }
           else
           {
-            construct_at(&m_val, std::move(other.m_val));
+            au::construct_at(&m_val, std::move(other.m_val));
             m_has_value = true;
           }
         }

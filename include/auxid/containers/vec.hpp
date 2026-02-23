@@ -103,7 +103,7 @@ public:
       {
         for (size_type i = 0; i < other.m_size; ++i)
         {
-          construct_at(&m_data[i], other.m_data[i]);
+          au::construct_at(&m_data[i], other.m_data[i]);
         }
         m_size = other.m_size;
       }
@@ -126,7 +126,7 @@ public:
         {
           for (size_type i = 0; i < other.m_size; ++i)
           {
-            construct_at(&m_data[i], other.m_data[i]);
+            au::construct_at(&m_data[i], other.m_data[i]);
           }
           m_size = other.m_size;
         }
@@ -153,7 +153,7 @@ public:
       {
         grow();
       }
-      construct_at(&m_data[m_size], std::forward<Args>(args)...);
+      au::construct_at(&m_data[m_size], std::forward<Args>(args)...);
       return m_data[m_size++];
     }
 
@@ -237,7 +237,7 @@ public:
         {
           for (size_type i = 0; i < m_size; ++i)
           {
-            construct_at(&new_data[i], std::move(m_data[i]));
+            au::construct_at(&new_data[i], std::move(m_data[i]));
             au::destroy_at(&m_data[i]);
           }
         }
@@ -256,7 +256,7 @@ public:
           reserve(new_size);
         for (size_type i = m_size; i < new_size; ++i)
         {
-          construct_at(&m_data[i]);
+          au::construct_at(&m_data[i]);
         }
       }
       else if (new_size < m_size)
@@ -280,7 +280,7 @@ public:
           reserve(new_size);
         for (size_type i = m_size; i < new_size; ++i)
         {
-          construct_at(&m_data[i], fill_val);
+          au::construct_at(&m_data[i], fill_val);
         }
       }
       else if (new_size < m_size)

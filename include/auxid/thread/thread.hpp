@@ -89,7 +89,7 @@ public:
       memory::HeapAllocator allocator;
 
       auto data = (ThreadDataImpl<decltype(lambda)> *) allocator.alloc(sizeof(ThreadDataImpl<decltype(lambda)>));
-      construct_at(data, std::move(lambda));
+      au::construct_at(data, std::move(lambda));
 
       thrd_t handle;
       const auto error = thrd_create(&handle, thread_proxy, data);

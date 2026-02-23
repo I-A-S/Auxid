@@ -185,9 +185,9 @@ public:
         : m_is_ok(other.m_is_ok)
     {
       if (m_is_ok)
-        construct_at(&m_val, other.m_val);
+        au::construct_at(&m_val, other.m_val);
       else
-        construct_at(&m_err, other.m_err);
+        au::construct_at(&m_err, other.m_err);
     }
 
     constexpr ResultT(ResultT &&other) noexcept
@@ -195,9 +195,9 @@ public:
         : m_is_ok(other.m_is_ok)
     {
       if (m_is_ok)
-        construct_at(&m_val, std::move(other.m_val));
+        au::construct_at(&m_val, std::move(other.m_val));
       else
-        construct_at(&m_err, std::move(other.m_err));
+        au::construct_at(&m_err, std::move(other.m_err));
     }
 
     constexpr ResultT &operator=(const ResultT &other)
@@ -220,13 +220,13 @@ public:
         {
           if constexpr (!std::is_trivially_destructible_v<T>)
             au::destroy_at(&m_val);
-          construct_at(&m_err, other.m_err);
+          au::construct_at(&m_err, other.m_err);
         }
         else
         {
           if constexpr (!std::is_trivially_destructible_v<E>)
             au::destroy_at(&m_err);
-          construct_at(&m_val, other.m_val);
+          au::construct_at(&m_val, other.m_val);
         }
         m_is_ok = other.m_is_ok;
       }
@@ -253,13 +253,13 @@ public:
         {
           if constexpr (!std::is_trivially_destructible_v<T>)
             au::destroy_at(&m_val);
-          construct_at(&m_err, std::move(other.m_err));
+          au::construct_at(&m_err, std::move(other.m_err));
         }
         else
         {
           if constexpr (!std::is_trivially_destructible_v<E>)
             au::destroy_at(&m_err);
-          construct_at(&m_val, std::move(other.m_val));
+          au::construct_at(&m_val, std::move(other.m_val));
         }
         m_is_ok = other.m_is_ok;
       }
@@ -366,7 +366,7 @@ public:
     constexpr ResultT(ResultT &&other) noexcept : m_is_ok(other.m_is_ok)
     {
       if (!m_is_ok)
-        construct_at(&m_err, std::move(other.m_err));
+        au::construct_at(&m_err, std::move(other.m_err));
     }
 
     constexpr ~ResultT()
