@@ -15,6 +15,8 @@
 
 #pragma once
 
+#define NOMINMAX
+
 #include <new>
 #include <utility>
 #include <stdint.h>

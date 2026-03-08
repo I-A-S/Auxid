@@ -14,7 +14,6 @@
 // limitations under the License.
 
 #include <stdio.h>
-#include <stdlib.h>
 
 #include <auxid/auxid.hpp>
 
@@ -27,10 +26,17 @@
 
 namespace au::auxid
 {
+  struct ThreadData
+  {
+    i32 init_counter{};
+    Logger *logger;
+  };
+
   struct State
   {
+    Mutex logger_mutex{};
     Mut<Thread::ThreadID> main_thread_id{};
-    Mut<HashMap<Thread::ThreadID, i32>> thread_init_counter{};
+    Mut<HashMap<Thread::ThreadID, ThreadData>> thread_data{};
   };
 
   auto get_state() -> State &
@@ -44,11 +50,12 @@ namespace au::auxid
     auto &state = get_state();
 
     const auto thread_id = Thread::get_calling_thread_id();
-    state.thread_init_counter[thread_id]++;
-    if (state.thread_init_counter[thread_id] > 1)
+    state.thread_data[thread_id].init_counter++;
+    if (state.thread_data[thread_id].init_counter > 1)
       return;
 
     state.main_thread_id = thread_id;
+    state.thread_data[thread_id].logger = new Logger(state.logger_mutex);
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
     rpmalloc_initialize(nullptr);
@@ -60,9 +67,11 @@ namespace au::auxid
     auto &state = get_state();
 
     const auto thread_id = Thread::get_calling_thread_id();
-    state.thread_init_counter[thread_id]--;
-    if (state.thread_init_counter[thread_id] > 0)
+    state.thread_data[thread_id].init_counter--;
+    if (state.thread_data[thread_id].init_counter > 0)
       return;
+
+    delete state.thread_data[thread_id].logger;
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
     rpmalloc_finalize();
@@ -74,9 +83,11 @@ namespace au::auxid
     auto &state = get_state();
 
     const auto thread_id = Thread::get_calling_thread_id();
-    state.thread_init_counter[thread_id]++;
-    if (state.thread_init_counter[thread_id] > 1)
+    state.thread_data[thread_id].init_counter++;
+    if (state.thread_data[thread_id].init_counter > 1)
       return;
+
+    state.thread_data[thread_id].logger = new Logger(state.logger_mutex);
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
     rpmalloc_thread_initialize();
@@ -88,9 +99,11 @@ namespace au::auxid
     auto &state = get_state();
 
     const auto thread_id = Thread::get_calling_thread_id();
-    state.thread_init_counter[thread_id]--;
-    if (state.thread_init_counter[thread_id] > 0)
+    state.thread_data[thread_id].init_counter--;
+    if (state.thread_data[thread_id].init_counter > 0)
       return;
+
+    delete state.thread_data[thread_id].logger;
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
     rpmalloc_thread_finalize();
@@ -104,7 +117,12 @@ namespace au::auxid
 
   auto is_thread_initialized() -> bool
   {
-    return get_state().thread_init_counter[Thread::get_calling_thread_id()] > 0;
+    return get_state().thread_data[Thread::get_calling_thread_id()].init_counter > 0;
+  }
+
+  auto get_thread_logger() -> Logger &
+  {
+    return *get_state().thread_data[Thread::get_calling_thread_id()].logger;
   }
 } // namespace au::auxid
 

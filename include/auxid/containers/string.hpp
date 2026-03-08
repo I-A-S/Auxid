@@ -572,11 +572,19 @@ public:
 
     [[nodiscard]] char &back()
     {
+#if !defined(NDEBUG)
+      if (get_size() == 0)
+        panic("Called back() on empty String");
+#endif
       return get_data()[get_size() - 1];
     }
 
     [[nodiscard]] const char &back() const
     {
+#if !defined(NDEBUG)
+      if (get_size() == 0)
+        panic("Called back() on empty String");
+#endif
       return get_data()[get_size() - 1];
     }
 
@@ -637,20 +645,20 @@ public:
     }
 
 public:
-    static String format(const char *fmt, ...)
+    [[gnu::format(printf, 1, 0)]]
+    static String vformat(const char *fmt, va_list args)
     {
       String res;
-      va_list args;
+      va_list args_copy;
 
-      va_start(args, fmt);
-      int req_len = vsnprintf(res.m_storage.s.data, SSO_CAPACITY + 1, fmt, args);
-      va_end(args);
+      va_copy(args_copy, args);
+      int req_len = vsnprintf(res.m_storage.s.data, SSO_CAPACITY + 1, fmt, args_copy);
+      va_end(args_copy);
 
       if (req_len < 0)
         return res;
 
       usize len = static_cast<usize>(req_len);
-
       if (len <= SSO_CAPACITY)
       {
         res.set_short_size(static_cast<u8>(len));
@@ -658,12 +666,18 @@ public:
       }
 
       res.reserve(len);
-
-      va_start(args, fmt);
       vsnprintf(res.get_data(), len + 1, fmt, args);
-      va_end(args);
-
       res.m_storage.l.size = len;
+      return res;
+    }
+
+    [[gnu::format(printf, 1, 2)]]
+    static String format(const char *fmt, ...)
+    {
+      va_list args;
+      va_start(args, fmt);
+      String res = vformat(fmt, args);
+      va_end(args);
       return res;
     }
   };

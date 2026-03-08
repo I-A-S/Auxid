@@ -28,6 +28,7 @@ target_link_options(auxid_platform INTERFACE ${AUXID_LINK_FLAGS_INTERNAL})
 
 set(SRC_FILES
   "cpp/auxid.cpp"
+  "cpp/logger.cpp"
 
   "cpp/vendor/rpmalloc/rpmalloc.c"
   "cpp/vendor/tinycthread/tinycthread.c"

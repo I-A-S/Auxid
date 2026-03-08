@@ -45,18 +45,7 @@ private:
 
       auto run() -> void override
       {
-        struct ThreadGuard
-        {
-          ThreadGuard()
-          {
-            auxid::initialize_worker_thread();
-          }
-
-          ~ThreadGuard()
-          {
-            auxid::terminate_worker_thread();
-          }
-        } _thread_guard;
+        auxid::WorkerThreadGuard _thread_guard;
 
         m_func();
       }

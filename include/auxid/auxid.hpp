@@ -16,6 +16,7 @@
 #pragma once
 
 #include <auxid/result.hpp>
+#include <auxid/thread/mutex.hpp>
 
 namespace au
 {
@@ -60,34 +61,104 @@ namespace au
   };
 
   // =============================================================================
-  // Console Colors
+  // Logger API
+  //
+  // Each thread gets its own logger instance. Call `auxid::get_thread_logger()` to
+  // access the calling threads logger instance.
   // =============================================================================
-  namespace console
+  class Logger
   {
-    constexpr const char *RESET = "\033[0m";
-    constexpr const char *RED = "\033[31m";
-    constexpr const char *GREEN = "\033[32m";
-    constexpr const char *YELLOW = "\033[33m";
-    constexpr const char *BLUE = "\033[34m";
-    constexpr const char *MAGENTA = "\033[35m";
-    constexpr const char *CYAN = "\033[36m";
-  } // namespace console
+public:
+    enum ELevel
+    {
+      LEVEL_TRACE,
+      LEVEL_DEBUG,
+      LEVEL_INFO,
+      LEVEL_WARN,
+      LEVEL_ERROR
+    };
+
+    typedef void (*LogHandler_FuncT)(const char *msg, ELevel level);
+
+public:
+    auto trace(const char *fmt, ...) -> void;
+    auto debug(const char *fmt, ...) -> void;
+    auto info(const char *fmt, ...) -> void;
+    auto warn(const char *fmt, ...) -> void;
+    auto error(const char *fmt, ...) -> void;
+
+public:
+    Logger(Mutex &logger_mutex);
+
+    // You may set a custom log handler
+    // You can safely access shared resources (such as stdout)
+    // inside the handler, synchronization is handled automatically
+    // for you by auxid.
+    auto set_log_handler(LogHandler_FuncT handler) -> void
+    {
+      m_handler = handler;
+    }
+
+private:
+    static auto default_handler(const char *msg, ELevel level) -> void;
+
+    Mutex &m_logger_mutex_ref;
+    LogHandler_FuncT m_handler{default_handler};
+  };
 
   // =============================================================================
   // Auxid API
   // =============================================================================
   namespace auxid
+
   {
+    // ========================================================
+    // Thread Lifetime Management
+    //
+    // Instead of calling these functions directly, consider
+    // utilizing `MainThreadGuard` and `WorkerThreadGuard`,
+    // unless you have an explicit reason not to.
+    // ========================================================
+
     auto initialize_main_thread() -> void;
     auto terminate_main_thread() -> void;
-
-    // Must be called on all *manually* spawned threads.
+    // Must only be called on all *manually* spawned threads.
     // If you're using Auxid Threads (au::ThreadT, au::NThread, au::JThread),
     // this is handled automatically for you.
     auto initialize_worker_thread() -> void;
     auto terminate_worker_thread() -> void;
 
+    struct MainThreadGuard
+    {
+      MainThreadGuard()
+      {
+        initialize_main_thread();
+      }
+
+      ~MainThreadGuard()
+      {
+        terminate_main_thread();
+      }
+    };
+
+    struct WorkerThreadGuard
+    {
+      WorkerThreadGuard()
+      {
+        initialize_worker_thread();
+      }
+
+      ~WorkerThreadGuard()
+      {
+        terminate_worker_thread();
+      }
+    };
+
+    // ========================================================
+
     auto is_main_thread() -> bool;
     auto is_thread_initialized() -> bool;
+
+    auto get_thread_logger() -> Logger &;
   } // namespace auxid
 } // namespace au
