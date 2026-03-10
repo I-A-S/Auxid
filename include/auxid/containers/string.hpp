@@ -19,6 +19,7 @@
 #include <auxid/memory/heap.hpp>
 
 #include <bit>
+#include <cstdio>
 #include <cstdarg>
 #include <cstring>
 
@@ -645,7 +646,6 @@ public:
     }
 
 public:
-    [[gnu::format(printf, 1, 0)]]
     static String vformat(const char *fmt, va_list args)
     {
       String res;
@@ -671,7 +671,6 @@ public:
       return res;
     }
 
-    [[gnu::format(printf, 1, 2)]]
     static String format(const char *fmt, ...)
     {
       va_list args;
