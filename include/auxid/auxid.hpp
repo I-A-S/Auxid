@@ -33,7 +33,32 @@ namespace au
     constexpr bool IS_RELEASE = false;
 #endif
 
-#if IA_PLATFORM_WINDOWS
+#if defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
+#  define AU_ARCH_X64 1
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#  define AU_ARCH_ARM64 1
+#elif defined(__wasm__) || defined(__wasm32__) || defined(__wasm64__)
+#  define AU_ARCH_WASM 1
+#else
+#  warn "Auxid: Unknown Architecture."
+#endif
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#  define AU_PLATFORM_WINDOWS 1
+#elif __APPLE__
+#  include <TargetConditionals.h>
+#  define AU_PLATFORM_APPLE 1
+#  define AU_PLATFORM_UNIX 1
+#elif __linux__
+#  define AU_PLATFORM_LINUX 1
+#  define AU_PLATFORM_UNIX 1
+#elif __wasm__
+#  define AU_PLATFORM_WASM 1
+#else
+#  warn "Auxid: Unknown Platform."
+#endif
+
+#if AU_PLATFORM_WINDOWS
     constexpr const bool IS_WINDOWS = true;
     constexpr const bool IS_UNIX = false;
 #else
@@ -116,7 +141,7 @@ private:
     // Thread Lifetime Management
     //
     // Instead of calling these functions directly, consider
-    // utilizing `MainThreadGuard` and `WorkerThreadGuard`,
+    // using `MainThreadGuard` and `WorkerThreadGuard`,
     // unless you have an explicit reason not to.
     // ========================================================
 

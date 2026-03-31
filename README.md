@@ -47,19 +47,20 @@ The Auxid platform is split across multiple repositories for modularity and main
 Auxid is designed to be highly adaptable. You can drop LibAuxid into any existing CMake pipeline using FetchContent.
 
 > [!NOTE]
-> **Opt-In Bare-Metal Configuration**
+> **Opt-In Platform Configurations**
 >
-> To remain unobtrusive to standard developer workflows, Auxid does not apply strict, platform-specific compiler or linker flags (such as `-nostdlib++`, `-ffreestanding`, or `-fno-exceptions`) by default.
+> To remain unobtrusive to standard developer workflows, Auxid does not force strict compiler or linker flags by default. However, to help you write predictable "Orthodox C++", we provide two levels of opt-in configurations that you can explicitly link your targets against:
 >
-> However, if your goal is to write absolute "Orthodox C++" and maximize platform performance, you can explicitly link your targets against `auxid_platform`. Doing so automatically applies the optimal close-to-metal configuration flags for your environment.
+> 1. **`auxid_platform_standard` (Recommended):** Disables C++ exceptions (`-fno-exceptions` or `/EHs-c-`). We highly recommend linking this for all projects using Auxid to ensure predictable control flow and performance.
+> 2. **`auxid_platform_close_to_metal`:** Inherits the standard flags, but additionally disables the standard library (`-nostdlib++`) and marks the environment as freestanding for absolute maximum control.
 
 > [!WARNING]
-> **STL Access is Disabled**
+> **STL Access is Disabled (When using `auxid_platform_close_to_metal`)**
 >
-> If you opt-in to link against `auxid_platform`, Auxid configures your target for close-to-metal execution, which completely removes access to the C++ Standard Template Library (STL). Consequently, your project, and any external dependencies cannot rely on STL features.
-> * **Existing Projects:** We strongly advise against linking `auxid_platform` in established codebases. If your project or its external libraries depend on the STL, this will break your build.
+> If you opt-in to link against `auxid_platform_close_to_metal`, Auxid configures your target for close-to-metal execution, which completely removes access to the C++ Standard Template Library (STL). Consequently, your project and any external dependencies cannot rely on STL features.
 >
-> * **New Projects:** We highly recommend this target for new, resource-constrained projects where maximum CPU and memory efficiency are critical, provided you can comfortably build without STL dependencies.
+> * **Existing Projects:** We strongly advise against linking `auxid_platform_close_to_metal` in established codebases. If your project or its external libraries depend on the STL, this will break your build.
+> * **New Projects:** We highly recommend this target for new, resource-constrained projects where maximum CPU and memory efficiency are critical, provided you can comfortably build without STL dependencies. (You still get access to the Auxid Template Library, which includes `vector`, `string`, and other common containers.)
 
 ```cmake
 cmake_minimum_required(VERSION 3.20)
@@ -69,8 +70,8 @@ include(FetchContent)
 
 FetchContent_Declare(
   auxid
-  GIT_REPOSITORY https://github.com/I-A-S/Auxid.git
-  GIT_TAG        main # Replace with a specific release tag
+  GIT_REPOSITORY [https://github.com/I-A-S/Auxid.git](https://github.com/I-A-S/Auxid.git)
+  GIT_TAG        main # Use a specific release tag instead for best stability
 )
 FetchContent_MakeAvailable(auxid)
 
@@ -78,7 +79,14 @@ auxid_setup_project() # (OPTIONAL) Sets up cmake project settings
 
 add_executable(my_app main.cpp)
 
+# Link the core library
 target_link_libraries(my_app PRIVATE libauxid)
+
+# (Recommended) Opt-in to the standard Orthodox C++ configuration
+target_link_libraries(my_app PRIVATE auxid_platform_standard)
+
+# OR: Opt-in to the bare-metal configuration (Disables STL)
+# target_link_libraries(my_app PRIVATE auxid_platform_close_to_metal)
 ```
 
 ### Example Usage

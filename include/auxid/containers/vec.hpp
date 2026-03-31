@@ -35,9 +35,9 @@ namespace au::containers
 public:
     explicit VecT() = default;
 
-    explicit VecT(size_type initial_capacity)
+    explicit VecT(size_type init_size, const T& init_value = T{})
     {
-      reserve(initial_capacity);
+      resize(init_size, init_value);
     }
 
     VecT(std::initializer_list<T> init)
