@@ -17,6 +17,8 @@
 
 #define NOMINMAX
 
+#include <auxid/compiler.hpp>
+
 #include <new>
 #include <utility>
 #include <stdint.h>
@@ -24,8 +26,8 @@
 #include <type_traits>
 #include <source_location>
 
-#if !defined(__clang__)
-#  error "Auxid requires Clang. Use clang-cl on Windows."
+#if !defined(__clang__) && !defined(_MSC_VER)
+#  error "Auxid requires Clang/Clang-CL or native MSVC."
 #endif
 
 #if __cplusplus < 202002L
@@ -39,8 +41,8 @@
 #undef pure_fn
 #undef const_fn
 
-#define pure_fn __attribute__((const)) [[nodiscard]]
-#define const_fn __attribute__((pure)) [[nodiscard]]
+#define pure_fn AUXID_ATTR_CONST [[nodiscard]]
+#define const_fn AUXID_ATTR_PURE [[nodiscard]]
 
 #define AU_UNUSED(v) (void) (v)
 
@@ -86,9 +88,8 @@ namespace au
 
   template<class T> constexpr T *addressof(T &arg) noexcept
   {
-    return __builtin_addressof(arg);
+    return compiler::addressof(arg);
   }
-  template<class T> const T *addressof(const T &&) = delete;
 
   template<class T, class... Args> constexpr T *construct_at(T *p, Args &&...args)
   {
@@ -100,7 +101,7 @@ namespace au
     if constexpr (std::is_array_v<T>)
     {
       for (auto &elem : *p)
-        au::destroy_at(__builtin_addressof(elem));
+        au::destroy_at(compiler::addressof(elem));
     }
     else
     {
@@ -138,7 +139,7 @@ namespace au
   [[noreturn]] inline auto panic(const char *msg, std::source_location loc = std::source_location::current()) -> void
   {
     panic_handler(msg, loc.file_name(), loc.line());
-    __builtin_trap();
+    compiler::trap();
   }
 
   template<typename T, typename E> class [[nodiscard]] ResultT

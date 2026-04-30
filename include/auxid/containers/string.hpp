@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <auxid/compiler.hpp>
 #include <auxid/containers/span.hpp>
 #include <auxid/memory/heap.hpp>
 
@@ -44,17 +45,17 @@ namespace au
     {
       if (n == 0)
         return 0;
-      return __builtin_memcmp(s1, s2, n);
+      return compiler::memcmp(s1, s2, n);
     }
 
     inline usize length(const char *s)
     {
-      return __builtin_strlen(s);
+      return compiler::strlen(s);
     }
 
     inline const char *find(const char *p, usize n, char c)
     {
-      return static_cast<const char *>(__builtin_memchr(p, c, n));
+      return static_cast<const char *>(compiler::memchr(p, c, n));
     }
 
     inline usize search_substring(const char *haystack, usize h_len, const char *needle, usize n_len, usize pos)
