@@ -70,8 +70,8 @@
     },
     {
       "name": "x64-windows",
-      "displayName": "Auxid Windows x64 (Visual Studio 2026)",
-      "generator": "Visual Studio 18 2026",
+      "displayName": "Auxid Windows x64 (Visual Studio 2022)",
+      "generator": "Visual Studio 17 2022",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "architecture": "x64",
       "cacheVariables": {
@@ -80,8 +80,8 @@
     },
     {
       "name": "arm64-windows",
-      "displayName": "Auxid Windows ARM64 (Visual Studio 2026)",
-      "generator": "Visual Studio 18 2026",
+      "displayName": "Auxid Windows ARM64 (Visual Studio 2022)",
+      "generator": "Visual Studio 17 2022",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "architecture": "ARM64",
       "cacheVariables": {

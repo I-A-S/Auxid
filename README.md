@@ -4,7 +4,7 @@
   
   <img src="https://img.shields.io/badge/license-apache_v2-blue.svg" alt="License"/>
   <img src="https://img.shields.io/badge/standard-C%2B%2B20-yellow.svg" alt="C++ Standard"/>
-  <img src="https://img.shields.io/badge/compiler-clang_only-red.svg" alt="Compiler"/>
+  <img src="https://img.shields.io/badge/compiler-MSVC | Clang-red.svg" alt="Compiler"/>
 
   <p style="padding-top: 0.2rem;">
     <b>Auxid: The Orthodox C++ Platform.</b>
