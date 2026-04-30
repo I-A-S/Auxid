@@ -183,7 +183,7 @@ public:
 
     static auto create(const u32 requested_capacity) -> Result<DynamicRingBuffer>
     {
-      MirroredMemory mem = AU_TRY(MirroredAllocator::allocate(requested_capacity));
+      AU_TRY_VAR(mem, MirroredAllocator::allocate(requested_capacity));
 
       auto cb = memory::make_box<ControlBlock>();
 
@@ -244,7 +244,7 @@ public:
       if (packet_size == 0)
         return fail("Packet size cannot be 0");
 
-      MirroredMemory mem = AU_TRY(MirroredAllocator::allocate(requested_capacity));
+      AU_TRY_VAR(mem, MirroredAllocator::allocate(requested_capacity));
       auto cb = memory::make_box<ControlBlock>();
 
       cb->consumer.capacity = mem.aligned_capacity;

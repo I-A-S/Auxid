@@ -1,14 +1,20 @@
 if(MSVC)
     set(AUXID_CXX_FLAGS_STANDARD "/EHs-c-")
 
-    set(AUXID_CXX_FLAGS_METAL
-            "/clang:-nostdlib++"
-            "/clang:-ffreestanding"
-    )
-    set(AUXID_LINK_FLAGS_METAL
-            "/NODEFAULTLIB:libcpmt.lib"
-            "/NODEFAULTLIB:msvcprt.lib"
-    )
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set(AUXID_CXX_FLAGS_METAL
+                "/clang:-nostdlib++"
+                "/clang:-ffreestanding"
+        )
+        set(AUXID_LINK_FLAGS_METAL
+                "/NODEFAULTLIB:libcpmt.lib"
+                "/NODEFAULTLIB:msvcprt.lib"
+        )
+    else()
+        set(AUXID_CXX_FLAGS_METAL "")
+        set(AUXID_LINK_FLAGS_METAL "")
+        message(WARNING "auxid_platform_close_to_metal is limited under native MSVC; skipping Clang-only freestanding flags.")
+    endif()
 else()
     set(AUXID_CXX_FLAGS_STANDARD "-fno-exceptions")
 

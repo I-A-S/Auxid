@@ -441,17 +441,32 @@ public:
 #define AU_ENSURE_CLASS_HAS_CONCEPT(cls, cpt)                                                                          \
   static_assert(cpt<cls>, "Class '" #cls "' must satisfy concept '" #cpt "'.")
 
-#define AU_TRY_IMPL(expr, res_name)                                                                                    \
-  __extension__({                                                                                                      \
-    auto res_name = (expr);                                                                                            \
-    if (res_name.is_err())                                                                                             \
-    {                                                                                                                  \
-      return au::fail(std::move(res_name.unwrap_err()));                                                               \
-    }                                                                                                                  \
-    std::move(res_name.unwrap());                                                                                      \
-  })
+#define AU_TRY_VAR_IMPL(name, expr, res_name)                                                                          \
+  auto res_name = (expr);                                                                                              \
+  if (res_name.is_err())                                                                                               \
+  {                                                                                                                    \
+    return au::fail(std::move(res_name.unwrap_err()));                                                                 \
+  }                                                                                                                    \
+  auto name = std::move(res_name.unwrap())
 
-#define AU_TRY(expr) AU_TRY_IMPL(expr, AU_UNIQUE_NAME(_au_try_res_))
+#define AU_TRY_VAR(name, expr) AU_TRY_VAR_IMPL(name, expr, AU_UNIQUE_NAME(_au_try_res_))
+
+#if defined(__clang__) || defined(__GNUC__)
+#  define AU_TRY_IMPL(expr, res_name)                                                                                  \
+    __extension__({                                                                                                    \
+      auto res_name = (expr);                                                                                          \
+      if (res_name.is_err())                                                                                           \
+      {                                                                                                                \
+        return au::fail(std::move(res_name.unwrap_err()));                                                             \
+      }                                                                                                                \
+      std::move(res_name.unwrap());                                                                                    \
+    })
+#  define AU_TRY(expr) AU_TRY_IMPL(expr, AU_UNIQUE_NAME(_au_try_legacy_res_))
+#elif defined(_MSC_VER)
+#  define AU_TRY(expr) static_assert(false, "AU_TRY(expr) is unsupported on MSVC. Use AU_TRY_VAR(name, expr) instead.")
+#else
+#  define AU_TRY(expr) static_assert(false, "AU_TRY(expr) is unsupported on this compiler. Use AU_TRY_VAR(name, expr).")
+#endif
 
 #define AU_TRY_DISCARD_IMPL(expr, res_name)                                                                            \
   {                                                                                                                    \
