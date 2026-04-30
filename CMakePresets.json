@@ -60,6 +60,17 @@
         "CMAKE_C_COMPILER": "clang-cl",
         "CMAKE_CXX_COMPILER": "clang-cl"
       }
+    },
+    {
+      "name": "x64-windows-msvc",
+      "displayName": "Auxid Windows x64 (MSVC)",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/x64-windows-msvc.cmake"
+      }
     }
   ],
   "buildPresets": [
@@ -86,6 +97,10 @@
     {
       "name": "x64-windows-cross",
       "configurePreset": "x64-windows-cross"
+    },
+    {
+      "name": "x64-windows-msvc",
+      "configurePreset": "x64-windows-msvc"
     }
   ],
   "testPresets": [
@@ -100,6 +115,14 @@
     {
       "name": "x64-windows",
       "configurePreset": "x64-windows",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "x64-windows-msvc",
+      "configurePreset": "x64-windows-msvc",
       "configuration": "Release",
       "output": {
         "outputOnFailure": true
