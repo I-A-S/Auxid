@@ -30,8 +30,14 @@
 #  error "Auxid requires Clang/Clang-CL or native MSVC."
 #endif
 
-#if __cplusplus < 202002L
-#  error "Auxid requires C++20 or newer."
+#if defined(_MSC_VER)
+#  if !defined(_MSVC_LANG) || _MSVC_LANG < 202002L
+#    error "Auxid requires C++20 or newer."
+#  endif
+#else
+#  if __cplusplus < 202002L
+#    error "Auxid requires C++20 or newer."
+#  endif
 #endif
 
 // =============================================================================

@@ -47,6 +47,14 @@ set(SRC_FILES
 
 add_library(libauxid STATIC ${SRC_FILES})
 
+if(MSVC)
+    foreach(_cfg CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_MINSIZEREL)
+        if(DEFINED ${_cfg})
+            string(REPLACE "/EHsc" "" ${_cfg} "${${_cfg}}")
+        endif()
+    endforeach()
+endif()
+
 target_include_directories(libauxid PUBLIC
         "${AUXID_ROOT}/include"
 )
@@ -57,3 +65,9 @@ target_include_directories(libauxid PRIVATE
 
 target_compile_options(libauxid PRIVATE ${AUXID_CXX_FLAGS_INTERNAL})
 target_link_options(libauxid PRIVATE ${AUXID_LINK_FLAGS_INTERNAL})
+
+if(MSVC AND NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set_source_files_properties(cpp/vendor/rpmalloc/rpmalloc.c PROPERTIES
+            COMPILE_OPTIONS "/experimental:c11atomics"
+    )
+endif()

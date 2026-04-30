@@ -612,17 +612,17 @@ public:
 
     [[nodiscard]] usize find(char c, usize pos = 0) const
     {
-      return StringView(*this).find(c, pos);
+      return StringView(get_data(), get_size()).find(c, pos);
     }
 
     [[nodiscard]] usize find(StringView v, usize pos = 0) const
     {
-      return StringView(*this).find(v, pos);
+      return StringView(get_data(), get_size()).find(v, pos);
     }
 
     [[nodiscard]] usize find(const char *s, usize pos = 0) const
     {
-      return StringView(*this).find(StringView(s), pos);
+      return StringView(get_data(), get_size()).find(StringView(s), pos);
     }
 
     auto operator+=(StringView other) -> void
@@ -643,7 +643,7 @@ public:
 
     [[nodiscard]] StringView substr(usize pos, usize count = npos) const
     {
-      return StringView(*this).substr(pos, count);
+      return StringView(get_data(), get_size()).substr(pos, count);
     }
 
 public:
@@ -704,27 +704,27 @@ namespace au::containers
       return true;
     if (lhs.size() != rhs.size())
       return false;
-    return StringView(lhs) == StringView(rhs);
+    return StringView(lhs.data(), lhs.size()) == StringView(rhs.data(), rhs.size());
   }
 
   inline bool operator==(const String &lhs, StringView rhs)
   {
-    return StringView(lhs) == rhs;
+    return StringView(lhs.data(), lhs.size()) == rhs;
   }
 
   inline bool operator==(StringView lhs, const String &rhs)
   {
-    return lhs == StringView(rhs);
+    return lhs == StringView(rhs.data(), rhs.size());
   }
 
   inline bool operator==(const String &lhs, const char *rhs)
   {
-    return StringView(lhs) == StringView(rhs);
+    return StringView(lhs.data(), lhs.size()) == StringView(rhs);
   }
 
   inline bool operator==(const char *lhs, const String &rhs)
   {
-    return StringView(lhs) == StringView(rhs);
+    return StringView(lhs) == StringView(rhs.data(), rhs.size());
   }
 
   inline String operator+(const String &lhs, StringView rhs)

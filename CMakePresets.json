@@ -19,47 +19,12 @@
     {
       "name": "x64-linux",
       "displayName": "Auxid Linux x64 (Clang)",
-      "inherits": "auxid-base",
-      "cacheVariables": {}
+      "inherits": "auxid-base"
     },
     {
       "name": "arm64-linux",
       "displayName": "Auxid Linux ARM64 (Clang Cross)",
-      "inherits": "auxid-base",
-      "cacheVariables": {}
-    },
-    {
-      "name": "x64-windows",
-      "displayName": "Auxid Windows x64 (Clang)",
-      "inherits": "auxid-base",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl"
-      }
-    },
-    {
-      "name": "arm64-windows",
-      "displayName": "Auxid Windows ARM64 (Clang Cross)",
-      "inherits": "auxid-base",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl"
-      }
-    },
-    {
-      "name": "wasm32-emscripten",
-      "displayName": "Auxid WebAssembly (Clang)",
-      "inherits": "auxid-base",
-      "cacheVariables": {}
-    },
-    {
-      "name": "x64-windows-cross",
-      "displayName": "Auxid Windows x64 (Clang Cross Linux Host)",
-      "inherits": "auxid-base",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl"
-      }
+      "inherits": "auxid-base"
     },
     {
       "name": "x64-windows-msvc",
@@ -71,6 +36,71 @@
         "CMAKE_CXX_COMPILER": "cl",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/x64-windows-msvc.cmake"
       }
+    },
+    {
+      "name": "x64-windows-clang",
+      "displayName": "Auxid Windows x64 (Clang)",
+      "inherits": "auxid-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/x64-windows-clang.cmake"
+      }
+    },
+    {
+      "name": "arm64-windows-clang",
+      "displayName": "Auxid Windows ARM64 (Clang Cross)",
+      "inherits": "auxid-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/arm64-windows-clang.cmake"
+      }
+    },
+    {
+      "name": "arm64-windows-msvc",
+      "displayName": "Auxid Windows ARM64 (MSVC)",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/arm64-windows-msvc.cmake"
+      }
+    },
+    {
+      "name": "x64-windows",
+      "displayName": "Auxid Windows x64 (Visual Studio 2026)",
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "architecture": "x64",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/x64-windows-msvc.cmake"
+      }
+    },
+    {
+      "name": "arm64-windows",
+      "displayName": "Auxid Windows ARM64 (Visual Studio 2026)",
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "architecture": "ARM64",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/arm64-windows-msvc.cmake"
+      }
+    },
+    {
+      "name": "wasm32-emscripten",
+      "displayName": "Auxid WebAssembly (Clang)",
+      "inherits": "auxid-base"
+    },
+    {
+      "name": "x64-windows-cross",
+      "displayName": "Auxid Windows x64 (Clang Cross Linux Host)",
+      "inherits": "auxid-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
+      }
     }
   ],
   "buildPresets": [
@@ -81,6 +111,22 @@
     {
       "name": "arm64-linux",
       "configurePreset": "arm64-linux"
+    },
+    {
+      "name": "x64-windows-msvc",
+      "configurePreset": "x64-windows-msvc"
+    },
+    {
+      "name": "x64-windows-clang",
+      "configurePreset": "x64-windows-clang"
+    },
+    {
+      "name": "arm64-windows-clang",
+      "configurePreset": "arm64-windows-clang"
+    },
+    {
+      "name": "arm64-windows-msvc",
+      "configurePreset": "arm64-windows-msvc"
     },
     {
       "name": "x64-windows",
@@ -97,10 +143,6 @@
     {
       "name": "x64-windows-cross",
       "configurePreset": "x64-windows-cross"
-    },
-    {
-      "name": "x64-windows-msvc",
-      "configurePreset": "x64-windows-msvc"
     }
   ],
   "testPresets": [
@@ -121,8 +163,8 @@
       }
     },
     {
-      "name": "x64-windows-msvc",
-      "configurePreset": "x64-windows-msvc",
+      "name": "x64-windows-clang",
+      "configurePreset": "x64-windows-clang",
       "configuration": "Release",
       "output": {
         "outputOnFailure": true
