@@ -30,6 +30,14 @@ namespace au::containers
     {
     }
 
+    constexpr Pair(const T1 &a, T2 &&b) : first(a), second(std::move(b))
+    {
+    }
+
+    constexpr Pair(T1 &&a, const T2 &b) : first(std::move(a)), second(b)
+    {
+    }
+
     constexpr Pair(T1 &&a, T2 &&b) : first(std::move(a)), second(std::move(b))
     {
     }
