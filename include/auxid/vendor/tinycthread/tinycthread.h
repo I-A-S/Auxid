@@ -482,7 +482,10 @@ typedef pthread_key_t tss_t;
 #if defined(_TTHREAD_WIN32_)
   void call_once(once_flag *flag, void (*func)(void));
 #else
-#  define call_once(flag, func) pthread_once(flag, func)
+static inline void call_once(once_flag *flag, void (*func)(void))
+{
+  (void) pthread_once(flag, func);
+}
 #endif
 
 #ifdef __cplusplus
