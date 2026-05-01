@@ -114,6 +114,21 @@ public:
       return true;
     }
 
+    bool insert(const K &key, V &&val)
+    {
+      if (contains(key))
+        return false;
+
+      if (should_grow())
+        grow();
+
+      u32 entry_idx = static_cast<u32>(m_entries.size());
+      m_entries.push(value_type{key, std::move(val)});
+
+      insert_into_buckets(entry_idx, key);
+      return true;
+    }
+
     V *find(const K &key)
     {
       if (m_buckets.empty())
