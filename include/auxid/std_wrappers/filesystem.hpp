@@ -67,12 +67,35 @@ namespace au::filesystem
       return ret;
     }
 
+    template <typename It>
+    auto directory_iterator_advance_impl(It &it, std::error_code &ec, int)
+        -> decltype(void(it.operator++(ec)))
+    {
+      it.operator++(ec);
+    }
+
+    template <typename It>
+    void directory_iterator_advance_impl(It &it, std::error_code &ec, long)
+    {
+#if defined(__EXCEPTIONS) && __EXCEPTIONS
+      ec.clear();
+      try {
+        ++it;
+      } catch (const fs::filesystem_error &e) {
+        ec = e.code();
+      }
+#else
+      ++it;
+      ec.clear();
+#endif
+    }
+
     inline void directory_iterator_advance(DirectoryIterator &it, std::error_code &ec)
     {
 #if defined(_MSC_VER)
       it.increment(ec);
 #else
-      it.operator++(ec);
+      directory_iterator_advance_impl(it, ec, 0);
 #endif
     }
 
@@ -81,7 +104,7 @@ namespace au::filesystem
 #if defined(_MSC_VER)
       it.increment(ec);
 #else
-      it.operator++(ec);
+      directory_iterator_advance_impl(it, ec, 0);
 #endif
     }
   } // namespace _internal
@@ -100,15 +123,7 @@ namespace au::filesystem
 
   [[nodiscard]] inline auto absolute(const Path &p, const Path &base) -> Result<Path>
   {
-#if defined(_MSC_VER)
     return _internal::absolute_relative_to_base(p, base);
-#else
-    std::error_code ec;
-    Path out = fs::absolute(p, base, ec);
-    if (ec)
-      return _internal::fail_fs("absolute", ec);
-    return out;
-#endif
   }
 
   [[nodiscard]] inline auto canonical(const Path &p) -> Result<Path>

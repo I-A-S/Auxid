@@ -20,6 +20,7 @@
 #include <auxid/pch.hpp>
 
 #include <cstring>
+#include <iterator>
 
 namespace au::containers
 {
@@ -33,6 +34,17 @@ namespace au::containers
     AUXID_NO_UNIQUE_ADDRESS AllocatorT m_allocator;
 
 public:
+    using value_type = T;
+    using difference_type = isize;
+    using reference = T &;
+    using const_reference = const T &;
+    using pointer = T *;
+    using const_pointer = const T *;
+    using iterator = T *;
+    using const_iterator = const T *;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
     explicit VecT() = default;
 
     explicit VecT(size_type init_size, const T& init_value = T{})
@@ -358,6 +370,46 @@ public:
     const T *end() const
     {
       return m_data + m_size;
+    }
+
+    [[nodiscard]] const_iterator cbegin() const noexcept
+    {
+      return begin();
+    }
+
+    [[nodiscard]] const_iterator cend() const noexcept
+    {
+      return end();
+    }
+
+    [[nodiscard]] reverse_iterator rbegin() noexcept
+    {
+      return reverse_iterator(end());
+    }
+
+    [[nodiscard]] reverse_iterator rend() noexcept
+    {
+      return reverse_iterator(begin());
+    }
+
+    [[nodiscard]] const_reverse_iterator rbegin() const noexcept
+    {
+      return const_reverse_iterator(end());
+    }
+
+    [[nodiscard]] const_reverse_iterator rend() const noexcept
+    {
+      return const_reverse_iterator(begin());
+    }
+
+    [[nodiscard]] const_reverse_iterator crbegin() const noexcept
+    {
+      return rbegin();
+    }
+
+    [[nodiscard]] const_reverse_iterator crend() const noexcept
+    {
+      return rend();
     }
 
     T &back()

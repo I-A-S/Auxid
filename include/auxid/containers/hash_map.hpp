@@ -18,8 +18,14 @@
 #include <auxid/containers/hash_base.hpp>
 #include <auxid/containers/vec.hpp>
 
+#include <iterator>
+
 namespace au::containers
 {
+  /*
+  NOTE: erase() may move the last entry into a removed slot (swap-with-end), invalidating
+        iterators and pointers like vector::erase, NOT like std::unordered_map::erase.
+  */
   template<typename K, typename V, typename Hasher = Hash<K>, typename KeyEq = EqualTo<K>,
            typename AllocatorT = memory::HeapAllocator>
     requires memory::AllocatorType<AllocatorT>
@@ -28,6 +34,15 @@ namespace au::containers
 public:
     using value_type = Pair<K, V>;
     using size_type = usize;
+    using difference_type = isize;
+    using reference = value_type &;
+    using const_reference = const value_type &;
+    using pointer = value_type *;
+    using const_pointer = const value_type *;
+    using iterator = value_type *;
+    using const_iterator = const value_type *;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 private:
     VecT<value_type, usize, AllocatorT> m_entries;
@@ -206,6 +221,46 @@ public:
     const value_type *end() const
     {
       return m_entries.end();
+    }
+
+    [[nodiscard]] const_iterator cbegin() const noexcept
+    {
+      return begin();
+    }
+
+    [[nodiscard]] const_iterator cend() const noexcept
+    {
+      return end();
+    }
+
+    [[nodiscard]] reverse_iterator rbegin() noexcept
+    {
+      return reverse_iterator(end());
+    }
+
+    [[nodiscard]] reverse_iterator rend() noexcept
+    {
+      return reverse_iterator(begin());
+    }
+
+    [[nodiscard]] const_reverse_iterator rbegin() const noexcept
+    {
+      return const_reverse_iterator(end());
+    }
+
+    [[nodiscard]] const_reverse_iterator rend() const noexcept
+    {
+      return const_reverse_iterator(begin());
+    }
+
+    [[nodiscard]] const_reverse_iterator crbegin() const noexcept
+    {
+      return rbegin();
+    }
+
+    [[nodiscard]] const_reverse_iterator crend() const noexcept
+    {
+      return rend();
     }
 
     [[nodiscard]] size_type size() const

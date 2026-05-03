@@ -23,6 +23,8 @@
 #include <cstdio>
 #include <cstdarg>
 #include <cstring>
+#include <iterator>
+#include <ranges>
 
 static_assert(std::endian::native == std::endian::little,
               "Auxid String SSO is designed for Little-Endian architectures.");
@@ -106,6 +108,13 @@ public:
     }
 
 public:
+    using value_type = char;
+    using size_type = usize;
+    using difference_type = isize;
+    using iterator = const char *;
+    using const_iterator = const char *;
+    using reverse_iterator = std::reverse_iterator<const_iterator>;
+
     constexpr char operator[](usize i) const
     {
       return m_ptr[i];
@@ -124,6 +133,46 @@ public:
     [[nodiscard]] constexpr bool empty() const
     {
       return m_len == 0;
+    }
+
+    [[nodiscard]] constexpr iterator begin() const noexcept
+    {
+      return m_ptr;
+    }
+
+    [[nodiscard]] constexpr iterator end() const noexcept
+    {
+      return m_ptr + m_len;
+    }
+
+    [[nodiscard]] constexpr const_iterator cbegin() const noexcept
+    {
+      return begin();
+    }
+
+    [[nodiscard]] constexpr const_iterator cend() const noexcept
+    {
+      return end();
+    }
+
+    [[nodiscard]] constexpr reverse_iterator rbegin() const noexcept
+    {
+      return reverse_iterator(end());
+    }
+
+    [[nodiscard]] constexpr reverse_iterator rend() const noexcept
+    {
+      return reverse_iterator(begin());
+    }
+
+    [[nodiscard]] constexpr reverse_iterator crbegin() const noexcept
+    {
+      return rbegin();
+    }
+
+    [[nodiscard]] constexpr reverse_iterator crend() const noexcept
+    {
+      return rend();
     }
 
     [[nodiscard]] constexpr char back() const
@@ -203,6 +252,18 @@ namespace au::containers
     static constexpr usize npos = StringView::npos;
 
     static constexpr usize SSO_CAPACITY = sizeof(usize) * 3 - 1;
+
+    using value_type = char;
+    using size_type = usize;
+    using difference_type = isize;
+    using reference = char &;
+    using const_reference = const char &;
+    using pointer = char *;
+    using const_pointer = const char *;
+    using iterator = char *;
+    using const_iterator = const char *;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 private:
     struct LongLayout
@@ -572,6 +633,46 @@ public:
       return get_data() + get_size();
     }
 
+    [[nodiscard]] const_iterator cbegin() const noexcept
+    {
+      return begin();
+    }
+
+    [[nodiscard]] const_iterator cend() const noexcept
+    {
+      return end();
+    }
+
+    [[nodiscard]] reverse_iterator rbegin() noexcept
+    {
+      return reverse_iterator(end());
+    }
+
+    [[nodiscard]] reverse_iterator rend() noexcept
+    {
+      return reverse_iterator(begin());
+    }
+
+    [[nodiscard]] const_reverse_iterator rbegin() const noexcept
+    {
+      return const_reverse_iterator(end());
+    }
+
+    [[nodiscard]] const_reverse_iterator rend() const noexcept
+    {
+      return const_reverse_iterator(begin());
+    }
+
+    [[nodiscard]] const_reverse_iterator crbegin() const noexcept
+    {
+      return rbegin();
+    }
+
+    [[nodiscard]] const_reverse_iterator crend() const noexcept
+    {
+      return rend();
+    }
+
     [[nodiscard]] char &back()
     {
 #if !defined(NDEBUG)
@@ -773,6 +874,9 @@ namespace au::containers
     return result;
   }
 } // namespace au::containers
+
+template<>
+inline constexpr bool std::ranges::enable_borrowed_range<au::StringView> = true;
 
 namespace au
 {
