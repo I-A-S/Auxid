@@ -1,8 +1,8 @@
 <div align="center">
   <img src="logo.png" alt="Auxid Logo" width="190" style="border-radius: 1.15rem;"/>
   <br/>
-  
-  <img src="https://img.shields.io/badge/license-apache_v2-darkblue.svg" alt="License"/>
+
+  <img src="https://img.shields.io/badge/license-Apache_v2-darkblue.svg" alt="License"/>
   <img src="https://img.shields.io/badge/standard-C%2B%2B20-darkred.svg" alt="C++ Standard"/>
   <img src="https://img.shields.io/badge/compiler-MSVC | Clang-darkgreen.svg" alt="Compiler"/>
 
@@ -11,42 +11,34 @@
   </p>
 </div>
 
-## **The Vision**
+## The vision
 
-Auxid is a platform for building modern, high-performance C++ applications using the principles of Orthodox C++ and Data-Oriented Design (DOD).
+Auxid is a platform for building modern, high-performance C++ applications using **Orthodox C++** and **data-oriented design (DOD)**.
 
-Modern C++ has become bogged down by massive template metaprogramming, glacial compile times, and a Standard Library (STL) whose node-based containers and rigid allocator model actively fight against CPU caches and Data-Oriented Design. Auxid strips the language back to its highly-performant, close-to-metal roots.
+Mainstream “modern C++” often pays for heavy template metaprogramming, slow builds, and an STL whose node-based containers and allocator model work against CPU caches and DOD-friendly layouts. Auxid keeps the language close to fast, predictable, systems-style C++.
 
-LibAuxid augments the C++ Standard Library with a hyper-lean, DOD-friendly template layer built on explicit heap and arena allocators. Where the standard library is already the right tool (for example, `std::filesystem`) LibAuxid forwards it through a thin, LibAuxid-compatible inline wrapper with no extra overhead.
+**LibAuxid** augments the standard library with a lean, DOD-oriented template layer built on explicit heap and arena allocation. Where the STL is already the right choice (for example, `std::filesystem`), LibAuxid exposes it through thin, LibAuxid-compatible inline wrappers with no extra overhead.
 
-### Core Features
-* Zero STL Overhead: No `<iostream>`, no `<vector>`, no hidden allocations.
+### Core features
 
-* World-Class Allocators: Integrated rpmalloc for lightning-fast, thread-caching heap allocations, alongside custom Arena allocators.
+- **No hidden overhead** - No `<iostream>`, no `<vector>`, no surprise allocations in the hot path.
+- **Strong allocators** - Integrated [rpmalloc](https://github.com/mjansson/rpmalloc) for fast, thread-caching heap allocation, plus custom arena allocators.
+- **Standard-algorithm friendly iterators** - Containers use iterators that satisfy the usual C++20 iterator concepts (for example, contiguous iterators where applicable), so you can use `std::sort`, ranges, and similar utilities without friction.
+- **Cache-friendly containers** - Sparse–dense hash map, small-string-optimized string, and strictly aligned vector types.
+- **Lightweight error types** - Union-based `Result<T, E>` and `Option<T>` that compile to tight representations, with Rust-style `AU_TRY` macros.
 
-* Cache-Friendly Containers: Custom Sparse-Dense HashMap, Small-String Optimized (SSO) String, and strictly aligned VecT implementations.
+## The ecosystem
 
-* Safe Error Handling: Union-based Result<T, E> and Option<T> types that compile down to trivial registers, with Rust-like AU_TRY macros.
+The Auxid platform spans two repositories for clarity and maintenance. **This repo** is **LibAuxid** (the core template library).
 
-## **The Ecosystem**
+| Name | Description | Repository |
+|------|-------------|------------|
+| **LibAuxid** | Custom template library and core platform | [I-A-S/Auxid](https://github.com/I-A-S/Auxid) |
+| **Project template** | Production-oriented scaffold for new Auxid projects | [I-A-S/Auxid-Project-Template](https://github.com/I-A-S/Auxid-Project-Template) |
 
-The Auxid platform is split across two repositories for modularity and maintenance. This repository is the home of LibAuxid (the core template library).
+## Quick start (CMake)
 
-| Name            | Description                            | Repo                                     |
-|-----------------|----------------------------------------|------------------------------------------|
-| **LibAuxid**        | Auxid custom template library and core platform | https://github.com/I-A-S/Auxid           |
-| **Project Template**       | Easy to use production-ready template for scaffolding new Auxid projects         | https://github.com/I-A-S/Auxid-Project-Template       |
-
-## **Quick Start (CMake Integration)**
-
-Auxid is designed to be highly adaptable. You can drop LibAuxid into any existing CMake pipeline using FetchContent.
-
-> [!NOTE]
-> **Opt-In Platform Configurations**
->
-> To remain unobtrusive to standard developer workflows, Auxid does not force strict compiler or linker flags by default. However, to help you write predictable "Orthodox C++", we provide an opt-in configuration that you can explicitly link your targets against:
->
-> **`auxid_platform_standard` (Recommended):** Disables C++ exceptions (`-fno-exceptions` or `/EHs-c-`). We highly recommend linking this for all projects using Auxid to ensure predictable control flow and performance.
+LibAuxid is meant to drop into an existing CMake project via `FetchContent`:
 
 ```cmake
 cmake_minimum_required(VERSION 3.20)
@@ -56,23 +48,24 @@ include(FetchContent)
 
 FetchContent_Declare(
   auxid
-  GIT_REPOSITORY [https://github.com/I-A-S/Auxid.git](https://github.com/I-A-S/Auxid.git)
-  GIT_TAG        main # Use a specific release tag instead for best stability
+  GIT_REPOSITORY https://github.com/I-A-S/Auxid.git
+  GIT_TAG        main  # Pin a release tag for stability in production
 )
 FetchContent_MakeAvailable(auxid)
 
-auxid_setup_project() # (OPTIONAL) Sets up cmake project settings (e.g. Setting C++ Standard to 20)
+auxid_setup_project()  # Optional: project-wide settings (e.g. C++20)
 
 add_executable(my_app main.cpp)
-
-# Link the core library
 target_link_libraries(my_app PRIVATE libauxid)
-
-# (Recommended) Opt-in to the standard Orthodox C++ configuration
-target_link_libraries(my_app PRIVATE auxid_platform_standard)
+target_link_libraries(my_app PRIVATE auxid_platform_standard)  # Recommended (see below)
 ```
 
-### Example Usage
+> [!NOTE]
+> **Opt-in platform configuration**
+>
+> Auxid does not force strict compiler or linker flags by default. For a predictable “Orthodox C++” baseline, link **`auxid_platform_standard`** (recommended): it disables C++ exceptions (`-fno-exceptions` on Clang/GCC, `/EHs-c-` on MSVC), which helps keep control flow and performance characteristics explicit.
+
+### Example
 
 ```cpp
 #include <auxid/containers/vec.hpp>
@@ -80,12 +73,11 @@ target_link_libraries(my_app PRIVATE auxid_platform_standard)
 
 using namespace au;
 
-auto main() -> int 
+auto main() -> int
 {
     auxid::MainThreadGuard _main_thread_guard;
 
-    // Custom Auxid containers present an *almost* fully identical
-    // interface to its std counterparts.
+    // Custom Auxid containers mirror their std counterparts closely.
     Vec<String> names;
     names.push_back(String("Orthodox"));
     names.push_back(String("C++"));
@@ -94,6 +86,6 @@ auto main() -> int
 }
 ```
 
-## **License**
+## License
 
-Copyright (C) 2026 I-A-S. Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+Copyright © 2026 I-A-S. Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
