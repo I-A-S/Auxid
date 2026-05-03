@@ -87,6 +87,8 @@ using namespace au;
 
 auto main() -> int 
 {
+    auxid::MainThreadGuard _main_thread_guard;
+
     Vec<String> names;
     names.push_back(String("Orthodox"));
     names.push_back(String("C++"));
