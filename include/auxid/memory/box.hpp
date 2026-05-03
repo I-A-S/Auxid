@@ -110,7 +110,7 @@ public:
 
 private:
     T *m_ptr;
-    [[no_unique_address]] Allocator m_alloc;
+    AUXID_NO_UNIQUE_ADDRESS Allocator m_alloc;
   };
 
   template<typename T, AllocatorType Allocator = HeapAllocator, typename... Args>

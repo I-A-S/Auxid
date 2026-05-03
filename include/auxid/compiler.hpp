@@ -35,44 +35,43 @@
 namespace au
 {
   namespace compiler
-{
-  template<class T> constexpr T *addressof(T &arg) noexcept
   {
-    return std::addressof(arg);
-  }
+    template<class T> constexpr T *addressof(T &arg) noexcept
+    {
+      return std::addressof(arg);
+    }
 
-  template<class T> const T *addressof(const T &&) = delete;
+    template<class T> const T *addressof(const T &&) = delete;
 
-  [[noreturn]] inline void trap() noexcept
-  {
+    [[noreturn]] inline void trap() noexcept
+    {
 #if defined(_MSC_VER) && !defined(__clang__)
-    __debugbreak();
-    std::abort();
+      __debugbreak();
+      std::abort();
 #elif defined(__has_builtin)
 #  if __has_builtin(__builtin_trap)
-    __builtin_trap();
+      __builtin_trap();
 #  else
-    std::abort();
+      std::abort();
 #  endif
 #else
-    std::abort();
+      std::abort();
 #endif
-  }
+    }
 
-  inline int memcmp(const void *lhs, const void *rhs, std::size_t n) noexcept
-  {
-    return std::memcmp(lhs, rhs, n);
-  }
+    inline int memcmp(const void *lhs, const void *rhs, std::size_t n) noexcept
+    {
+      return std::memcmp(lhs, rhs, n);
+    }
 
-  inline std::size_t strlen(const char *s) noexcept
-  {
-    return std::strlen(s);
-  }
+    inline std::size_t strlen(const char *s) noexcept
+    {
+      return std::strlen(s);
+    }
 
-  inline const void *memchr(const void *p, int c, std::size_t n) noexcept
-  {
-    return std::memchr(p, c, n);
-  }
+    inline const void *memchr(const void *p, int c, std::size_t n) noexcept
+    {
+      return std::memchr(p, c, n);
+    }
   } // namespace compiler
 } // namespace au
-
