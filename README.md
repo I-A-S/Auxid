@@ -17,7 +17,7 @@ Auxid is a platform for building modern, high-performance C++ applications using
 
 Modern C++ has become bogged down by massive template metaprogramming, glacial compile times, and a Standard Library (STL) whose node-based containers and rigid allocator model actively fight against CPU caches and Data-Oriented Design. Auxid strips the language back to its highly-performant, close-to-metal roots.
 
-LibAuxid completely replaces the C++ Standard Library. It compiles in a purely freestanding environment (`-nostdlib++`, `-ffreestanding`, `-fno-exceptions`) and provides a hyper-lean, DOD-friendly template library built around explicit heap and arena memory allocators.
+LibAuxid augments the C++ Standard Library with a hyper-lean, DOD-friendly template layer built on explicit heap and arena allocators. Where the standard library is already the right tool (for example, `std::filesystem`) LibAuxid forwards it through a thin, LibAuxid-compatible inline wrapper with no extra overhead.
 
 ### Core Features
 * Zero STL Overhead: No `<iostream>`, no `<vector>`, no hidden allocations.
@@ -28,18 +28,13 @@ LibAuxid completely replaces the C++ Standard Library. It compiles in a purely f
 
 * Safe Error Handling: Union-based Result<T, E> and Option<T> types that compile down to trivial registers, with Rust-like AU_TRY macros.
 
-* Strictly Clang: Built exclusively for Clang (Linux/macOS) and Clang-CL (Windows) to guarantee predictable ABIs and optimal code generation.
-
 ## **The Ecosystem**
 
-The Auxid platform is split across multiple repositories for modularity and maintenance. This repository is the home of LibAuxid (the core template library).
+The Auxid platform is split across two repositories for modularity and maintenance. This repository is the home of LibAuxid (the core template library).
 
 | Name            | Description                            | Repo                                     |
 |-----------------|----------------------------------------|------------------------------------------|
 | **LibAuxid**        | Auxid custom template library and core platform | https://github.com/I-A-S/Auxid           |
-| **Validator** | Clang-based static analysis and validator tool   | https://github.com/I-A-S/Auxid-Validator |
-| **VSCode**    | Official VSCode Extension for Auxid integration            | https://github.com/I-A-S/Auxid-VSCode    |
-| **CLI**       | Command Line Utility for project management         | https://github.com/I-A-S/Auxid-CLI       |
 | **Project Template**       | Easy to use production-ready template for scaffolding new Auxid projects         | https://github.com/I-A-S/Auxid-Project-Template       |
 
 ## **Quick Start (CMake Integration)**
@@ -66,7 +61,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(auxid)
 
-auxid_setup_project() # (OPTIONAL) Sets up cmake project settings
+auxid_setup_project() # (OPTIONAL) Sets up cmake project settings (e.g. Setting C++ Standard to 20)
 
 add_executable(my_app main.cpp)
 
@@ -89,6 +84,8 @@ auto main() -> int
 {
     auxid::MainThreadGuard _main_thread_guard;
 
+    // Custom Auxid containers present an *almost* fully identical
+    // interface to its std counterparts.
     Vec<String> names;
     names.push_back(String("Orthodox"));
     names.push_back(String("C++"));

@@ -17,6 +17,8 @@
 
 #include <auxid/result.hpp>
 #include <auxid/thread/mutex.hpp>
+#include <auxid/std_wrappers/function.hpp>
+#include <auxid/std_wrappers/filesystem.hpp>
 
 namespace au
 {
