@@ -48,7 +48,8 @@ public:
     {
     }
 
-    constexpr explicit Box(T *ptr, Deleter deleter = Deleter{}) noexcept : m_ptr(ptr), m_deleter(static_cast<Deleter &&>(deleter))
+    constexpr explicit Box(T *ptr, Deleter deleter = Deleter{}) noexcept
+        : m_ptr(ptr), m_deleter(static_cast<Deleter &&>(deleter))
     {
     }
 
@@ -182,4 +183,23 @@ private:
   {
     return make_box_protected<T, HeapAllocator>(HeapAllocator{}, static_cast<Args &&>(args)...);
   }
+
+#define AU_DECLARE_CUSTOM_DELETER(type, deleter_function)                                                              \
+  template<typename AllocatorType> struct Deleter_##type                                                               \
+  {                                                                                                                    \
+    AUXID_NO_UNIQUE_ADDRESS AllocatorType m_alloc;                                                                     \
+                                                                                                                       \
+    constexpr Deleter_##type() noexcept : m_alloc(AllocatorType{})                                                     \
+    {                                                                                                                  \
+    }                                                                                                                  \
+                                                                                                                       \
+    constexpr explicit Deleter_##type(AllocatorType alloc) noexcept : m_alloc(static_cast<AllocatorType &&>(alloc))    \
+    {                                                                                                                  \
+    }                                                                                                                  \
+                                                                                                                       \
+    constexpr void operator()(type *ptr) noexcept                                                                      \
+    {                                                                                                                  \
+      deleter_function(ptr);                                                                                           \
+    }                                                                                                                  \
+  };
 } // namespace au::memory
