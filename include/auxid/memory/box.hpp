@@ -19,10 +19,36 @@
 
 namespace au::memory
 {
-  template<typename T, AllocatorType Allocator = HeapAllocator> class Box
+  template<typename T, typename AllocatorType> struct BoxAllocatorDeleter
+  {
+    AUXID_NO_UNIQUE_ADDRESS AllocatorType m_alloc;
+
+    constexpr BoxAllocatorDeleter() noexcept : m_alloc(AllocatorType{})
+    {
+    }
+
+    constexpr explicit BoxAllocatorDeleter(AllocatorType alloc) noexcept : m_alloc(static_cast<AllocatorType &&>(alloc))
+    {
+    }
+
+    constexpr void operator()(T *ptr) noexcept
+    {
+      if (ptr)
+      {
+        ptr->~T();
+        m_alloc.free(ptr, sizeof(T), alignof(T));
+      }
+    }
+  };
+
+  template<typename T, typename Deleter = BoxAllocatorDeleter<T, HeapAllocator>> class Box
   {
 public:
-    constexpr explicit Box(T *ptr, Allocator alloc = Allocator{}) noexcept : m_ptr(ptr), m_alloc(alloc)
+    constexpr Box() noexcept : m_ptr(nullptr), m_deleter()
+    {
+    }
+
+    constexpr explicit Box(T *ptr, Deleter deleter = Deleter{}) noexcept : m_ptr(ptr), m_deleter(static_cast<Deleter &&>(deleter))
     {
     }
 
@@ -31,7 +57,7 @@ public:
       reset();
     }
 
-    constexpr Box(Box &&other) noexcept : m_ptr(other.m_ptr), m_alloc(other.m_alloc)
+    constexpr Box(Box &&other) noexcept : m_ptr(other.m_ptr), m_deleter(static_cast<Deleter &&>(other.m_deleter))
     {
       other.m_ptr = nullptr;
     }
@@ -42,7 +68,7 @@ public:
       {
         reset();
         m_ptr = other.m_ptr;
-        m_alloc = other.m_alloc;
+        m_deleter = static_cast<Deleter &&>(other.m_deleter);
         other.m_ptr = nullptr;
       }
       return *this;
@@ -71,13 +97,15 @@ public:
       return m_ptr != nullptr;
     }
 
-    constexpr void reset() noexcept
+    constexpr void reset(T *ptr = nullptr) noexcept
     {
-      if (m_ptr)
+      if (m_ptr != ptr)
       {
-        m_ptr->~T();
-        m_alloc.free(m_ptr, sizeof(T), alignof(T));
-        m_ptr = nullptr;
+        if (m_ptr)
+        {
+          m_deleter(m_ptr);
+        }
+        m_ptr = ptr;
       }
     }
 
@@ -110,27 +138,29 @@ public:
 
 private:
     T *m_ptr;
-    AUXID_NO_UNIQUE_ADDRESS Allocator m_alloc;
+    AUXID_NO_UNIQUE_ADDRESS Deleter m_deleter;
   };
 
   template<typename T, AllocatorType Allocator = HeapAllocator, typename... Args>
-  [[nodiscard]] Box<T, Allocator> make_box(Allocator alloc, Args &&...args)
+  [[nodiscard]] Box<T, BoxAllocatorDeleter<T, Allocator>> make_box(Allocator alloc, Args &&...args)
   {
     void *mem = alloc.alloc(sizeof(T), alignof(T));
     if (!mem)
       panic("make_box allocation failed");
 
     T *ptr = new (mem) T(static_cast<Args &&>(args)...);
-    return Box<T, Allocator>(ptr, alloc);
+
+    return Box<T, BoxAllocatorDeleter<T, Allocator>>(ptr, BoxAllocatorDeleter<T, Allocator>(alloc));
   }
 
-  template<typename T, typename... Args> [[nodiscard]] Box<T, HeapAllocator> make_box(Args &&...args)
+  template<typename T, typename... Args>
+  [[nodiscard]] Box<T, BoxAllocatorDeleter<T, HeapAllocator>> make_box(Args &&...args)
   {
     return make_box<T, HeapAllocator>(HeapAllocator{}, static_cast<Args &&>(args)...);
   }
 
   template<typename T, AllocatorType Allocator = HeapAllocator, typename... Args>
-  [[nodiscard]] Box<T, Allocator> make_box_protected(Allocator alloc, Args &&...args)
+  [[nodiscard]] Box<T, BoxAllocatorDeleter<T, Allocator>> make_box_protected(Allocator alloc, Args &&...args)
   {
     struct Enabler : public T
     {
@@ -139,15 +169,16 @@ private:
       }
     };
 
-    void *mem = alloc.alloc(sizeof(Enabler), alignof(Enabler));
+    void *mem = alloc.alloc(sizeof(T), alignof(T));
     if (!mem)
       panic("make_box_protected allocation failed");
 
     T *ptr = new (mem) Enabler(static_cast<Args &&>(args)...);
-    return Box<T, Allocator>(ptr, alloc);
+    return Box<T, BoxAllocatorDeleter<T, Allocator>>(ptr, BoxAllocatorDeleter<T, Allocator>(alloc));
   }
 
-  template<typename T, typename... Args> [[nodiscard]] Box<T, HeapAllocator> make_box_protected(Args &&...args)
+  template<typename T, typename... Args>
+  [[nodiscard]] Box<T, BoxAllocatorDeleter<T, HeapAllocator>> make_box_protected(Args &&...args)
   {
     return make_box_protected<T, HeapAllocator>(HeapAllocator{}, static_cast<Args &&>(args)...);
   }
