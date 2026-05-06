@@ -199,7 +199,7 @@ private:
                                                                                                                        \
     constexpr void operator()(type *ptr) noexcept                                                                      \
     {                                                                                                                  \
-      deleter_function(ptr);                                                                                           \
+      deleter_function(&m_alloc, ptr);                                                                                 \
     }                                                                                                                  \
   };
 } // namespace au::memory
