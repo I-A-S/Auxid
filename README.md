@@ -29,12 +29,16 @@ Mainstream “modern C++” often pays for heavy template metaprogramming, slow 
 
 ## The ecosystem
 
-The Auxid platform spans two repositories for clarity and maintenance. **This repo** is **LibAuxid** (the core template library).
+Explore the Auxid Ecosystem!
 
 | Name | Description | Repository |
 |------|-------------|------------|
-| **LibAuxid** | Custom template library and core platform | [I-A-S/Auxid](https://github.com/I-A-S/Auxid) |
-| **Project template** | Production-oriented scaffold for new Auxid projects | [I-A-S/Auxid-Project-Template](https://github.com/I-A-S/Auxid-Project-Template) |
+| **LibAuxid** <img src="https://img.shields.io/badge/license-Apache_v2-blue.svg" alt="License"/> | Custom template library and core platform | [Auxid (This Repo)](https://github.com/I-A-S/Auxid) |
+| **Project template** <img src="https://img.shields.io/badge/license-Apache_v2-blue.svg" alt="License"/> | Scaffold for new Auxid projects (CMake Presets Included) | [Auxid-Project-Template](https://github.com/I-A-S/Auxid-Project-Template) |
+| **IAUSB** <img src="https://img.shields.io/badge/license-Apache_v2-blue.svg" alt="License"/> | Cross-Platform USB Library for C++ | [IAUSB](https://github.com/IASoft-PVT-LTD/IAUSB) |
+| **IANet** <img src="https://img.shields.io/badge/license-Apache_v2-blue.svg" alt="License"/> | Cross-Platform Networking Library for C++ | [IANet](https://github.com/IASoft-PVT-LTD/IANet) |
+| **LaVista** <img src="https://img.shields.io/badge/license-Apache_v2-blue.svg" alt="License"/> | Modern Platform for C++ Desktop Apps | [LaVista](https://github.com/I-A-S/LaVista) |
+
 
 ## Quick start (CMake)
 
