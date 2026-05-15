@@ -33,13 +33,13 @@ Explore the Auxid Ecosystem!
 
 | Name | Description | Repository |
 |------|-------------|------------|
-| **LibAuxid** <img src="https://img.shields.io/badge/license-Apache_v2-blue.svg" alt="License"/> | Custom template library and core platform | [Auxid (This Repo)](https://github.com/I-A-S/Auxid) |
-| **StarterKit** <img src="https://img.shields.io/badge/license-Apache_v2-blue.svg" alt="License"/> | Scaffold for new Auxid projects (CMake Presets Included) | [Auxid-Project-Template](https://github.com/I-A-S/Auxid-Project-Template) |
-| **IAUSB** <img src="https://img.shields.io/badge/license-Apache_v2-blue.svg" alt="License"/> | Cross-Platform USB Library for C++ | [IAUSB](https://github.com/IASoft-PVT-LTD/IAUSB) |
-| **IANet** <img src="https://img.shields.io/badge/license-Apache_v2-blue.svg" alt="License"/> | Cross-Platform Networking Library for C++ | [IANet](https://github.com/IASoft-PVT-LTD/IANet) |
-| **LaVista** <img src="https://img.shields.io/badge/license-Apache_v2-blue.svg" alt="License"/> | Modern Platform for C++ Desktop Apps | [LaVista](https://github.com/IASoft-PVT-LTD/LaVista) |
-| **IAVis** <img src="https://img.shields.io/badge/license-Apache_v2-blue.svg" alt="License"/> | Real-Time Visualization Library | [IAVis](https://github.com/IASoft-PVT-LTD/IAVis) |
-| **IAGHI** <img src="https://img.shields.io/badge/license-Apache_v2-blue.svg" alt="License"/> | IA Graphics Hardware Interface | [IAGHI](https://github.com/IASoft-PVT-LTD/IAGHI) |
+| **LibAuxid** | Custom template library and core platform | [Auxid (This Repo)](https://github.com/I-A-S/Auxid) |
+| **StarterKit** | Scaffold for new Auxid projects (CMake Presets Included) | [Auxid-Project-Template](https://github.com/I-A-S/Auxid-Project-Template) |
+| **IAUSB** | Cross-Platform USB Library for C++ | [IAUSB](https://github.com/IASoft-PVT-LTD/IAUSB) |
+| **IANet** | Cross-Platform Networking Library for C++ | [IANet](https://github.com/IASoft-PVT-LTD/IANet) |
+| **LaVista** | Modern Platform for C++ Desktop Apps | [LaVista](https://github.com/IASoft-PVT-LTD/LaVista) |
+| **IAVis** | Real-Time Visualization Library | [IAVis](https://github.com/IASoft-PVT-LTD/IAVis) |
+| **IAGHI** | IA Graphics Hardware Interface | [IAGHI](https://github.com/IASoft-PVT-LTD/IAGHI) |
 
 ## Quick start (CMake)
 
