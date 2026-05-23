@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <bit>
 #include <concepts>
 #include <tuple>
 #include <type_traits>
@@ -94,7 +95,7 @@ namespace
       u64 x = 0x0123456789ABCDEFULL;
       u64 h1 = h(x);
       u64 h2 = h(x ^ 1ULL);
-      u32 differing = __builtin_popcountll(h1 ^ h2);
+      u32 differing = static_cast<u32>(std::popcount(h1 ^ h2));
       return check(differing >= 8, "popcount(h1 ^ h2) >= 8");
     }
 
@@ -106,7 +107,7 @@ namespace
       String owned = "the quick brown fox";
       StringView view = "the quick brown fox";
 
-      return check_eq(hs(StringView(owned)), hv(view), "Hash<String>(view) == Hash<StringView>(view)");
+      return check_eq(hs(owned), hv(view), "Hash<String>(owned) == Hash<StringView>(view)");
     }
 
     auto string_hash_changes_with_content() -> bool
@@ -129,10 +130,10 @@ namespace
       for (int i = 0; i < 256; ++i)
         s.push_back(static_cast<char>('a' + (i % 26)));
       Hash<StringView> h;
-      u64 h1 = h(StringView(s));
+      u64 h1 = h(s);
       String s2 = s;
       s2.push_back('!');
-      u64 h2 = h(StringView(s2));
+      u64 h2 = h(s2);
       return check_neq(h1, h2, "h(s) != h(s + '!')");
     }
 
