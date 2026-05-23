@@ -18,6 +18,7 @@ module;
 
 #include <auxid/macros.hpp>
 
+#include <algorithm>
 #include <atomic>
 #include <bit>
 #include <cstdarg>
