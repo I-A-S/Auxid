@@ -86,3 +86,6 @@ jobs:
 
       - name: Build
         run: cmake --build --preset wasm32-emscripten --config Release
+
+      - name: Test
+        run: ctest --preset wasm32-emscripten --output-on-failure
