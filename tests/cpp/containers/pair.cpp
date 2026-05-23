@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,40 +14,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <auxid/utils/test.hpp>
-#include <auxid/containers/pair.hpp>
-#include <auxid/containers/string.hpp>
+#include <utility>
+
+import auxid;
+import auxid.test;
 
 using namespace au;
 
-AUT_BEGIN_BLOCK(containers, pair)
-
-auto test_pair_construction() -> bool
+namespace
 {
-  Pair<i32, String> p(42, "Answer");
+  struct PairBlock final : test::Block
+  {
+    [[nodiscard]] auto get_name() const -> const char * override { return "containers::pair"; }
 
-  AUT_CHECK_EQ(p.first, 42);
-  AUT_CHECK_EQ(p.second, "Answer");
+    auto declare_tests() -> void override
+    {
+      add_test("construction",   [this] { return construction(); });
+      add_test("move_semantics", [this] { return move_semantics(); });
+    }
 
-  return true;
-}
+    auto construction() -> bool
+    {
+      Pair<i32, String> p(42, "Answer");
+      return check_eq(p.first, 42, "p.first == 42")
+          && check_eq(p.second, "Answer", "p.second == \"Answer\"");
+    }
 
-auto test_pair_move_semantics() -> bool
-{
-  Pair<i32, String> p1(100, "Moving");
-  Pair<i32, String> p2(std::move(p1));
+    auto move_semantics() -> bool
+    {
+      Pair<i32, String> p1(100, "Moving");
+      Pair<i32, String> p2(std::move(p1));
+      return check_eq(p2.first, 100, "p2.first == 100")
+          && check_eq(p2.second, "Moving", "p2.second == \"Moving\"");
+    }
+  };
 
-  AUT_CHECK_EQ(p2.first, 100);
-  AUT_CHECK_EQ(p2.second, "Moving");
-
-  return true;
-}
-
-AUT_BEGIN_TEST_LIST()
-AUT_ADD_TEST(test_pair_construction);
-AUT_ADD_TEST(test_pair_move_semantics);
-AUT_END_TEST_LIST()
-
-AUT_END_BLOCK()
-
-AUT_REGISTER_ENTRY(containers, pair);
+  const test::AutoRegister<PairBlock> _registered;
+} // namespace

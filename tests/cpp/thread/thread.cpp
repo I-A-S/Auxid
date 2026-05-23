@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,42 +14,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <auxid/utils/test.hpp>
-#include <auxid/thread/thread.hpp>
-#include <auxid/thread/mutex.hpp>
+#include <utility>
+
+import auxid;
+import auxid.test;
 
 using namespace au;
 
-AUT_BEGIN_BLOCK(core, thread)
-
-auto test_thread_execution() -> bool
+namespace
 {
-  Mutex mtx;
-  i32 shared_counter = 0;
+  struct ThreadBlock final : test::Block
+  {
+    [[nodiscard]] auto get_name() const -> const char * override { return "core::thread"; }
 
-  auto thread_res = Thread::create([&mtx, &shared_counter]() {
-    LockGuard<Mutex> lock(mtx);
-    shared_counter = 42;
-  });
+    auto declare_tests() -> void override
+    {
+      add_test("thread_execution", [this] { return thread_execution(); });
+    }
 
-  AUT_CHECK(thread_res.is_ok());
+    auto thread_execution() -> bool
+    {
+      Mutex mtx;
+      i32 shared_counter = 0;
 
-  Thread t = std::move(thread_res.unwrap());
-  AUT_CHECK(t.joinable());
+      auto thread_res = Thread::create([&mtx, &shared_counter]() {
+        LockGuard<Mutex> lock(mtx);
+        shared_counter = 42;
+      });
+      if (!check(thread_res.is_ok(), "Thread::create returns Ok"))
+        return false;
 
-  t.join();
-  AUT_CHECK_NOT(t.joinable());
+      Thread t = std::move(thread_res.unwrap());
+      if (!check(t.joinable(), "thread is joinable")) return false;
 
-  LockGuard<Mutex> lock(mtx);
-  AUT_CHECK_EQ(shared_counter, 42);
+      t.join();
+      if (!check_not(t.joinable(), "thread is not joinable after join")) return false;
 
-  return true;
-}
+      LockGuard<Mutex> lock(mtx);
+      return check_eq(shared_counter, 42, "shared_counter == 42");
+    }
+  };
 
-AUT_BEGIN_TEST_LIST()
-AUT_ADD_TEST(test_thread_execution);
-AUT_END_TEST_LIST()
-
-AUT_END_BLOCK()
-
-AUT_REGISTER_ENTRY(core, thread);
+  const test::AutoRegister<ThreadBlock> _registered;
+} // namespace

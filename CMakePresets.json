@@ -42,8 +42,8 @@
       "displayName": "Auxid Windows x64 (Clang)",
       "inherits": "auxid-base",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/x64-windows-clang.cmake"
       }
     },
@@ -52,8 +52,8 @@
       "displayName": "Auxid Windows ARM64 (Clang Cross)",
       "inherits": "auxid-base",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/arm64-windows-clang.cmake"
       }
     },
@@ -70,8 +70,8 @@
     },
     {
       "name": "x64-windows",
-      "displayName": "Auxid Windows x64 (Visual Studio 2022)",
-      "generator": "Visual Studio 17 2022",
+      "displayName": "Auxid Windows x64 (Visual Studio 2026)",
+      "generator": "Visual Studio 18 2026",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "architecture": "x64",
       "cacheVariables": {
@@ -80,8 +80,8 @@
     },
     {
       "name": "arm64-windows",
-      "displayName": "Auxid Windows ARM64 (Visual Studio 2022)",
-      "generator": "Visual Studio 17 2022",
+      "displayName": "Auxid Windows ARM64 (Visual Studio 2026)",
+      "generator": "Visual Studio 18 2026",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "architecture": "ARM64",
       "cacheVariables": {
@@ -90,16 +90,12 @@
     },
     {
       "name": "wasm32-emscripten",
-      "displayName": "Auxid WebAssembly (Clang)",
-      "inherits": "auxid-base"
-    },
-    {
-      "name": "x64-windows-cross",
-      "displayName": "Auxid Windows x64 (Clang Cross Linux Host)",
-      "inherits": "auxid-base",
+      "displayName": "Auxid WebAssembly (Emscripten)",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/wasm32-emscripten-clang.cmake",
+        "AUXID_USE_SYSTEM_MALLOC": "TRUE"
       }
     }
   ],
@@ -139,10 +135,6 @@
     {
       "name": "wasm32-emscripten",
       "configurePreset": "wasm32-emscripten"
-    },
-    {
-      "name": "x64-windows-cross",
-      "configurePreset": "x64-windows-cross"
     }
   ],
   "testPresets": [
@@ -165,6 +157,14 @@
     {
       "name": "x64-windows-clang",
       "configurePreset": "x64-windows-clang",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "wasm32-emscripten",
+      "configurePreset": "wasm32-emscripten",
       "configuration": "Release",
       "output": {
         "outputOnFailure": true

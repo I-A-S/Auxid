@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,17 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+export module auxid;
 
-#include <auxid/pch.hpp>
-
-namespace au::memory
-{
-  template<typename T>
-  concept AllocatorType = requires(T v, void *ptr, usize size, usize align) {
-    { v.alloc(size) } -> std::same_as<void *>;
-    { v.alloc(size, align) } -> std::same_as<void *>;
-    { v.realloc(ptr, size, size, align) } -> std::same_as<void *>;
-    { v.free(ptr, size, align) } -> std::same_as<void>;
-  };
-} // namespace au::memory
+export import auxid.core;
+export import auxid.memory;
+export import auxid.containers;
+export import auxid.thread;
+export import auxid.fs;

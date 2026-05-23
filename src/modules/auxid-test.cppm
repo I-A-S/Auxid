@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,71 +14,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+module;
 
+#include <cmath>
+#include <concepts>
+#include <cstdio>
+#include <cstdlib>
 #include <functional>
+#include <type_traits>
 
-#include <auxid/auxid.hpp>
-#include <auxid/containers/vec.hpp>
-#include <auxid/containers/string.hpp>
+export module auxid.test;
 
-#define __aut_micro_test(call)                                                                                         \
-  do                                                                                                                   \
-  {                                                                                                                    \
-    if (!(call))                                                                                                       \
-      return false;                                                                                                    \
-  } while (false)
+import auxid.core;
+import auxid.containers;
 
-#define AUT_CHECK(v) __aut_micro_test(_test((v), #v))
-#define AUT_CHECK_NOT(v) __aut_micro_test(_test_not((v), "NOT " #v))
-#define AUT_CHECK_EQ(lhs, rhs) __aut_micro_test(_test_eq((lhs), (rhs), #lhs " == " #rhs))
-#define AUT_CHECK_NEQ(lhs, rhs) __aut_micro_test(_test_neq((lhs), (rhs), #lhs " != " #rhs))
-
-#define AUT_CHECK_APPROX(lhs, rhs) __aut_micro_test(_test_approx((lhs), (rhs), #lhs " ~= " #rhs))
-#define AUT_CHECK_APPROX_EPS(lhs, rhs, eps) __aut_micro_test(_test_approx((lhs), (rhs), #lhs " ~= " #rhs, (eps)))
-
-#define AUT_UNIT(func) _test_unit([this]() { return this->func(); }, #func)
-#define AUT_NAMED_UNIT(n, func) _test_unit([this]() { return this->func(); }, n)
-
-#define AUT_BLOCK(name) class name : public au::test::Block
-
-#define AUT_BEGIN_BLOCK(_group, _name)                                                                                 \
-  class _group##_##_name : public au::test::Block                                                                      \
-  {                                                                                                                    \
-public:                                                                                                                \
-    [[nodiscard]] auto get_name() const -> const char * override                                                       \
-    {                                                                                                                  \
-      return #_group "::" #_name;                                                                                      \
-    }                                                                                                                  \
-                                                                                                                       \
-private:
-
-#define AUT_END_BLOCK()                                                                                                \
-  }                                                                                                                    \
-  ;
-
-#define AUT_BEGIN_TEST_LIST()                                                                                          \
-  public:                                                                                                              \
-  auto declare_tests() -> void override                                                                                \
-  {
-#define AUT_ADD_TEST(name) AUT_UNIT(name)
-#define AUT_END_TEST_LIST()                                                                                            \
-  }                                                                                                                    \
-                                                                                                                       \
-  private:
-
-namespace au::console
+export namespace au::console
 {
-  static constexpr const char *RESET = "\033[0m";
-  static constexpr const char *RED = "\033[31m";
-  static constexpr const char *GREEN = "\033[32m";
-  static constexpr const char *YELLOW = "\033[33m";
-  static constexpr const char *BLUE = "\033[34m";
-  static constexpr const char *MAGENTA = "\033[35m";
-  static constexpr const char *CYAN = "\033[36m";
+  inline constexpr const char *RESET = "\033[0m";
+  inline constexpr const char *RED = "\033[31m";
+  inline constexpr const char *GREEN = "\033[32m";
+  inline constexpr const char *YELLOW = "\033[33m";
+  inline constexpr const char *BLUE = "\033[34m";
+  inline constexpr const char *MAGENTA = "\033[35m";
+  inline constexpr const char *CYAN = "\033[36m";
 } // namespace au::console
 
-namespace au::test
+export namespace au::test
 {
   template<typename T>
   concept HasToStringMethod = requires(const T &t) {
@@ -102,7 +64,7 @@ namespace au::test
           return String("nullptr");
         char buffer[32];
         int len = snprintf(buffer, sizeof(buffer), "ptr(%p)", static_cast<const void *>(value));
-        if (len > 0 && len < sizeof(buffer))
+        if (len > 0 && len < static_cast<int>(sizeof(buffer)))
           return String(buffer, static_cast<usize>(len));
         return String("ptr(err)");
       }
@@ -125,7 +87,7 @@ namespace au::test
         len = snprintf(buffer, sizeof(buffer), "%llu", static_cast<unsigned long long>(value));
       }
 
-      if (len > 0 && len < sizeof(buffer))
+      if (len > 0 && len < static_cast<int>(sizeof(buffer)))
       {
         return String(buffer, static_cast<usize>(len));
       }
@@ -165,8 +127,8 @@ public:
       return m_units;
     }
 
-protected:
-    template<typename T1, typename T2> auto _test_eq(const T1 &lhs, const T2 &rhs, const char *description) -> bool
+    template<typename T1, typename T2>
+    auto check_eq(const T1 &lhs, const T2 &rhs, const char *description) -> bool
     {
       if (lhs != rhs)
       {
@@ -176,7 +138,8 @@ protected:
       return true;
     }
 
-    template<typename T1, typename T2> auto _test_neq(const T1 &lhs, const T2 &rhs, const char *description) -> bool
+    template<typename T1, typename T2>
+    auto check_neq(const T1 &lhs, const T2 &rhs, const char *description) -> bool
     {
       if (lhs == rhs)
       {
@@ -187,10 +150,10 @@ protected:
     }
 
     template<typename T>
-    auto _test_approx(const T lhs, const T rhs, const char *description, const T epsilon = static_cast<T>(0.001))
+    auto check_approx(const T lhs, const T rhs, const char *description, const T epsilon = static_cast<T>(0.001))
         -> bool
     {
-      static_assert(std::is_floating_point_v<T>, "Approx only works for floats/doubles");
+      static_assert(std::is_floating_point_v<T>, "check_approx only works for floats/doubles");
 
       if (lhs == static_cast<T>(0.0) || rhs == static_cast<T>(0.0))
       {
@@ -213,7 +176,7 @@ protected:
       return true;
     }
 
-    auto _test(const bool value, const char *description) -> bool
+    auto check(const bool value, const char *description) -> bool
     {
       if (!value)
       {
@@ -223,7 +186,7 @@ protected:
       return true;
     }
 
-    auto _test_not(const bool value, const char *description) -> bool
+    auto check_not(const bool value, const char *description) -> bool
     {
       if (value)
       {
@@ -233,9 +196,9 @@ protected:
       return true;
     }
 
-    auto _test_unit(Mut<TestFunctor> functor, const char *name) -> void
+    auto add_test(const char *name, TestFunctor functor) -> void
     {
-      m_units.push_back({name, std::move(functor)});
+      m_units.push_back({String(name), std::move(functor)});
     }
 
 private:
@@ -265,6 +228,9 @@ public:
       requires ValidBlockClass<BlockClass>
     auto test_block() -> void;
 
+    [[nodiscard]] auto fail_count() const noexcept -> usize { return m_fail_count; }
+    [[nodiscard]] auto test_count() const noexcept -> usize { return m_test_count; }
+
 private:
     auto summarize() -> void;
 
@@ -292,22 +258,7 @@ private:
         printf("%s  Testing %s...\n%s", console::YELLOW, v.name.c_str(), console::RESET);
       }
 
-      bool result = false;
-
-      try
-      {
-        result = v.functor();
-      }
-      catch (const std::exception &e)
-      {
-        printf("%s    [EXCEPTION] %s: %s%s\n", console::RED, v.name.c_str(), e.what(), console::RESET);
-        result = false;
-      }
-      catch (...)
-      {
-        printf("%s    [UNKNOWN EXCEPTION] %s%s\n", console::RED, v.name.c_str(), console::RESET);
-        result = false;
-      }
+      const bool result = v.functor();
 
       if (!result)
       {
@@ -368,7 +319,7 @@ public:
         entry(r);
       }
 
-      return 0;
+      return r.fail_count() == 0 ? 0 : 1;
     }
   };
 
@@ -380,5 +331,3 @@ public:
     }
   };
 } // namespace au::test
-
-#define AUT_REGISTER_ENTRY(Group, Name) static au::test::AutoRegister<Group##_##Name> _aut_reg_##Group##_##Name;

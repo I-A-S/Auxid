@@ -3,8 +3,9 @@
   <br/>
 
   <img src="https://img.shields.io/badge/license-Apache_v2-darkblue.svg" alt="License"/>
-  <img src="https://img.shields.io/badge/standard-C%2B%2B20-darkred.svg" alt="C++ Standard"/>
-  <img src="https://img.shields.io/badge/compiler-MSVC | Clang-darkgreen.svg" alt="Compiler"/>
+  <img src="https://img.shields.io/badge/standard-C%2B%2B23-darkred.svg" alt="C++ Standard"/>
+  <img src="https://img.shields.io/badge/compiler-MSVC | Clang | Clang--CL-darkgreen.svg" alt="Compiler"/>
+  <img src="https://img.shields.io/badge/platforms-Linux | Windows | WASM-darkslateblue.svg" alt="Platforms"/>
 
   <p style="padding-top: 0.2rem;">
     <b>Auxid: The Orthodox C++ Platform.</b>
@@ -13,19 +14,155 @@
 
 ## The vision
 
-Auxid is a platform for building modern, high-performance C++ applications using **Orthodox C++** and **data-oriented design (DOD)**.
+Auxid is a platform for building modern, high-performance C++ applications using **Orthodox C++** and **data-oriented design (DOD)** principles, delivered as a **C++23 named module**.
 
-Mainstream “modern C++” often pays for heavy template metaprogramming, slow builds, and an STL whose node-based containers and allocator model work against CPU caches and DOD-friendly layouts. Auxid keeps the language close to fast, predictable, systems-style C++.
+Mainstream "modern C++" often pays for heavy template metaprogramming, slow builds, and an STL whose node-based containers and allocator model work against CPU caches and DOD-friendly layouts. Auxid keeps the language close to fast, predictable, systems-style C++ - but it doesn't reject the STL. Where the standard library is already the right tool (contiguous storage, `std::filesystem`, `std::expected`, `std::optional`, ranges/iterator concepts), **LibAuxid composes with it**; where it isn't (small-string optimization, sparse-dense hashing, scoped arenas, strict allocator control), Auxid ships its own.
 
-**LibAuxid** augments the standard library with a lean, DOD-oriented template layer built on explicit heap and arena allocation. Where the STL is already the right choice (for example, `std::filesystem`), LibAuxid exposes it through thin, LibAuxid-compatible inline wrappers with no extra overhead.
+## Highlights
 
-### Core features
+- **Modules-first API.** A single `import auxid;` gives you everything; tests pull in `import auxid.test;` separately. No mega-headers, no precompiled-headers.
+- **No exceptions, ever.** `libauxid` propagates `-fno-exceptions` / `/EHs-c-` to every consumer via `PUBLIC` compile options. Errors flow through `Result<T>` and `AU_TRY`.
+- **Strong allocators.** Integrated [rpmalloc](https://github.com/mjansson/rpmalloc) thread-caching heap, plus an `ArenaAllocator` for scoped bump-allocation. Both satisfy a single `memory::AllocatorType` concept, and `StdAllocatorAdapter` plugs them into standard containers.
+- **STL interop built in.** `Vec<T>` is `std::vector<T, StdAllocatorAdapter<T, A>>`, `Pair` / `Span` are direct std aliases, `Result<T, E>` round-trips with `std::expected`, `Option<T>` round-trips with `std::optional`, and `auxid::filesystem` wraps `std::filesystem` with non-throwing `Result<T>` returns.
+- **Cache-friendly custom containers.** Sparse-dense `HashMap` / `HashSet` (Robin Hood probing), `String` with little-endian SSO, `CompactVec<T>` (u32 index) and `TinyVec<T>` (u16 index), lock-free `SpscQueue<T, N>`.
+- **Standard-algorithm friendly iterators.** `Vec`, `String`, `StringView`, and `Span` model `std::contiguous_iterator` and `std::ranges::contiguous_range`; `StringView` is a `std::ranges::borrowed_range`. `std::ranges::sort` on a `Vec<i32>` or a `String` Just Works!
+- **Lightweight smart pointers.** `Box<T>` (allocator-aware `unique_ptr`), `Arc<T>` (atomic shared), `IntrusiveArc<T>` over a `RefCounted` base.
+- **Cross-platform.** x64 / ARM64 on Linux & Windows, plus WebAssembly via Emscripten.
 
-- **No hidden overhead** - No `<iostream>`, no `<vector>`, no surprise allocations in the hot path.
-- **Strong allocators** - Integrated [rpmalloc](https://github.com/mjansson/rpmalloc) for fast, thread-caching heap allocation, plus custom arena allocators.
-- **Standard-algorithm friendly iterators** - Containers use iterators that satisfy the usual C++20 iterator concepts (for example, contiguous iterators where applicable), so you can use `std::sort`, ranges, and similar utilities without friction.
-- **Cache-friendly containers** - Sparse–dense hash map, small-string-optimized string, and strictly aligned vector types.
-- **Lightweight error types** - Union-based `Result<T, E>` and `Option<T>` that compile to tight representations, with Rust-style `AU_TRY` macros.
+## Module map
+
+| Module             | Source                                                                 | Contents                                                                                                       |
+| ------------------ | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `auxid`            | [src/modules/auxid.cppm](src/modules/auxid.cppm)                       | Umbrella; re-exports `core`, `memory`, `containers`, `thread`, `fs`.                                           |
+| `auxid.core`       | [src/modules/auxid-core.cppm](src/modules/auxid-core.cppm)             | Primitive aliases (`u8`..`u64`, `f32`/`f64`, `usize`), `Result<T, E>`, `panic`, `Mutex`, `Logger`, thread init. |
+| `auxid.memory`     | [src/modules/auxid-memory.cppm](src/modules/auxid-memory.cppm)         | `HeapAllocator` (rpmalloc), `ArenaAllocator`, `StdAllocatorAdapter`, `Box`, `Arc`, `IntrusiveArc`.             |
+| `auxid.containers` | [src/modules/auxid-containers.cppm](src/modules/auxid-containers.cppm) | `String`/`StringView`, `Vec`/`CompactVec`/`TinyVec`, `HashMap`/`HashSet`, `Option`, `Pair`, `Span`, `SpscQueue`, hashing.|
+| `auxid.thread`     | [src/modules/auxid-thread.cppm](src/modules/auxid-thread.cppm)         | `Thread`, `JThread`, `LockGuard`, `ConditionVariable`.                                                         |
+| `auxid.fs`         | [src/modules/auxid-fs.cppm](src/modules/auxid-fs.cppm)                 | Non-throwing `std::filesystem` wrappers returning `Result<T>`.                                                 |
+| `auxid.test`       | [src/modules/auxid-test.cppm](src/modules/auxid-test.cppm)             | `Block`, `Runner`, `AutoRegister<T>` - tiny self-registering test framework.                                   |
+
+## Quick start (CMake)
+
+LibAuxid is meant to drop into an existing CMake project via `FetchContent`. **CMake 3.28+** is required (for `target_sources` `FILE_SET CXX_MODULES`).
+
+```cmake
+cmake_minimum_required(VERSION 3.28)
+project(MyOrthodoxEngine CXX)
+
+include(FetchContent)
+
+FetchContent_Declare(
+  auxid
+  GIT_REPOSITORY https://github.com/I-A-S/Auxid.git
+  GIT_TAG        main  # Pin a release tag for stability in production
+)
+FetchContent_MakeAvailable(auxid)
+
+add_executable(my_app main.cpp)
+target_link_libraries(my_app PRIVATE libauxid)
+```
+
+> [!NOTE]
+> **Compiler requirements**
+>
+> Auxid hard-errors at configure time on anything other than **Clang**, **Clang-CL**, or **native MSVC** (see [cmake/auxid_setup_project.cmake](cmake/auxid_setup_project.cmake)). Your consumer code must compile at C++23, and `libauxid` will propagate `-fno-exceptions` / `/EHs-c-` to it - this is a property of the library, not opt-in.
+
+## Example
+
+```cpp
+#include <auxid/macros.hpp>
+
+import auxid;
+
+using namespace au;
+
+auto load_config() -> Result<String>
+{
+    AU_TRY_VAR(cwd, filesystem::current_path());
+    (void) cwd;
+    return String("hello");
+}
+
+auto main() -> int
+{
+    auxid::MainThreadGuard _main_thread_guard;
+
+    Vec<String> names;
+    names.push_back(String("Orthodox"));
+    names.push_back(String("C++"));
+
+    auto cfg = load_config();
+    if (cfg.is_err())
+        return 1;
+
+    HashMap<String, i32> counts;
+    counts.insert(String("ok"), 1);
+
+    return 0;
+}
+```
+
+A few things worth pointing out:
+
+- `auxid::MainThreadGuard` initializes per-thread state (rpmalloc, logger). `Thread::create` / `JThread::create` install a `WorkerThreadGuard` automatically.
+- `AU_TRY_VAR(name, expr)` (defined in [include/auxid/macros.hpp](include/auxid/macros.hpp)) propagates errors from any `Result<T>` and binds the success value to `name`. `AU_TRY` / `AU_TRY_DISCARD` exist for assignment to an existing variable and for discarding the value.
+- `filesystem::current_path()` is the non-throwing wrapper from `auxid.fs`; the underlying `std::filesystem::path` is exposed as `filesystem::Path`.
+- Conversions to `std::expected<T, E>` and `std::optional<T>` are implicit, so plugging Auxid types into std-shaped APIs is zero cost.
+
+## Repository layout
+
+```
+.
+├── include/auxid/
+│   ├── macros.hpp                    # Public: AU_TRY*, platform/arch detection
+│   └── vendor/rpmalloc/              # rpmalloc headers (consumed via module impl)
+├── src/
+│   ├── modules/*.cppm                # Module interface units
+│   ├── cpp/                          # Module implementation units (auxid.cpp, logger.cpp)
+│   ├── c/vendor/rpmalloc/            # Vendored rpmalloc C source
+│   └── h/vendor/wyhash/              # Vendored wyhash header
+├── tests/
+│   ├── CMakeLists.txt                # Builds the TestSuite executable
+│   └── cpp/                          # Unit tests grouped by feature
+├── cmake/
+│   ├── auxid_setup_project.cmake     # C++23 + C11 + arch defines + WASM tweaks
+│   └── toolchains/                   # Per-target toolchain files
+├── CMakeLists.txt                    # Top-level; calls auxid_setup_project()
+├── CMakePresets.json                 # Configure / build / test presets
+└── .github/workflows/ci.yaml         # Linux x64, Windows x64, WASM CI
+```
+
+## Supported compilers & platforms
+
+- **Compilers** (configure-time enforced): Clang, Clang-CL, native MSVC.
+- **Architectures** (auto-detected, exposes `AUXID_ARCH_X64` / `AUXID_ARCH_ARM64` / `AUXID_ARCH_WASM`): x86_64, ARM64, WebAssembly (Emscripten forces `AUXID_USE_SYSTEM_MALLOC`).
+- **Configure presets** from [CMakePresets.json](CMakePresets.json):
+
+  | Preset                | Generator               | Target                          |
+  | --------------------- | ----------------------- | ------------------------------- |
+  | `x64-linux`           | Ninja Multi-Config      | Linux x64 (Clang)               |
+  | `arm64-linux`         | Ninja Multi-Config      | Linux ARM64 (Clang cross)       |
+  | `x64-windows-clang`   | Ninja Multi-Config      | Windows x64 (Clang)             |
+  | `arm64-windows-clang` | Ninja Multi-Config      | Windows ARM64 (Clang cross)     |
+  | `x64-windows-msvc`    | Ninja Multi-Config      | Windows x64 (MSVC)              |
+  | `arm64-windows-msvc`  | Ninja Multi-Config      | Windows ARM64 (MSVC)            |
+  | `x64-windows`         | Visual Studio 18 2026   | Windows x64 (VS / MSVC)         |
+  | `arm64-windows`       | Visual Studio 18 2026   | Windows ARM64 (VS / MSVC)       |
+  | `wasm32-emscripten`   | Ninja Multi-Config      | WebAssembly (Emscripten)        |
+
+- **CI** ([.github/workflows/ci.yaml](.github/workflows/ci.yaml)) currently covers `x64-linux`, `x64-windows`, and `wasm32-emscripten` on every push and PR to `main`.
+
+## Building & testing locally
+
+Pick a preset that matches your toolchain, then:
+
+```bash
+cmake --preset x64-windows-clang
+cmake --build --preset x64-windows-clang --config Release
+ctest --preset x64-windows-clang --output-on-failure
+```
+
+Tests are wired into a single `TestSuite` executable (see [tests/CMakeLists.txt](tests/CMakeLists.txt)); every translation unit under [tests/cpp/](tests/cpp/) self-registers via `test::AutoRegister<BlockType>`.
 
 ## The ecosystem
 
@@ -40,56 +177,6 @@ Explore the Auxid Ecosystem!
 | **LaVista** | Modern Platform for C++ Desktop Apps | [LaVista](https://github.com/IASoft-PVT-LTD/LaVista) |
 | **IAVis** | Real-Time Visualization Library | [IAVis](https://github.com/IASoft-PVT-LTD/IAVis) |
 | **IAGHI** | IA Graphics Hardware Interface | [IAGHI](https://github.com/IASoft-PVT-LTD/IAGHI) |
-
-## Quick start (CMake)
-
-LibAuxid is meant to drop into an existing CMake project via `FetchContent`:
-
-```cmake
-cmake_minimum_required(VERSION 3.20)
-project(MyOrthodoxEngine CXX)
-
-include(FetchContent)
-
-FetchContent_Declare(
-  auxid
-  GIT_REPOSITORY https://github.com/I-A-S/Auxid.git
-  GIT_TAG        main  # Pin a release tag for stability in production
-)
-FetchContent_MakeAvailable(auxid)
-
-auxid_setup_project()  # Optional: project-wide settings (e.g. C++20)
-
-add_executable(my_app main.cpp)
-target_link_libraries(my_app PRIVATE libauxid)
-target_link_libraries(my_app PRIVATE auxid_platform_standard)  # Recommended (see below)
-```
-
-> [!NOTE]
-> **Opt-in platform configuration**
->
-> Auxid does not force strict compiler or linker flags by default. For a predictable “Orthodox C++” baseline, link **`auxid_platform_standard`** (recommended): it disables C++ exceptions (`-fno-exceptions` on Clang/GCC, `/EHs-c-` on MSVC), which helps keep control flow and performance characteristics explicit.
-
-### Example
-
-```cpp
-#include <auxid/containers/vec.hpp>
-#include <auxid/containers/string.hpp>
-
-using namespace au;
-
-auto main() -> int
-{
-    auxid::MainThreadGuard _main_thread_guard;
-
-    // Custom Auxid containers mirror their std counterparts closely.
-    Vec<String> names;
-    names.push_back(String("Orthodox"));
-    names.push_back(String("C++"));
-
-    return 0;
-}
-```
 
 ## License
 

@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,63 +14,81 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <auxid/utils/test.hpp>
-#include <auxid/containers/hash_map.hpp>
-#include <auxid/containers/string.hpp>
+import auxid;
+import auxid.test;
 
 using namespace au;
 
-AUT_BEGIN_BLOCK(containers, hash_map)
-
-auto test_insert_and_find() -> bool
+namespace
 {
-  HashMap<i32, String> map;
+  struct HashMapBlock final : test::Block
+  {
+    [[nodiscard]] auto get_name() const -> const char * override { return "containers::hash_map"; }
 
-  AUT_CHECK(map.insert(1, "One"));
-  AUT_CHECK(map.insert(2, "Two"));
+    auto declare_tests() -> void override
+    {
+      add_test("insert_and_find",    [this] { return insert_and_find(); });
+      add_test("erase",              [this] { return erase_(); });
+      add_test("operator_brackets",  [this] { return operator_brackets(); });
+      add_test("transparent_lookup", [this] { return transparent_lookup(); });
+    }
 
-  AUT_CHECK(map.contains(1));
-  AUT_CHECK_EQ(*map.find(1), "One");
+    auto insert_and_find() -> bool
+    {
+      HashMap<i32, String> map;
+      if (!check(map.insert(1, "One"), "insert(1, \"One\")")) return false;
+      if (!check(map.insert(2, "Two"), "insert(2, \"Two\")")) return false;
 
-  AUT_CHECK_NOT(map.insert(1, "Duplicate"));
-  AUT_CHECK_EQ(map.size(), 2);
+      if (!check(map.contains(1), "map.contains(1)"))                            return false;
+      if (!check_eq(*map.find(1), "One", "*map.find(1) == \"One\""))             return false;
 
-  return true;
-}
+      if (!check_not(map.insert(1, "Duplicate"), "duplicate insert returns false")) return false;
+      return check_eq(map.size(), 2u, "map.size() == 2");
+    }
 
-auto test_erase() -> bool
-{
-  HashMap<i32, i32> map;
-  map.insert(10, 100);
-  map.insert(20, 200);
+    auto erase_() -> bool
+    {
+      HashMap<i32, i32> map;
+      map.insert(10, 100);
+      map.insert(20, 200);
 
-  AUT_CHECK(map.erase(10));
-  AUT_CHECK_NOT(map.contains(10));
-  AUT_CHECK_EQ(map.size(), 1);
+      if (!check(map.erase(10), "erase(10)"))                       return false;
+      if (!check_not(map.contains(10), "!contains(10) after erase")) return false;
+      if (!check_eq(map.size(), 1u, "size == 1 after erase"))        return false;
 
-  AUT_CHECK_NOT(map.erase(999));
+      return check_not(map.erase(999), "erase(999) returns false");
+    }
 
-  return true;
-}
+    auto operator_brackets() -> bool
+    {
+      HashMap<String, i32> map;
+      map["Score"] = 150;
+      if (!check_eq(map["Score"], 150, "map[\"Score\"] == 150")) return false;
 
-auto test_operator_brackets() -> bool
-{
-  HashMap<String, i32> map;
-  map["Score"] = 150;
-  AUT_CHECK_EQ(map["Score"], 150);
+      map["Score"] = 250;
+      return check_eq(map["Score"], 250, "map[\"Score\"] == 250 after re-assign");
+    }
 
-  map["Score"] = 250;
-  AUT_CHECK_EQ(map["Score"], 250);
+    auto transparent_lookup() -> bool
+    {
+      HashMap<String, i32> map;
+      map.insert(String("alpha"), 1);
+      map.insert(String("beta"), 2);
+      map.insert(String("gamma"), 3);
 
-  return true;
-}
+      if (!check(map.contains(StringView("alpha")), "contains(StringView)"))   return false;
+      if (!check(map.contains("beta"), "contains(const char*)"))               return false;
+      if (!check_not(map.contains(StringView("missing")), "!contains(missing)")) return false;
 
-AUT_BEGIN_TEST_LIST()
-AUT_ADD_TEST(test_insert_and_find);
-AUT_ADD_TEST(test_erase);
-AUT_ADD_TEST(test_operator_brackets);
-AUT_END_TEST_LIST()
+      i32 *p = map.find(StringView("gamma"));
+      if (!check(p != nullptr, "find(StringView) hit")) return false;
+      if (!check_eq(*p, 3, "*find(StringView) == 3"))   return false;
 
-AUT_END_BLOCK()
+      if (!check(map.erase("beta"), "erase(const char*)"))                  return false;
+      if (!check_not(map.contains("beta"), "!contains(\"beta\") post-erase")) return false;
+      return check_eq(map.size(), 2u, "size == 2 post-erase");
+    }
+  };
 
-AUT_REGISTER_ENTRY(containers, hash_map);
+  const test::AutoRegister<HashMapBlock> _registered;
+} // namespace

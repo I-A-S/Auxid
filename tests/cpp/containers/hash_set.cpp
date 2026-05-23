@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,56 +14,55 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <auxid/utils/test.hpp>
-#include <auxid/containers/hash_set.hpp>
-#include <auxid/containers/string.hpp>
+import auxid;
+import auxid.test;
 
 using namespace au;
 
-AUT_BEGIN_BLOCK(containers, hash_set)
-
-auto test_insert_and_contains() -> bool
+namespace
 {
-  HashSet<String> set;
+  struct HashSetBlock final : test::Block
+  {
+    [[nodiscard]] auto get_name() const -> const char * override { return "containers::hash_set"; }
 
-  AUT_CHECK(set.insert("Core"));
-  AUT_CHECK(set.insert("Renderer"));
+    auto declare_tests() -> void override
+    {
+      add_test("insert_and_contains", [this] { return insert_and_contains(); });
+      add_test("erase_and_clear",     [this] { return erase_and_clear(); });
+    }
 
-  AUT_CHECK(set.contains("Core"));
-  AUT_CHECK(set.contains("Renderer"));
-  AUT_CHECK_NOT(set.contains("Physics"));
+    auto insert_and_contains() -> bool
+    {
+      HashSet<String> set;
 
-  AUT_CHECK_NOT(set.insert("Core"));
-  AUT_CHECK_EQ(set.size(), 2);
+      if (!check(set.insert("Core"),     "insert(\"Core\")"))     return false;
+      if (!check(set.insert("Renderer"), "insert(\"Renderer\")")) return false;
 
-  return true;
-}
+      if (!check(set.contains("Core"),     "contains(\"Core\")"))     return false;
+      if (!check(set.contains("Renderer"), "contains(\"Renderer\")")) return false;
+      if (!check_not(set.contains("Physics"), "!contains(\"Physics\")")) return false;
 
-auto test_erase_and_clear() -> bool
-{
-  HashSet<i32> set;
-  set.insert(10);
-  set.insert(20);
-  set.insert(30);
+      if (!check_not(set.insert("Core"), "duplicate insert returns false")) return false;
+      return check_eq(set.size(), 2u, "set.size() == 2");
+    }
 
-  AUT_CHECK(set.erase(20));
-  AUT_CHECK_NOT(set.contains(20));
-  AUT_CHECK_EQ(set.size(), 2);
+    auto erase_and_clear() -> bool
+    {
+      HashSet<i32> set;
+      set.insert(10);
+      set.insert(20);
+      set.insert(30);
 
-  AUT_CHECK_NOT(set.erase(999));
+      if (!check(set.erase(20), "erase(20)"))                              return false;
+      if (!check_not(set.contains(20), "!contains(20) after erase"))       return false;
+      if (!check_eq(set.size(), 2u, "size == 2 after erase"))              return false;
+      if (!check_not(set.erase(999), "erase(999) returns false"))          return false;
 
-  set.clear();
-  AUT_CHECK(set.empty());
-  AUT_CHECK_EQ(set.size(), 0);
+      set.clear();
+      return check(set.empty(), "set.empty() after clear")
+          && check_eq(set.size(), 0u, "size == 0 after clear");
+    }
+  };
 
-  return true;
-}
-
-AUT_BEGIN_TEST_LIST()
-AUT_ADD_TEST(test_insert_and_contains);
-AUT_ADD_TEST(test_erase_and_clear);
-AUT_END_TEST_LIST()
-
-AUT_END_BLOCK()
-
-AUT_REGISTER_ENTRY(containers, hash_set);
+  const test::AutoRegister<HashSetBlock> _registered;
+} // namespace

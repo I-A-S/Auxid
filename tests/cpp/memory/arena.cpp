@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,66 +14,67 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <auxid/utils/test.hpp>
-#include <auxid/memory/arena.hpp>
+import auxid;
+import auxid.test;
 
 using namespace au;
 
-AUT_BEGIN_BLOCK(memory, arena)
-
-auto test_arena_alloc() -> bool
+namespace
 {
-  u8 buffer[1024];
-  memory::ArenaAllocator arena;
-  arena.init(buffer, sizeof(buffer));
+  struct ArenaBlock final : test::Block
+  {
+    [[nodiscard]] auto get_name() const -> const char * override { return "memory::arena"; }
 
-  void *ptr1 = arena.alloc(16);
-  AUT_CHECK_NOT(ptr1 == nullptr);
-  AUT_CHECK(arena.offset >= 16);
+    auto declare_tests() -> void override
+    {
+      add_test("alloc",      [this] { return alloc_(); });
+      add_test("exhaustion", [this] { return exhaustion(); });
+      add_test("clear",      [this] { return clear_(); });
+    }
 
-  void *ptr2 = arena.alloc(32);
-  AUT_CHECK_NOT(ptr2 == nullptr);
-  AUT_CHECK(arena.offset >= 48);
+    auto alloc_() -> bool
+    {
+      u8 buffer[1024];
+      memory::ArenaAllocator arena;
+      arena.init(buffer, sizeof(buffer));
 
-  return true;
-}
+      void *ptr1 = arena.alloc(16);
+      if (!check_not(ptr1 == nullptr, "alloc(16) != nullptr"))    return false;
+      if (!check(arena.offset >= 16u, "arena.offset >= 16"))      return false;
 
-auto test_arena_exhaustion() -> bool
-{
-  u8 buffer[64];
-  memory::ArenaAllocator arena;
-  arena.init(buffer, sizeof(buffer));
+      void *ptr2 = arena.alloc(32);
+      return check_not(ptr2 == nullptr, "alloc(32) != nullptr")
+          && check(arena.offset >= 48u, "arena.offset >= 48");
+    }
 
-  void *ptr1 = arena.alloc(64);
-  AUT_CHECK_NOT(ptr1 == nullptr);
+    auto exhaustion() -> bool
+    {
+      u8 buffer[64];
+      memory::ArenaAllocator arena;
+      arena.init(buffer, sizeof(buffer));
 
-  void *ptr2 = arena.alloc(8);
-  AUT_CHECK_EQ(ptr2, nullptr);
+      void *ptr1 = arena.try_alloc(64);
+      if (!check_not(ptr1 == nullptr, "try_alloc(64) succeeds"))
+        return false;
 
-  return true;
-}
+      void *ptr2 = arena.try_alloc(8);
+      return check_eq(ptr2, static_cast<void *>(nullptr), "try_alloc(8) returns nullptr after exhaustion");
+    }
 
-auto test_arena_clear() -> bool
-{
-  u8 buffer[128];
-  memory::ArenaAllocator arena;
-  arena.init(buffer, sizeof(buffer));
+    auto clear_() -> bool
+    {
+      u8 buffer[128];
+      memory::ArenaAllocator arena;
+      arena.init(buffer, sizeof(buffer));
 
-  arena.alloc(64);
-  AUT_CHECK(arena.offset >= 64);
+      (void) arena.alloc(64);
+      if (!check(arena.offset >= 64u, "arena.offset >= 64 before clear"))
+        return false;
 
-  arena.clear();
-  AUT_CHECK_EQ(arena.offset, 0);
+      arena.clear();
+      return check_eq(arena.offset, static_cast<usize>(0), "arena.offset == 0 after clear");
+    }
+  };
 
-  return true;
-}
-
-AUT_BEGIN_TEST_LIST()
-AUT_ADD_TEST(test_arena_alloc);
-AUT_ADD_TEST(test_arena_exhaustion);
-AUT_ADD_TEST(test_arena_clear);
-AUT_END_TEST_LIST()
-
-AUT_END_BLOCK()
-
-AUT_REGISTER_ENTRY(memory, arena);
+  const test::AutoRegister<ArenaBlock> _registered;
+} // namespace

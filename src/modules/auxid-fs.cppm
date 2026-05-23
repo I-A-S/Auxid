@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,21 +14,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+module;
 
-#include <auxid/result.hpp>
+#include <auxid/macros.hpp>
 
 #include <cstdint>
 #include <filesystem>
 #include <system_error>
+#include <utility>
 
-namespace au::filesystem
+export module auxid.fs;
+
+export import auxid.core;
+import auxid.containers;
+
+export namespace au::filesystem
 {
   namespace fs = std::filesystem;
 
-  // ---------------------------------------------------------------------------
-  // Types & Utils (re-exported to match std::filesystem namespace)
-  // ---------------------------------------------------------------------------
   using CopyOptions = fs::copy_options;
   using DirectoryOptions = fs::directory_options;
   using FileStatus = fs::file_status;
@@ -44,74 +48,71 @@ namespace au::filesystem
 
   using fs::hash_value;
   using fs::status_known;
+} // namespace au::filesystem
 
-  // ---------------------------------------------------------------------------
-  // Error Mapping
-  // ---------------------------------------------------------------------------
-  namespace _internal
+namespace au::filesystem::_internal
+{
+  [[nodiscard]] inline auto fail_fs(const char *op, const std::error_code &ec)
   {
-    [[nodiscard]] inline auto fail_fs(const char *op, const std::error_code &ec)
-    {
-      return au::fail("%s: %s", op, ec.message().c_str());
-    }
+    return au::fail("%s: %s", op, ec.message().c_str());
+  }
 
-    [[nodiscard]] inline auto absolute_relative_to_base(const Path &p, const Path &base) -> Result<Path>
-    {
-      std::error_code ec;
-      Path base_leaf = fs::weakly_canonical(base, ec);
-      if (ec)
-        return fail_fs("absolute", ec);
-      Path ret = fs::weakly_canonical(base_leaf / p, ec);
-      if (ec)
-        return fail_fs("absolute", ec);
-      return ret;
-    }
+  [[nodiscard]] inline auto absolute_relative_to_base(const Path &p, const Path &base) -> Result<Path>
+  {
+    std::error_code ec;
+    Path base_leaf = fs::weakly_canonical(base, ec);
+    if (ec)
+      return fail_fs("absolute", ec);
+    Path ret = fs::weakly_canonical(base_leaf / p, ec);
+    if (ec)
+      return fail_fs("absolute", ec);
+    return ret;
+  }
 
-    template <typename It>
-    auto directory_iterator_advance_impl(It &it, std::error_code &ec, int)
-        -> decltype(void(it.operator++(ec)))
-    {
-      it.operator++(ec);
-    }
+  template <typename It>
+  auto directory_iterator_advance_impl(It &it, std::error_code &ec, int)
+      -> decltype(void(it.operator++(ec)))
+  {
+    it.operator++(ec);
+  }
 
-    template <typename It>
-    void directory_iterator_advance_impl(It &it, std::error_code &ec, long)
-    {
+  template <typename It>
+  void directory_iterator_advance_impl(It &it, std::error_code &ec, long)
+  {
 #if defined(__EXCEPTIONS) && __EXCEPTIONS
-      ec.clear();
-      try {
-        ++it;
-      } catch (const fs::filesystem_error &e) {
-        ec = e.code();
-      }
-#else
+    ec.clear();
+    try {
       ++it;
-      ec.clear();
-#endif
+    } catch (const fs::filesystem_error &e) {
+      ec = e.code();
     }
-
-    inline void directory_iterator_advance(DirectoryIterator &it, std::error_code &ec)
-    {
-#if defined(_MSC_VER)
-      it.increment(ec);
 #else
-      directory_iterator_advance_impl(it, ec, 0);
+    ++it;
+    ec.clear();
 #endif
-    }
+  }
 
-    inline void recursive_directory_iterator_advance(RecursiveDirectoryIterator &it, std::error_code &ec)
-    {
+  inline void directory_iterator_advance(DirectoryIterator &it, std::error_code &ec)
+  {
 #if defined(_MSC_VER)
-      it.increment(ec);
+    it.increment(ec);
 #else
-      directory_iterator_advance_impl(it, ec, 0);
+    directory_iterator_advance_impl(it, ec, 0);
 #endif
-    }
-  } // namespace _internal
+  }
 
-  // ---------------------------------------------------------------------------
-  // Path Transformations
-  // ---------------------------------------------------------------------------
+  inline void recursive_directory_iterator_advance(RecursiveDirectoryIterator &it, std::error_code &ec)
+  {
+#if defined(_MSC_VER)
+    it.increment(ec);
+#else
+    directory_iterator_advance_impl(it, ec, 0);
+#endif
+  }
+} // namespace au::filesystem::_internal
+
+export namespace au::filesystem
+{
   [[nodiscard]] inline auto absolute(const Path &p) -> Result<Path>
   {
     std::error_code ec;
@@ -189,9 +190,6 @@ namespace au::filesystem
     return out;
   }
 
-  // ---------------------------------------------------------------------------
-  // Current / temp paths
-  // ---------------------------------------------------------------------------
   [[nodiscard]] inline auto current_path() -> Result<Path>
   {
     std::error_code ec;
@@ -219,9 +217,6 @@ namespace au::filesystem
     return out;
   }
 
-  // ---------------------------------------------------------------------------
-  // Status Handling
-  // ---------------------------------------------------------------------------
   [[nodiscard]] inline auto status(const Path &p) -> Result<FileStatus>
   {
     std::error_code ec;
@@ -339,9 +334,6 @@ namespace au::filesystem
     return ok;
   }
 
-  // ---------------------------------------------------------------------------
-  // File Metrics Handling
-  // ---------------------------------------------------------------------------
   [[nodiscard]] inline auto file_size(const Path &p) -> Result<std::uintmax_t>
   {
     std::error_code ec;
@@ -387,9 +379,6 @@ namespace au::filesystem
     return s;
   }
 
-  // ---------------------------------------------------------------------------
-  // Manipulation Functions
-  // ---------------------------------------------------------------------------
   inline auto copy(const Path &from, const Path &to, CopyOptions options = CopyOptions::none) -> Result<void>
   {
     std::error_code ec;
@@ -516,9 +505,6 @@ namespace au::filesystem
     return Result<void>();
   }
 
-  // ---------------------------------------------------------------------------
-  // Directory Iterators (Non-Throwing Construction & Advance)
-  // ---------------------------------------------------------------------------
   [[nodiscard]] inline auto make_directory_iterator(const Path &p, DirectoryOptions options = DirectoryOptions::none)
       -> Result<DirectoryIterator>
   {
@@ -566,5 +552,4 @@ namespace au::filesystem
       return _internal::fail_fs("recursive_directory_iterator::pop", ec);
     return Result<void>();
   }
-
 } // namespace au::filesystem

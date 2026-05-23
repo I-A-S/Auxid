@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,57 +14,60 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <auxid/utils/test.hpp>
-#include <auxid/containers/string.hpp>
+import auxid;
+import auxid.test;
 
 using namespace au;
 
-AUT_BEGIN_BLOCK(containers, string)
-
-auto test_sso() -> bool
+namespace
 {
-  String s("Orthodox");
-  AUT_CHECK_EQ(s.size(), 8);
-  AUT_CHECK_EQ(s, "Orthodox");
-  return true;
-}
+  struct StringBlock final : test::Block
+  {
+    [[nodiscard]] auto get_name() const -> const char * override { return "containers::string"; }
 
-auto test_heap_allocation() -> bool
-{
-  String s("This string is deliberately long to bypass the SSO capacity.");
-  AUT_CHECK(s.size() > 23);
-  AUT_CHECK_EQ(s.substr(0, 4), "This");
-  return true;
-}
+    auto declare_tests() -> void override
+    {
+      add_test("sso",                [this] { return sso(); });
+      add_test("heap_allocation",    [this] { return heap_allocation(); });
+      add_test("append_and_concat",  [this] { return append_and_concat(); });
+      add_test("push_pop",           [this] { return push_pop(); });
+    }
 
-auto test_append_and_concat() -> bool
-{
-  String s("Data");
-  s += " Oriented";
-  AUT_CHECK_EQ(s, "Data Oriented");
+    auto sso() -> bool
+    {
+      String s("Orthodox");
+      return check_eq(s.size(), 8u, "s.size() == 8")
+          && check_eq(s, "Orthodox", "s == \"Orthodox\"");
+    }
 
-  String combined = s + String(" Design");
-  AUT_CHECK_EQ(combined, "Data Oriented Design");
-  return true;
-}
+    auto heap_allocation() -> bool
+    {
+      String s("This string is deliberately long to bypass the SSO capacity.");
+      return check(s.size() > 23u, "s.size() > 23 (heap path)")
+          && check_eq(s.substr(0, 4), "This", "s.substr(0,4) == \"This\"");
+    }
 
-auto test_push_pop() -> bool
-{
-  String s("C+");
-  s.push_back('+');
-  AUT_CHECK_EQ(s, "C++");
-  s.pop_back();
-  AUT_CHECK_EQ(s, "C+");
-  return true;
-}
+    auto append_and_concat() -> bool
+    {
+      String s("Data");
+      s += " Oriented";
+      if (!check_eq(s, "Data Oriented", "after += \" Oriented\""))
+        return false;
 
-AUT_BEGIN_TEST_LIST()
-AUT_ADD_TEST(test_sso);
-AUT_ADD_TEST(test_heap_allocation);
-AUT_ADD_TEST(test_append_and_concat);
-AUT_ADD_TEST(test_push_pop);
-AUT_END_TEST_LIST()
+      String combined = s + String(" Design");
+      return check_eq(combined, "Data Oriented Design", "concat result");
+    }
 
-AUT_END_BLOCK()
+    auto push_pop() -> bool
+    {
+      String s("C+");
+      s.push_back('+');
+      if (!check_eq(s, "C++", "after push_back('+')"))
+        return false;
+      s.pop_back();
+      return check_eq(s, "C+", "after pop_back");
+    }
+  };
 
-AUT_REGISTER_ENTRY(containers, string);
+  const test::AutoRegister<StringBlock> _registered;
+} // namespace

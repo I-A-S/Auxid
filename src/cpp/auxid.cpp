@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,17 +13,24 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
+// Module implementation unit for auxid.core. Hosts the panic_handler and
+// the per-thread auxid::* state machine. Container / thread types come
+// in via imports of the sibling modules.
 
-#include <stdio.h>
+module;
 
-#include <auxid/auxid.hpp>
-
-#include <auxid/thread/thread.hpp>
-#include <auxid/containers/hash_map.hpp>
+#include <cstdio>
+#include <cstdlib>
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
 #  include <auxid/vendor/rpmalloc/rpmalloc.h>
 #endif
+
+module auxid.core;
+
+import auxid.thread;
+import auxid.containers;
 
 namespace au::auxid
 {
@@ -32,14 +40,33 @@ namespace au::auxid
     Logger *logger;
   };
 
+#if !defined(AUXID_USE_SYSTEM_MALLOC)
+  struct RpmallocLifetime
+  {
+    RpmallocLifetime() noexcept
+    {
+      rpmalloc_initialize(nullptr);
+    }
+    ~RpmallocLifetime()
+    {
+      rpmalloc_finalize();
+    }
+    RpmallocLifetime(const RpmallocLifetime &) = delete;
+    RpmallocLifetime &operator=(const RpmallocLifetime &) = delete;
+  };
+#endif
+
   struct State
   {
+#if !defined(AUXID_USE_SYSTEM_MALLOC)
+    RpmallocLifetime rpmalloc_lifetime{};
+#endif
     Mutex logger_mutex{};
     Mut<Thread::ThreadID> main_thread_id{};
     Mut<HashMap<Thread::ThreadID, ThreadData>> thread_data{};
   };
 
-  auto get_state() -> State &
+  static auto get_state() -> State &
   {
     static Mut<State> s_state{};
     return s_state;
@@ -56,10 +83,6 @@ namespace au::auxid
 
     state.main_thread_id = thread_id;
     state.thread_data[thread_id].logger = new Logger(state.logger_mutex);
-
-#if !defined(AUXID_USE_SYSTEM_MALLOC)
-    rpmalloc_initialize(nullptr);
-#endif
   }
 
   auto terminate_main_thread() -> void
@@ -72,10 +95,7 @@ namespace au::auxid
       return;
 
     delete state.thread_data[thread_id].logger;
-
-#if !defined(AUXID_USE_SYSTEM_MALLOC)
-    rpmalloc_finalize();
-#endif
+    state.thread_data[thread_id].logger = nullptr;
   }
 
   auto initialize_worker_thread() -> void
@@ -104,6 +124,7 @@ namespace au::auxid
       return;
 
     delete state.thread_data[thread_id].logger;
+    state.thread_data[thread_id].logger = nullptr;
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
     rpmalloc_thread_finalize();
@@ -131,11 +152,9 @@ namespace au
 #if !defined(AUXID_DISABLE_DEFAULT_PANIC_HANDLER)
   auto panic_handler(const char *msg, const char *file, u32 line) -> void
   {
-    // Default Panic Handler (Simply prints to stdout and hangs)
-    printf("[PANIC]: (%s:%u): %s\n", file, line, msg);
-    while (true)
-    {
-    }
+    fprintf(stderr, "[PANIC]: (%s:%u): %s\n", file, line, msg);
+    fflush(stderr);
+    std::abort();
   }
 #endif
 } // namespace au

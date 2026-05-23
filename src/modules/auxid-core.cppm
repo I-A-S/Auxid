@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,66 +14,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+module;
 
-#define NOMINMAX
+#include <auxid/macros.hpp>
 
-#include <auxid/compiler.hpp>
-
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <expected>
+#include <memory>
+#include <mutex>
 #include <new>
-#include <utility>
-#include <stdint.h>
-#include <assert.h>
-#include <type_traits>
 #include <source_location>
+#include <type_traits>
+#include <utility>
 
-#if !defined(__clang__) && !defined(_MSC_VER)
-#  error "Auxid requires Clang/Clang-CL or native MSVC."
+#if defined(_MSC_VER) && !defined(__clang__)
+#  include <intrin.h>
 #endif
 
-#if defined(_MSC_VER)
-#  if !defined(_MSVC_LANG) || _MSVC_LANG < 202002L
-#    error "Auxid requires C++20 or newer."
-#  endif
-#else
-#  if __cplusplus < 202002L
-#    error "Auxid requires C++20 or newer."
-#  endif
-#endif
+export module auxid.core;
 
-// =============================================================================
-// Definitions
-// =============================================================================
-
-#undef pure_fn
-#undef const_fn
-
-#define pure_fn AUXID_ATTR_CONST [[nodiscard]]
-#define const_fn AUXID_ATTR_PURE [[nodiscard]]
-
-#define AU_UNUSED(v) (void) (v)
-
-#if defined(_MSC_VER)
-#  define AUXID_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
-#else
-#  define AUXID_NO_UNIQUE_ADDRESS [[no_unique_address]]
-#endif
-
-namespace au
+export namespace au
 {
-  // =============================================================================
-  // Primitive Types
-  // =============================================================================
+  using u8 = std::uint8_t;
+  using u16 = std::uint16_t;
+  using u32 = std::uint32_t;
+  using u64 = std::uint64_t;
 
-  using u8 = uint8_t;
-  using u16 = uint16_t;
-  using u32 = uint32_t;
-  using u64 = uint64_t;
-
-  using i8 = int8_t;
-  using i16 = int16_t;
-  using i32 = int32_t;
-  using i64 = int64_t;
+  using i8 = std::int8_t;
+  using i16 = std::int16_t;
+  using i32 = std::int32_t;
+  using i64 = std::int64_t;
 
   using f32 = float;
   using f64 = double;
@@ -87,11 +60,51 @@ namespace au
   {
     return std::forward<T>(arg);
   }
+} // namespace au
 
-  // =============================================================================
-  // C++ STDLIB Polyfills
-  // =============================================================================
+export namespace au::compiler
+{
+  template<class T> constexpr T *addressof(T &arg) noexcept
+  {
+    return std::addressof(arg);
+  }
 
+  template<class T> const T *addressof(const T &&) = delete;
+
+  [[noreturn]] inline void trap() noexcept
+  {
+#if defined(_MSC_VER) && !defined(__clang__)
+    __debugbreak();
+    std::abort();
+#elif defined(__has_builtin)
+#  if __has_builtin(__builtin_trap)
+    __builtin_trap();
+#  else
+    std::abort();
+#  endif
+#else
+    std::abort();
+#endif
+  }
+
+  inline int memcmp(const void *lhs, const void *rhs, std::size_t n) noexcept
+  {
+    return std::memcmp(lhs, rhs, n);
+  }
+
+  inline std::size_t strlen(const char *s) noexcept
+  {
+    return std::strlen(s);
+  }
+
+  inline const void *memchr(const void *p, int c, std::size_t n) noexcept
+  {
+    return std::memchr(p, c, n);
+  }
+} // namespace au::compiler
+
+export namespace au
+{
   template<class T> constexpr T *addressof(T &arg) noexcept
   {
     return compiler::addressof(arg);
@@ -117,11 +130,10 @@ namespace au
       }
     }
   }
+} // namespace au
 
-  // =============================================================================
-  // Error Handling
-  // =============================================================================
-
+export namespace au
+{
   template<typename E> struct Unexpected
   {
     E val;
@@ -147,7 +159,10 @@ namespace au
     panic_handler(msg, loc.file_name(), loc.line());
     compiler::trap();
   }
+} // namespace au
 
+export namespace au
+{
   template<typename T, typename E> class [[nodiscard]] ResultT
   {
     union {
@@ -173,6 +188,36 @@ public:
     template<typename ErrT>
     constexpr ResultT(Unexpected<ErrT> &&failure) : m_err(std::move(failure.val)), m_is_ok(false)
     {
+    }
+
+    constexpr ResultT(const std::expected<T, E> &exp) : m_is_ok(exp.has_value())
+    {
+      if (m_is_ok)
+        au::construct_at(&m_val, *exp);
+      else
+        au::construct_at(&m_err, exp.error());
+    }
+
+    constexpr ResultT(std::expected<T, E> &&exp) : m_is_ok(exp.has_value())
+    {
+      if (m_is_ok)
+        au::construct_at(&m_val, std::move(*exp));
+      else
+        au::construct_at(&m_err, std::move(exp.error()));
+    }
+
+    [[nodiscard]] constexpr operator std::expected<T, E>() const &
+    {
+      if (m_is_ok)
+        return std::expected<T, E>{m_val};
+      return std::expected<T, E>{std::unexpect, m_err};
+    }
+
+    [[nodiscard]] constexpr operator std::expected<T, E>() &&
+    {
+      if (m_is_ok)
+        return std::expected<T, E>{std::move(m_val)};
+      return std::expected<T, E>{std::unexpect, std::move(m_err)};
     }
 
     constexpr ~ResultT()
@@ -313,45 +358,16 @@ public:
       return unwrap_err(loc);
     }
 
-    [[nodiscard]] constexpr bool is_ok() const
-    {
-      return m_is_ok;
-    }
+    [[nodiscard]] constexpr bool is_ok() const     { return m_is_ok; }
+    [[nodiscard]] constexpr bool is_err() const    { return !m_is_ok; }
+    [[nodiscard]] constexpr bool has_value() const { return m_is_ok; }
 
-    [[nodiscard]] constexpr bool is_err() const
-    {
-      return !m_is_ok;
-    }
+    constexpr T &operator*() &                  { return unwrap(); }
+    constexpr const T &operator*() const &      { return unwrap(); }
+    constexpr T *operator->()                   { return &unwrap(); }
+    constexpr const T *operator->() const       { return &unwrap(); }
 
-    [[nodiscard]] constexpr bool has_value() const
-    {
-      return m_is_ok;
-    }
-
-    constexpr T &operator*() &
-    {
-      return unwrap();
-    }
-
-    constexpr const T &operator*() const &
-    {
-      return unwrap();
-    }
-
-    constexpr T *operator->()
-    {
-      return &unwrap();
-    }
-
-    constexpr const T *operator->() const
-    {
-      return &unwrap();
-    }
-
-    constexpr operator bool() const
-    {
-      return is_ok();
-    }
+    constexpr explicit operator bool() const { return is_ok(); }
   };
 
   template<typename E> class [[nodiscard]] ResultT<void, E>
@@ -378,6 +394,32 @@ public:
         au::construct_at(&m_err, std::move(other.m_err));
     }
 
+    constexpr ResultT(const std::expected<void, E> &exp) : m_is_ok(exp.has_value())
+    {
+      if (!m_is_ok)
+        au::construct_at(&m_err, exp.error());
+    }
+
+    constexpr ResultT(std::expected<void, E> &&exp) : m_is_ok(exp.has_value())
+    {
+      if (!m_is_ok)
+        au::construct_at(&m_err, std::move(exp.error()));
+    }
+
+    [[nodiscard]] constexpr operator std::expected<void, E>() const &
+    {
+      if (m_is_ok)
+        return std::expected<void, E>{};
+      return std::expected<void, E>{std::unexpect, m_err};
+    }
+
+    [[nodiscard]] constexpr operator std::expected<void, E>() &&
+    {
+      if (m_is_ok)
+        return std::expected<void, E>{};
+      return std::expected<void, E>{std::unexpect, std::move(m_err)};
+    }
+
     constexpr ~ResultT()
     {
       if (!m_is_ok)
@@ -393,20 +435,9 @@ public:
         au::panic("Called unwrap() on an Error Result", loc);
     }
 
-    [[nodiscard]] constexpr bool is_ok() const
-    {
-      return m_is_ok;
-    }
-
-    [[nodiscard]] constexpr bool is_err() const
-    {
-      return !m_is_ok;
-    }
-
-    [[nodiscard]] constexpr bool has_value() const
-    {
-      return m_is_ok;
-    }
+    [[nodiscard]] constexpr bool is_ok() const     { return m_is_ok; }
+    [[nodiscard]] constexpr bool is_err() const    { return !m_is_ok; }
+    [[nodiscard]] constexpr bool has_value() const { return m_is_ok; }
 
     constexpr const E &unwrap_err(std::source_location loc = std::source_location::current()) const &
     {
@@ -425,62 +456,140 @@ public:
       return unwrap_err(loc);
     }
 
-    constexpr operator bool() const
+    constexpr explicit operator bool() const { return is_ok(); }
+  };
+} // namespace au
+
+export namespace au::env
+{
+#if defined(NDEBUG)
+  inline constexpr bool IS_DEBUG = false;
+  inline constexpr bool IS_RELEASE = true;
+#else
+  inline constexpr bool IS_DEBUG = true;
+  inline constexpr bool IS_RELEASE = false;
+#endif
+
+#if AU_PLATFORM_WINDOWS
+  inline constexpr bool IS_WINDOWS = true;
+  inline constexpr bool IS_UNIX = false;
+#else
+  inline constexpr bool IS_WINDOWS = false;
+  inline constexpr bool IS_UNIX = true;
+#endif
+
+  inline constexpr usize MAX_PATH_LEN = 4096;
+} // namespace au::env
+
+export namespace au
+{
+  struct Version
+  {
+    u32 major = 0;
+    u32 minor = 0;
+    u32 patch = 0;
+
+    [[nodiscard]] constexpr auto to_u64() const -> u64
     {
-      return is_ok();
+      return (static_cast<u64>(major) << 40) | (static_cast<u64>(minor) << 16) | (static_cast<u64>(patch));
+    }
+  };
+} // namespace au
+
+export namespace au
+{
+  class Mutex
+  {
+public:
+    Mutex() noexcept                                       = default;
+    ~Mutex()                                               = default;
+    Mutex(const Mutex &)                                   = delete;
+    auto operator=(const Mutex &) -> Mutex &               = delete;
+
+    auto lock()       -> void { m_handle.lock(); }
+    auto unlock()     -> void { m_handle.unlock(); }
+    [[nodiscard]] auto try_lock() -> bool { return m_handle.try_lock(); }
+
+    auto native_handle() noexcept -> std::mutex & { return m_handle; }
+
+private:
+    std::mutex m_handle{};
+  };
+} // namespace au
+
+export namespace au
+{
+  class Logger
+  {
+public:
+    enum ELevel
+    {
+      LEVEL_TRACE,
+      LEVEL_DEBUG,
+      LEVEL_INFO,
+      LEVEL_WARN,
+      LEVEL_ERROR
+    };
+
+    typedef void (*LogHandler_FuncT)(const char *msg, ELevel level);
+
+public:
+    auto trace(const char *fmt, ...) -> void;
+    auto debug(const char *fmt, ...) -> void;
+    auto info(const char *fmt, ...) -> void;
+    auto warn(const char *fmt, ...) -> void;
+    auto error(const char *fmt, ...) -> void;
+
+public:
+    Logger(Mutex &logger_mutex);
+
+    auto set_log_handler(LogHandler_FuncT handler) -> void
+    {
+      m_handler = handler;
+    }
+
+private:
+    static auto default_handler(const char *msg, ELevel level) -> void;
+
+    Mutex &m_logger_mutex_ref;
+    LogHandler_FuncT m_handler{default_handler};
+  };
+} // namespace au
+
+export namespace au::auxid
+{
+  auto initialize_main_thread() -> void;
+  auto terminate_main_thread() -> void;
+  auto initialize_worker_thread() -> void;
+  auto terminate_worker_thread() -> void;
+
+  struct MainThreadGuard
+  {
+    MainThreadGuard()
+    {
+      initialize_main_thread();
+    }
+
+    ~MainThreadGuard()
+    {
+      terminate_main_thread();
     }
   };
 
-} // namespace au
+  struct WorkerThreadGuard
+  {
+    WorkerThreadGuard()
+    {
+      initialize_worker_thread();
+    }
 
-// =============================================================================
-// Macros
-// =============================================================================
+    ~WorkerThreadGuard()
+    {
+      terminate_worker_thread();
+    }
+  };
 
-#define AU_LIKELY(v) (v) [[likely]]
-#define AU_UNLIKELY(v) (v) [[unlikely]]
-
-#define AU_CONCAT_IMPL(x, y) x##y
-#define AU_CONCAT(x, y) AU_CONCAT_IMPL(x, y)
-#define AU_UNIQUE_NAME(prefix) AU_CONCAT(prefix, __COUNTER__)
-
-#define AU_ENSURE_CLASS_HAS_CONCEPT(cls, cpt)                                                                          \
-  static_assert(cpt<cls>, "Class '" #cls "' must satisfy concept '" #cpt "'.")
-
-#define AU_TRY_VAR_IMPL(name, expr, res_name)                                                                          \
-  auto res_name = (expr);                                                                                              \
-  if (res_name.is_err())                                                                                               \
-  {                                                                                                                    \
-    return au::fail(std::move(res_name.unwrap_err()));                                                                 \
-  }                                                                                                                    \
-  auto name = std::move(res_name.unwrap())
-
-#define AU_TRY_VAR(name, expr) AU_TRY_VAR_IMPL(name, expr, AU_UNIQUE_NAME(_au_try_res_))
-
-#if defined(__clang__) || defined(__GNUC__)
-#  define AU_TRY_IMPL(expr, res_name)                                                                                  \
-    __extension__({                                                                                                    \
-      auto res_name = (expr);                                                                                          \
-      if (res_name.is_err())                                                                                           \
-      {                                                                                                                \
-        return au::fail(std::move(res_name.unwrap_err()));                                                             \
-      }                                                                                                                \
-      std::move(res_name.unwrap());                                                                                    \
-    })
-#  define AU_TRY(expr) AU_TRY_IMPL(expr, AU_UNIQUE_NAME(_au_try_legacy_res_))
-#elif defined(_MSC_VER)
-#  define AU_TRY(expr) static_assert(false, "AU_TRY(expr) is unsupported on MSVC. Use AU_TRY_VAR(name, expr) instead.")
-#else
-#  define AU_TRY(expr) static_assert(false, "AU_TRY(expr) is unsupported on this compiler. Use AU_TRY_VAR(name, expr).")
-#endif
-
-#define AU_TRY_DISCARD_IMPL(expr, res_name)                                                                            \
-  {                                                                                                                    \
-    auto res_name = (expr);                                                                                            \
-    if (res_name.is_err())                                                                                             \
-    {                                                                                                                  \
-      return au::fail(std::move(res_name.unwrap_err()));                                                               \
-    }                                                                                                                  \
-  }
-
-#define AU_TRY_DISCARD(expr) AU_TRY_DISCARD_IMPL(expr, AU_UNIQUE_NAME(_au_try_discard_res_))
+  auto is_main_thread() -> bool;
+  auto is_thread_initialized() -> bool;
+  auto get_thread_logger() -> Logger &;
+} // namespace au::auxid

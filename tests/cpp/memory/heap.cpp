@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,45 +14,54 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <auxid/utils/test.hpp>
-#include <auxid/memory/heap.hpp>
+#include <cstdint>
+
+import auxid;
+import auxid.test;
 
 using namespace au;
 
-AUT_BEGIN_BLOCK(memory, heap)
-
-auto test_heap_alloc_free() -> bool
+namespace
 {
-  memory::HeapAllocator heap;
-  void *ptr = heap.alloc(128);
-  AUT_CHECK_NOT(ptr == nullptr);
+  struct HeapBlock final : test::Block
+  {
+    [[nodiscard]] auto get_name() const -> const char * override { return "memory::heap"; }
 
-  u8 *bytes = static_cast<u8 *>(ptr);
-  bytes[0] = 0xFF;
-  bytes[127] = 0xAA;
+    auto declare_tests() -> void override
+    {
+      add_test("alloc_free",     [this] { return alloc_free(); });
+      add_test("aligned_alloc",  [this] { return aligned_alloc_(); });
+    }
 
-  heap.free(ptr, 128, memory::RPMALLOC_NATURAL_ALIGN);
-  return true;
-}
+    auto alloc_free() -> bool
+    {
+      memory::HeapAllocator heap;
+      void *ptr = heap.alloc(128);
+      if (!check_not(ptr == nullptr, "alloc(128) != nullptr"))
+        return false;
 
-auto test_heap_aligned_alloc() -> bool
-{
-  memory::HeapAllocator heap;
-  void *ptr = heap.alloc(64, 64);
-  AUT_CHECK_NOT(ptr == nullptr);
+      u8 *bytes = static_cast<u8 *>(ptr);
+      bytes[0]   = 0xFF;
+      bytes[127] = 0xAA;
 
-  uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
-  AUT_CHECK_EQ(addr % 64, 0);
+      heap.free(ptr, 128, memory::HeapAllocator::natural_align);
+      return true;
+    }
 
-  heap.free(ptr, 64, 64);
-  return true;
-}
+    auto aligned_alloc_() -> bool
+    {
+      memory::HeapAllocator heap;
+      void *ptr = heap.alloc(64, 64);
+      if (!check_not(ptr == nullptr, "alloc(64, 64) != nullptr"))
+        return false;
 
-AUT_BEGIN_TEST_LIST()
-AUT_ADD_TEST(test_heap_alloc_free);
-AUT_ADD_TEST(test_heap_aligned_alloc);
-AUT_END_TEST_LIST()
+      uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
+      bool aligned   = (addr % 64) == 0;
 
-AUT_END_BLOCK()
+      heap.free(ptr, 64, 64);
+      return check(aligned, "alloc(64, 64) is 64-byte aligned");
+    }
+  };
 
-AUT_REGISTER_ENTRY(memory, heap);
+  const test::AutoRegister<HeapBlock> _registered;
+} // namespace

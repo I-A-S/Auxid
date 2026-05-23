@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,14 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <auxid/utils/test.hpp>
-#include <auxid/containers/hash_map.hpp>
-#include <auxid/containers/hash_set.hpp>
-#include <auxid/containers/span.hpp>
-
 #include <algorithm>
 #include <iterator>
 #include <ranges>
+
+import auxid;
+import auxid.test;
 
 using namespace au;
 
@@ -44,63 +43,63 @@ static_assert(std::ranges::contiguous_range<HashMap<i32, i32>>);
 static_assert(std::contiguous_iterator<HashSet<i32>::iterator>);
 static_assert(std::ranges::contiguous_range<HashSet<i32>>);
 
-AUT_BEGIN_BLOCK(containers, iterator_concepts)
-
-auto test_std_sort_on_vec() -> bool
+namespace
 {
-  Vec<i32> v;
-  v.push_back(3);
-  v.push_back(1);
-  v.push_back(2);
-  std::ranges::sort(v);
-  AUT_CHECK_EQ(v[0], 1);
-  AUT_CHECK_EQ(v[1], 2);
-  AUT_CHECK_EQ(v[2], 3);
-  return true;
-}
-
-auto test_std_sort_on_string() -> bool
-{
-  String s = "cba";
-  std::ranges::sort(s);
-  AUT_CHECK_EQ(s, StringView("abc"));
-  return true;
-}
-
-auto test_stringview_range_for() -> bool
-{
-  StringView sv = "xy";
-  usize sum = 0;
-  for (char c : sv)
+  struct IteratorConceptsBlock final : test::Block
   {
-    sum += static_cast<usize>(c);
-  }
-  AUT_CHECK_EQ(sum, static_cast<usize>('x') + static_cast<usize>('y'));
-  return true;
-}
+    [[nodiscard]] auto get_name() const -> const char * override { return "containers::iterator_concepts"; }
 
-auto test_hash_map_iteration() -> bool
-{
-  HashMap<i32, i32> m;
-  m.insert(1, 10);
-  m.insert(2, 20);
-  usize count = 0;
-  for (auto &p : m)
-  {
-    (void) p;
-    ++count;
-  }
-  AUT_CHECK_EQ(count, m.size());
-  return true;
-}
+    auto declare_tests() -> void override
+    {
+      add_test("std_sort_on_vec",       [this] { return std_sort_on_vec(); });
+      add_test("std_sort_on_string",    [this] { return std_sort_on_string(); });
+      add_test("stringview_range_for",  [this] { return stringview_range_for(); });
+      add_test("hash_map_iteration",    [this] { return hash_map_iteration(); });
+    }
 
-AUT_BEGIN_TEST_LIST()
-AUT_ADD_TEST(test_std_sort_on_vec);
-AUT_ADD_TEST(test_std_sort_on_string);
-AUT_ADD_TEST(test_stringview_range_for);
-AUT_ADD_TEST(test_hash_map_iteration);
-AUT_END_TEST_LIST()
+    auto std_sort_on_vec() -> bool
+    {
+      Vec<i32> v;
+      v.push_back(3);
+      v.push_back(1);
+      v.push_back(2);
+      std::ranges::sort(v);
+      return check_eq(v[0], 1, "v[0] == 1")
+          && check_eq(v[1], 2, "v[1] == 2")
+          && check_eq(v[2], 3, "v[2] == 3");
+    }
 
-AUT_END_BLOCK()
+    auto std_sort_on_string() -> bool
+    {
+      String s = "cba";
+      std::ranges::sort(s);
+      return check_eq(s, StringView("abc"), "sorted == \"abc\"");
+    }
 
-AUT_REGISTER_ENTRY(containers, iterator_concepts);
+    auto stringview_range_for() -> bool
+    {
+      StringView sv = "xy";
+      usize sum = 0;
+      for (char c : sv)
+        sum += static_cast<usize>(c);
+      return check_eq(sum, static_cast<usize>('x') + static_cast<usize>('y'),
+                      "sum == 'x' + 'y'");
+    }
+
+    auto hash_map_iteration() -> bool
+    {
+      HashMap<i32, i32> m;
+      m.insert(1, 10);
+      m.insert(2, 20);
+      usize count = 0;
+      for (auto &p : m)
+      {
+        (void) p;
+        ++count;
+      }
+      return check_eq(count, m.size(), "iteration count == m.size()");
+    }
+  };
+
+  const test::AutoRegister<IteratorConceptsBlock> _registered;
+} // namespace

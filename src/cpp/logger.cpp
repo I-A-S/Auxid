@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,8 +13,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
+// Module implementation unit for auxid.core. Hosts the Logger member-
+// function bodies and the default-handler ANSI-color console writer.
 
-#include <auxid/auxid.hpp>
+module;
+
+#include <cstdarg>
+#include <cstdio>
+
+module auxid.core;
+
+import auxid.thread;
+import auxid.containers;
 
 namespace au
 {
@@ -34,7 +46,7 @@ namespace au
   {                                                                                                                    \
     va_list args;                                                                                                      \
     va_start(args, fmt);                                                                                               \
-    const auto msg = containers::String::vformat(fmt, args);                                                           \
+    const auto msg = String::vformat(fmt, args);                                                                       \
     va_end(args);                                                                                                      \
     m_logger_mutex_ref.lock();                                                                                         \
     m_handler(msg.c_str(), ELevel::LEVEL_##level);                                                                     \

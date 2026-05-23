@@ -1,5 +1,6 @@
 // Auxid: The Orthodox C++ Platform.
-// Copyright (C) 2026 IAS (ias@iasoft.dev)
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,16 +14,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <auxid/auxid.hpp>
-
-#include <auxid/utils/test.hpp>
-
 #include <iostream>
+
+#include <auxid/macros.hpp>
+
+import auxid;
+import auxid.test;
 
 using namespace au;
 
-int main(int agrc, char *argv[])
+int main(int argc, char *argv[])
 {
+  AU_UNUSED(argc);
+  AU_UNUSED(argv);
+
   struct ThreadInitGuard
   {
     ThreadInitGuard()
