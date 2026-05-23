@@ -155,6 +155,14 @@
       }
     },
     {
+      "name": "x64-windows-msvc",
+      "configurePreset": "x64-windows-msvc",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "x64-windows-clang",
       "configurePreset": "x64-windows-clang",
       "configuration": "Release",
