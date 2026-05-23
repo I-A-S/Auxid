@@ -264,7 +264,7 @@ public:
     }
   };
 
-  inline u64 hash_string_view(StringView sv)
+  u64 hash_string_view(StringView sv)
   {
     return ::wyhash(sv.data(), sv.size(), 0, ::_wyp);
   }
@@ -1578,7 +1578,7 @@ export namespace au::containers
 {
   inline constexpr u32 INDEX_INVALID = UINT32_MAX;
 
-  [[nodiscard]] inline u64 hash_bytes(const void *data, usize len, u64 seed = 0) noexcept
+  [[nodiscard]] u64 hash_bytes(const void *data, usize len, u64 seed = 0) noexcept
   {
     return ::wyhash(data, len, seed, ::_wyp);
   }
