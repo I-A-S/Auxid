@@ -1,6 +1,9 @@
 if(MSVC)
     set(AUXID_CXX_FLAGS_NO_EXCEPTIONS "/EHs-c-")
     set(AUXID_CXX_FLAGS_NO_EXCEPTIONS "${AUXID_CXX_FLAGS_NO_EXCEPTIONS};/wd4530")
+elseif(EMSCRIPTEN)
+# Temp
+set(AUXID_CXX_FLAGS_NO_EXCEPTIONS "-fwasm-exceptions")
 else()
     set(AUXID_CXX_FLAGS_NO_EXCEPTIONS "-fno-exceptions")
 endif()

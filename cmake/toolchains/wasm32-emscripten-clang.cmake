@@ -18,8 +18,8 @@ set(CMAKE_SYSTEM_PROCESSOR wasm32)
 
 include("$ENV{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake")
 
-string(APPEND CMAKE_C_FLAGS    " -msimd128 -pthread")
-string(APPEND CMAKE_CXX_FLAGS  " -msimd128 -pthread -fwasm-exceptions")
+string(APPEND CMAKE_C_FLAGS_INIT    " -msimd128 -pthread")
+string(APPEND CMAKE_CXX_FLAGS_INIT  " -msimd128 -pthread -fwasm-exceptions")
 
 set(AUXID_EMSCRIPTEN_LINK_FLAGS " -pthread -fwasm-exceptions -sPTHREAD_POOL_SIZE=4 -sPROXY_TO_PTHREAD -sASSERTIONS=1 -sEXIT_RUNTIME=1 -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=64MB")
 
