@@ -54,7 +54,7 @@ namespace au::filesystem::_internal
 {
   [[nodiscard]] inline auto fail_fs(const char *op, const std::error_code &ec)
   {
-    return au::fail("%s: %s", op, ec.message().c_str());
+    return au::fail("{}: {}", op, ec.message());
   }
 
   [[nodiscard]] inline auto absolute_relative_to_base(const Path &p, const Path &base) -> Result<Path>

@@ -13,15 +13,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// Module implementation unit for auxid.core. Hosts the panic_handler and
-// the per-thread auxid::* state machine. Container / thread types come
-// in via imports of the sibling modules.
 
 module;
 
-#include <cstdio>
 #include <cstdlib>
+#include <iostream>
+#include <print>
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
 #  include <auxid/vendor/rpmalloc/rpmalloc.h>
@@ -47,10 +44,12 @@ namespace au::auxid
     {
       rpmalloc_initialize(nullptr);
     }
+
     ~RpmallocLifetime()
     {
       rpmalloc_finalize();
     }
+
     RpmallocLifetime(const RpmallocLifetime &) = delete;
     RpmallocLifetime &operator=(const RpmallocLifetime &) = delete;
   };
@@ -152,8 +151,7 @@ namespace au
 #if !defined(AUXID_DISABLE_DEFAULT_PANIC_HANDLER)
   auto panic_handler(const char *msg, const char *file, u32 line) -> void
   {
-    fprintf(stderr, "[PANIC]: (%s:%u): %s\n", file, line, msg);
-    fflush(stderr);
+    std::println(std::cerr, "[PANIC]: ({}:{}): {}", file, line, msg);
     std::abort();
   }
 #endif

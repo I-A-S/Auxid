@@ -21,15 +21,15 @@ module;
 #include <algorithm>
 #include <atomic>
 #include <bit>
-#include <cstdarg>
-#include <cstdio>
 #include <cstring>
+#include <format>
 #include <functional>
 #include <iterator>
 #include <optional>
 #include <ranges>
 #include <source_location>
 #include <span>
+#include <string>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -774,38 +774,15 @@ public:
     }
 
 public:
-    static String vformat(const char *fmt, va_list args)
+    static String vformat(std::string_view fmt, std::format_args args)
     {
-      String res;
-      va_list args_copy;
-
-      va_copy(args_copy, args);
-      int req_len = vsnprintf(res.m_storage.s.data, SSO_CAPACITY + 1, fmt, args_copy);
-      va_end(args_copy);
-
-      if (req_len < 0)
-        return res;
-
-      usize len = static_cast<usize>(req_len);
-      if (len <= SSO_CAPACITY)
-      {
-        res.set_short_size(static_cast<u8>(len));
-        return res;
-      }
-
-      res.reserve(len);
-      vsnprintf(res.get_data(), len + 1, fmt, args);
-      res.m_storage.l.size = len;
-      return res;
+      std::string tmp = std::vformat(fmt, args);
+      return String(tmp.data(), tmp.size());
     }
 
-    static String format(const char *fmt, ...)
+    template<typename... Args> static String format(std::format_string<Args...> fmt, Args &&...args)
     {
-      va_list args;
-      va_start(args, fmt);
-      String res = vformat(fmt, args);
-      va_end(args);
-      return res;
+      return vformat(fmt.get(), std::make_format_args(args...));
     }
   };
 } // namespace au::containers
@@ -2363,7 +2340,7 @@ export namespace au
 {
   template<typename T> using Result = ResultT<T, String>;
 
-  template<typename... Args> [[nodiscard]] inline auto fail(const char *fmt, Args &&...args)
+  template<typename... Args> [[nodiscard]] inline auto fail(std::format_string<Args...> fmt, Args &&...args)
   {
     return fail(String::format(fmt, std::forward<Args>(args)...));
   }
@@ -2373,3 +2350,11 @@ export namespace au::containers
 {
   template<typename T> using Result = ::au::ResultT<T, String>;
 }
+
+template<> struct std::formatter<au::containers::String> : std::formatter<std::string_view>
+{
+  auto format(const au::containers::String &s, auto &ctx) const
+  {
+    return std::formatter<std::string_view>::format(std::string_view(s.data(), s.size()), ctx);
+  }
+};

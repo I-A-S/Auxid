@@ -22,10 +22,12 @@ module;
 #include <cstdlib>
 #include <cstring>
 #include <expected>
+#include <format>
 #include <memory>
 #include <mutex>
 #include <new>
 #include <source_location>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -534,11 +536,30 @@ public:
     typedef void (*LogHandler_FuncT)(const char *msg, ELevel level);
 
 public:
-    auto trace(const char *fmt, ...) -> void;
-    auto debug(const char *fmt, ...) -> void;
-    auto info(const char *fmt, ...) -> void;
-    auto warn(const char *fmt, ...) -> void;
-    auto error(const char *fmt, ...) -> void;
+    template<typename... Args> auto trace(std::format_string<Args...> fmt, Args &&...args) -> void
+    {
+      log_impl(LEVEL_TRACE, fmt.get(), std::make_format_args(args...));
+    }
+
+    template<typename... Args> auto debug(std::format_string<Args...> fmt, Args &&...args) -> void
+    {
+      log_impl(LEVEL_DEBUG, fmt.get(), std::make_format_args(args...));
+    }
+
+    template<typename... Args> auto info(std::format_string<Args...> fmt, Args &&...args) -> void
+    {
+      log_impl(LEVEL_INFO, fmt.get(), std::make_format_args(args...));
+    }
+
+    template<typename... Args> auto warn(std::format_string<Args...> fmt, Args &&...args) -> void
+    {
+      log_impl(LEVEL_WARN, fmt.get(), std::make_format_args(args...));
+    }
+
+    template<typename... Args> auto error(std::format_string<Args...> fmt, Args &&...args) -> void
+    {
+      log_impl(LEVEL_ERROR, fmt.get(), std::make_format_args(args...));
+    }
 
 public:
     Logger(Mutex &logger_mutex);
@@ -549,6 +570,7 @@ public:
     }
 
 private:
+    auto log_impl(ELevel level, std::string_view fmt, std::format_args args) -> void;
     static auto default_handler(const char *msg, ELevel level) -> void;
 
     Mutex &m_logger_mutex_ref;

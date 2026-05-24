@@ -13,14 +13,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// Module implementation unit for auxid.core. Hosts the Logger member-
-// function bodies and the default-handler ANSI-color console writer.
 
 module;
 
-#include <cstdarg>
-#include <cstdio>
+#include <format>
+#include <print>
+#include <string_view>
 
 module auxid.core;
 
@@ -41,47 +39,33 @@ namespace au
   {
   }
 
-#define LOG_FUNC_IMPL(name, level)                                                                                     \
-  auto Logger::name(const char *fmt, ...) -> void                                                                      \
-  {                                                                                                                    \
-    va_list args;                                                                                                      \
-    va_start(args, fmt);                                                                                               \
-    const auto msg = String::vformat(fmt, args);                                                                       \
-    va_end(args);                                                                                                      \
-    m_logger_mutex_ref.lock();                                                                                         \
-    m_handler(msg.c_str(), ELevel::LEVEL_##level);                                                                     \
-    m_logger_mutex_ref.unlock();                                                                                       \
+  auto Logger::log_impl(ELevel level, std::string_view fmt, std::format_args args) -> void
+  {
+    const auto msg = String::vformat(fmt, args);
+    m_logger_mutex_ref.lock();
+    m_handler(msg.c_str(), level);
+    m_logger_mutex_ref.unlock();
   }
-
-  LOG_FUNC_IMPL(trace, TRACE);
-  LOG_FUNC_IMPL(debug, DEBUG);
-  LOG_FUNC_IMPL(info, INFO);
-  LOG_FUNC_IMPL(warn, WARN);
-  LOG_FUNC_IMPL(error, ERROR);
-
-#undef LOG_FUNC_IMPL
 
   auto Logger::default_handler(const char *msg, ELevel level) -> void
   {
     switch (level)
     {
     case LEVEL_TRACE:
-      fputs(CC_RESET "[TRCE]: ", stdout);
+      std::println(stdout, CC_RESET "[TRCE]: {}" CC_RESET, msg);
       break;
     case LEVEL_DEBUG:
-      fputs(CC_CYAN "[DBUG]: ", stdout);
+      std::println(stdout, CC_CYAN "[DBUG]: {}" CC_RESET, msg);
       break;
     case LEVEL_INFO:
-      fputs(CC_GREEN "[INFO]: ", stdout);
+      std::println(stdout, CC_GREEN "[INFO]: {}" CC_RESET, msg);
       break;
     case LEVEL_WARN:
-      fputs(CC_YELLOW "[WARN]: ", stdout);
+      std::println(stdout, CC_YELLOW "[WARN]: {}" CC_RESET, msg);
       break;
     case LEVEL_ERROR:
-      fputs(CC_RED "[EROR]: ", stdout);
+      std::println(stdout, CC_RED "[EROR]: {}" CC_RESET, msg);
       break;
     }
-    fputs(msg, stdout);
-    fputs(CC_RESET "\n", stdout);
   }
 } // namespace au

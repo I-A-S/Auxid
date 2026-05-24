@@ -18,9 +18,9 @@ module;
 
 #include <cmath>
 #include <concepts>
-#include <cstdio>
 #include <cstdlib>
 #include <functional>
+#include <print>
 #include <type_traits>
 
 export module auxid.test;
@@ -62,36 +62,12 @@ export namespace au::test
       {
         if (value == nullptr)
           return String("nullptr");
-        char buffer[32];
-        int len = snprintf(buffer, sizeof(buffer), "ptr(%p)", static_cast<const void *>(value));
-        if (len > 0 && len < static_cast<int>(sizeof(buffer)))
-          return String(buffer, static_cast<usize>(len));
-        return String("ptr(err)");
+        return String::format("ptr({})", static_cast<const void *>(value));
       }
     }
     else if constexpr (std::is_arithmetic_v<T>)
     {
-      char buffer[64];
-      int len = 0;
-
-      if constexpr (std::is_floating_point_v<T>)
-      {
-        len = snprintf(buffer, sizeof(buffer), "%f", static_cast<f64>(value));
-      }
-      else if constexpr (std::is_signed_v<T>)
-      {
-        len = snprintf(buffer, sizeof(buffer), "%lld", static_cast<long long>(value));
-      }
-      else if constexpr (std::is_unsigned_v<T>)
-      {
-        len = snprintf(buffer, sizeof(buffer), "%llu", static_cast<unsigned long long>(value));
-      }
-
-      if (len > 0 && len < static_cast<int>(sizeof(buffer)))
-      {
-        return String(buffer, static_cast<usize>(len));
-      }
-      return String("0");
+      return String::format("{}", value);
     }
     else if constexpr (std::is_convertible_v<T, String>)
     {
@@ -180,7 +156,7 @@ public:
     {
       if (!value)
       {
-        printf("%s    %s... %sFAILED%s\n", console::BLUE, description, console::RED, console::RESET);
+        std::println("{}    {}... {}FAILED{}", console::BLUE, description, console::RED, console::RESET);
         return false;
       }
       return true;
@@ -190,7 +166,7 @@ public:
     {
       if (value)
       {
-        printf("%s    %s... %sFAILED%s\n", console::BLUE, description, console::RED, console::RESET);
+        std::println("{}    {}... {}FAILED{}", console::BLUE, description, console::RED, console::RESET);
         return false;
       }
       return true;
@@ -204,8 +180,8 @@ public:
 private:
     auto print_fail(const char *desc, const String &v1, const String &v2) -> void
     {
-      printf("%s    %s... %sFAILED\n      Expected: %s\n      Actual:   %s%s\n", console::BLUE, desc, console::RED,
-             v2.c_str(), v1.c_str(), console::RESET);
+      std::println("{}    {}... {}FAILED\n      Expected: {}\n      Actual:   {}{}", console::BLUE, desc, console::RED,
+                   v2, v1, console::RESET);
     }
 
     Mut<Vec<TestUnit>> m_units;
@@ -248,14 +224,14 @@ private:
     Mut<BlockClass> b;
     b.declare_tests();
 
-    printf("%sTesting [%s]...%s\n", console::MAGENTA, b.get_name(), console::RESET);
+    std::println("{}Testing [{}]...{}", console::MAGENTA, b.get_name(), console::RESET);
 
     for (TestUnit &v : b.units())
     {
       m_test_count++;
       if constexpr (IsVerbose)
       {
-        printf("%s  Testing %s...\n%s", console::YELLOW, v.name.c_str(), console::RESET);
+        std::print("{}  Testing {}...\n{}", console::YELLOW, v.name, console::RESET);
       }
 
       const bool result = v.functor();
@@ -270,29 +246,29 @@ private:
         }
       }
     }
-    putchar('\n');
+    std::println();
   }
 
   template<bool StopOnFail, bool IsVerbose> auto Runner<StopOnFail, IsVerbose>::summarize() -> void
   {
-    printf("%s\n-----------------------------------\n\t      SUMMARY\n-----------------------------------\n",
-           console::GREEN);
+    std::println("{}\n-----------------------------------\n\t      SUMMARY\n-----------------------------------",
+                 console::GREEN);
 
     if (m_fail_count == 0)
     {
-      printf("\n\tALL TESTS PASSED!\n\n");
+      std::println("\n\tALL TESTS PASSED!\n");
     }
     else
     {
       const f64 success_rate =
           m_test_count == 0 ? 0.0
                             : (100.0 * static_cast<f64>(m_test_count - m_fail_count) / static_cast<f64>(m_test_count));
-      printf("%s%zu OF %zu TESTS FAILED\n%sSuccess Rate: %.2f%%\n", console::RED, m_fail_count, m_test_count,
-             console::YELLOW, success_rate);
+      std::println("{}{} OF {} TESTS FAILED\n{}Success Rate: {:.2f}%", console::RED, m_fail_count, m_test_count,
+                   console::YELLOW, success_rate);
     }
 
-    printf("%sRan %zu test(s) across %zu block(s)\n%s-----------------------------------%s\n", console::MAGENTA,
-           m_test_count, m_block_count, console::GREEN, console::RESET);
+    std::println("{}Ran {} test(s) across {} block(s)\n{}-----------------------------------{}", console::MAGENTA,
+                 m_test_count, m_block_count, console::GREEN, console::RESET);
   }
 
   using DefaultRunner = Runner<false, true>;
@@ -312,7 +288,7 @@ public:
     {
       Mut<DefaultRunner> r;
       Vec<TestEntry> &entries = get_entries();
-      printf("%s[AUTest] Discovered %zu Test Blocks\n\n%s", console::CYAN, entries.size(), console::RESET);
+      std::print("{}[AUTest] Discovered {} Test Blocks\n\n{}", console::CYAN, entries.size(), console::RESET);
 
       for (TestEntry &entry : entries)
       {
