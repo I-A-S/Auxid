@@ -1,4 +1,4 @@
-# Auxid: The Orthodox C++ Platform.
+# Auxid: The Rigid C++ Platform.
 # Copyright (C) 2026 IAS (ias@iasoft.dev)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

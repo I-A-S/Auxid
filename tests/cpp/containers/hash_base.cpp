@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -51,42 +51,42 @@ static_assert(Hashable<String>, "String must be hashable via wyhash");
 static_assert(Hashable<StringView>, "StringView must be hashable via wyhash");
 static_assert(Hashable<NoPadding>, "Padding-free structs must hash via the generic wyhash fallback");
 
-static_assert(!Hashable<PaddedStruct>,
-              "Structs with padding MUST NOT satisfy the default Hash<T>; "
-              "users must specialize Hash explicitly to avoid hashing "
-              "uninitialised padding bytes.");
+static_assert(!Hashable<PaddedStruct>, "Structs with padding MUST NOT satisfy the default Hash<T>; "
+                                       "users must specialize Hash explicitly to avoid hashing "
+                                       "uninitialised padding bytes.");
 
 namespace
 {
   struct HashBaseBlock final : test::Block
   {
-    [[nodiscard]] auto get_name() const -> const char * override { return "containers::hash_base"; }
+    [[nodiscard]] auto get_name() const -> const char * override
+    {
+      return "containers::hash_base";
+    }
 
     auto declare_tests() -> void override
     {
       add_test("int_mixer_disperses_sequential_inputs", [this] { return int_mixer_disperses_sequential_inputs(); });
-      add_test("int_mixer_avalanche",                   [this] { return int_mixer_avalanche(); });
-      add_test("string_hash_matches_stringview_hash",   [this] { return string_hash_matches_stringview_hash(); });
-      add_test("string_hash_changes_with_content",      [this] { return string_hash_changes_with_content(); });
-      add_test("string_hash_handles_empty",             [this] { return string_hash_handles_empty(); });
-      add_test("string_hash_long_input",                [this] { return string_hash_long_input(); });
-      add_test("struct_hash_works_for_padding_free",    [this] { return struct_hash_works_for_padding_free(); });
-      add_test("hash_combine_disperses",                [this] { return hash_combine_disperses(); });
-      add_test("pair_hash_distinguishes_field_order",   [this] { return pair_hash_distinguishes_field_order(); });
-      add_test("pair_hash_string_value",                [this] { return pair_hash_string_value(); });
-      add_test("tuple_hash_basic",                      [this] { return tuple_hash_basic(); });
-      add_test("tuple_hash_empty_is_zero",              [this] { return tuple_hash_empty_is_zero(); });
-      add_test("span_bytes_hash_matches_hash_bytes",    [this] { return span_bytes_hash_matches_hash_bytes(); });
-      add_test("hash_combine_range_basic",              [this] { return hash_combine_range_basic(); });
+      add_test("int_mixer_avalanche", [this] { return int_mixer_avalanche(); });
+      add_test("string_hash_matches_stringview_hash", [this] { return string_hash_matches_stringview_hash(); });
+      add_test("string_hash_changes_with_content", [this] { return string_hash_changes_with_content(); });
+      add_test("string_hash_handles_empty", [this] { return string_hash_handles_empty(); });
+      add_test("string_hash_long_input", [this] { return string_hash_long_input(); });
+      add_test("struct_hash_works_for_padding_free", [this] { return struct_hash_works_for_padding_free(); });
+      add_test("hash_combine_disperses", [this] { return hash_combine_disperses(); });
+      add_test("pair_hash_distinguishes_field_order", [this] { return pair_hash_distinguishes_field_order(); });
+      add_test("pair_hash_string_value", [this] { return pair_hash_string_value(); });
+      add_test("tuple_hash_basic", [this] { return tuple_hash_basic(); });
+      add_test("tuple_hash_empty_is_zero", [this] { return tuple_hash_empty_is_zero(); });
+      add_test("span_bytes_hash_matches_hash_bytes", [this] { return span_bytes_hash_matches_hash_bytes(); });
+      add_test("hash_combine_range_basic", [this] { return hash_combine_range_basic(); });
     }
 
     auto int_mixer_disperses_sequential_inputs() -> bool
     {
       Hash<u32> h;
       u64 a = h(0), b = h(1), c = h(2);
-      return check_neq(a, b, "h(0) != h(1)")
-          && check_neq(b, c, "h(1) != h(2)")
-          && check_neq(a, c, "h(0) != h(2)");
+      return check_neq(a, b, "h(0) != h(1)") && check_neq(b, c, "h(1) != h(2)") && check_neq(a, c, "h(0) != h(2)");
     }
 
     auto int_mixer_avalanche() -> bool
@@ -113,9 +113,9 @@ namespace
     auto string_hash_changes_with_content() -> bool
     {
       Hash<StringView> h;
-      return check_neq(h(StringView("foo")), h(StringView("bar")),  "h(\"foo\") != h(\"bar\")")
-          && check_neq(h(StringView("foo")), h(StringView("food")), "h(\"foo\") != h(\"food\")")
-          && check_neq(h(StringView("foo")), h(StringView("oof")),  "h(\"foo\") != h(\"oof\")");
+      return check_neq(h(StringView("foo")), h(StringView("bar")), "h(\"foo\") != h(\"bar\")") &&
+             check_neq(h(StringView("foo")), h(StringView("food")), "h(\"foo\") != h(\"food\")") &&
+             check_neq(h(StringView("foo")), h(StringView("oof")), "h(\"foo\") != h(\"oof\")");
     }
 
     auto string_hash_handles_empty() -> bool
@@ -141,8 +141,7 @@ namespace
     {
       Hash<NoPadding> h;
       NoPadding x{1, 2}, y{1, 2}, z{2, 1};
-      return check_eq(h(x), h(y), "h({1,2}) == h({1,2})")
-          && check_neq(h(x), h(z), "h({1,2}) != h({2,1})");
+      return check_eq(h(x), h(y), "h({1,2}) == h({1,2})") && check_neq(h(x), h(z), "h({1,2}) != h({2,1})");
     }
 
     auto hash_combine_disperses() -> bool
@@ -158,8 +157,7 @@ namespace
       au::Pair<u32, u32> a{1, 2};
       au::Pair<u32, u32> b{2, 1};
       au::Pair<u32, u32> c{1, 2};
-      return check_eq(h(a), h(c), "h({1,2}) == h({1,2})")
-          && check_neq(h(a), h(b), "h({1,2}) != h({2,1})");
+      return check_eq(h(a), h(c), "h({1,2}) == h({1,2})") && check_neq(h(a), h(b), "h({1,2}) != h({2,1})");
     }
 
     auto pair_hash_string_value() -> bool
@@ -168,8 +166,7 @@ namespace
       au::Pair<String, u64> a{String("hello"), 42};
       au::Pair<String, u64> b{String("hello"), 42};
       au::Pair<String, u64> c{String("hello"), 43};
-      return check_eq(h(a), h(b), "h({\"hello\",42}) equality")
-          && check_neq(h(a), h(c), "h(...,42) != h(...,43)");
+      return check_eq(h(a), h(b), "h({\"hello\",42}) equality") && check_neq(h(a), h(c), "h(...,42) != h(...,43)");
     }
 
     auto tuple_hash_basic() -> bool
@@ -178,8 +175,7 @@ namespace
       std::tuple<u32, u32, u32> a{1, 2, 3};
       std::tuple<u32, u32, u32> b{3, 2, 1};
       std::tuple<u32, u32, u32> c{1, 2, 3};
-      return check_eq(h(a), h(c), "tuple hash equality")
-          && check_neq(h(a), h(b), "tuple hash field order matters");
+      return check_eq(h(a), h(c), "tuple hash equality") && check_neq(h(a), h(b), "tuple hash field order matters");
     }
 
     auto tuple_hash_empty_is_zero() -> bool
@@ -193,7 +189,7 @@ namespace
       const u8 buf[5] = {1, 2, 3, 4, 5};
       Hash<au::Span<const u8>> h;
       u64 via_span = h(au::Span<const u8>(buf, 5));
-      u64 via_raw  = hash_bytes(buf, 5);
+      u64 via_raw = hash_bytes(buf, 5);
       return check_eq(via_span, via_raw, "Hash<Span<const u8>> matches hash_bytes()");
     }
 
@@ -204,8 +200,8 @@ namespace
       u64 a = hash_combine_range(0, forward, forward + 3);
       u64 b = hash_combine_range(0, reverse, reverse + 3);
       u64 c = hash_combine_range(0, forward, forward + 3);
-      return check_eq(a, c, "hash_combine_range is deterministic")
-          && check_neq(a, b, "hash_combine_range is order-sensitive");
+      return check_eq(a, c, "hash_combine_range is deterministic") &&
+             check_neq(a, b, "hash_combine_range is order-sensitive");
     }
   };
 

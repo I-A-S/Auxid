@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -45,7 +45,7 @@ public:
       m_mutex.unlock();
     }
 
-    LockGuard(const LockGuard &)                  = delete;
+    LockGuard(const LockGuard &) = delete;
     auto operator=(const LockGuard &) -> LockGuard & = delete;
 
 private:
@@ -55,9 +55,9 @@ private:
   class ConditionVariable
   {
 public:
-    ConditionVariable() noexcept                                  = default;
-    ~ConditionVariable()                                          = default;
-    ConditionVariable(const ConditionVariable &)                  = delete;
+    ConditionVariable() noexcept = default;
+    ~ConditionVariable() = default;
+    ConditionVariable(const ConditionVariable &) = delete;
     auto operator=(const ConditionVariable &) -> ConditionVariable & = delete;
 
     auto notify_one() noexcept -> void
@@ -75,8 +75,7 @@ public:
       m_cv.wait(mutex);
     }
 
-    template<typename Predicate>
-    auto wait(Mutex &mutex, Predicate stop_waiting) -> void
+    template<typename Predicate> auto wait(Mutex &mutex, Predicate stop_waiting) -> void
     {
       m_cv.wait(mutex, std::move(stop_waiting));
     }
@@ -93,11 +92,9 @@ export namespace au
 public:
     using ThreadID = std::thread::id;
 
-    template<typename F, typename... Args>
-    static auto create(F &&f, Args &&...args) -> Result<ThreadT>
+    template<typename F, typename... Args> static auto create(F &&f, Args &&...args) -> Result<ThreadT>
     {
-      auto wrap = [func = std::forward<F>(f),
-                   tup  = std::make_tuple(std::forward<Args>(args)...)]() mutable {
+      auto wrap = [func = std::forward<F>(f), tup = std::make_tuple(std::forward<Args>(args)...)]() mutable {
         auxid::WorkerThreadGuard _g;
         std::apply(std::move(func), std::move(tup));
       };
@@ -111,10 +108,12 @@ public:
 
     ThreadT() noexcept = default;
 
-    ThreadT(const ThreadT &)                       = delete;
-    auto operator=(const ThreadT &) -> ThreadT &    = delete;
+    ThreadT(const ThreadT &) = delete;
+    auto operator=(const ThreadT &) -> ThreadT & = delete;
 
-    ThreadT(ThreadT &&other) noexcept : m_thread(std::move(other.m_thread)) {}
+    ThreadT(ThreadT &&other) noexcept : m_thread(std::move(other.m_thread))
+    {
+    }
 
     auto operator=(ThreadT &&other) noexcept -> ThreadT &
     {
@@ -160,7 +159,9 @@ public:
     }
 
 private:
-    explicit ThreadT(std::thread &&t) noexcept : m_thread(std::move(t)) {}
+    explicit ThreadT(std::thread &&t) noexcept : m_thread(std::move(t))
+    {
+    }
 
     std::thread m_thread{};
   };

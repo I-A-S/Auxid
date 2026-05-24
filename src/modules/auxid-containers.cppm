@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -49,13 +49,13 @@ export namespace au::containers
 {
   template<typename T> using Span = std::span<T>;
   template<typename T1, typename T2> using Pair = std::pair<T1, T2>;
-}
+} // namespace au::containers
 
 export namespace au
 {
   template<typename T> using Span = std::span<T>;
   template<typename T1, typename T2> using Pair = std::pair<T1, T2>;
-}
+} // namespace au
 
 export namespace au
 {
@@ -112,7 +112,7 @@ namespace au
       return static_cast<usize>(-1);
     }
   } // namespace internal
-}
+} // namespace au
 
 export namespace au
 {
@@ -878,8 +878,7 @@ export namespace au::containers
   }
 } // namespace au::containers
 
-export template<>
-inline constexpr bool std::ranges::enable_borrowed_range<au::StringView> = true;
+export template<> inline constexpr bool std::ranges::enable_borrowed_range<au::StringView> = true;
 
 export namespace au
 {
@@ -1177,16 +1176,16 @@ export namespace au::containers
   class CompactVecBase
   {
 public:
-    using value_type             = T;
-    using size_type              = IndexT;
-    using difference_type        = std::make_signed_t<IndexT>;
-    using reference              = T &;
-    using const_reference        = const T &;
-    using pointer                = T *;
-    using const_pointer          = const T *;
-    using iterator               = T *;
-    using const_iterator         = const T *;
-    using reverse_iterator       = std::reverse_iterator<iterator>;
+    using value_type = T;
+    using size_type = IndexT;
+    using difference_type = std::make_signed_t<IndexT>;
+    using reference = T &;
+    using const_reference = const T &;
+    using pointer = T *;
+    using const_pointer = const T *;
+    using iterator = T *;
+    using const_iterator = const T *;
+    using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     constexpr CompactVecBase() noexcept = default;
@@ -1213,13 +1212,11 @@ public:
     }
 
     CompactVecBase(CompactVecBase &&other) noexcept
-        : m_data(other.m_data),
-          m_size(other.m_size),
-          m_capacity(other.m_capacity),
+        : m_data(other.m_data), m_size(other.m_size), m_capacity(other.m_capacity),
           m_allocator(std::move(other.m_allocator))
     {
-      other.m_data     = nullptr;
-      other.m_size     = 0;
+      other.m_data = nullptr;
+      other.m_size = 0;
       other.m_capacity = 0;
     }
 
@@ -1230,12 +1227,12 @@ public:
         clear();
         if (m_data)
           m_allocator.free(m_data, m_capacity * sizeof(T), alignof(T));
-        m_allocator      = std::move(other.m_allocator);
-        m_data           = other.m_data;
-        m_size           = other.m_size;
-        m_capacity       = other.m_capacity;
-        other.m_data     = nullptr;
-        other.m_size     = 0;
+        m_allocator = std::move(other.m_allocator);
+        m_data = other.m_data;
+        m_size = other.m_size;
+        m_capacity = other.m_capacity;
+        other.m_data = nullptr;
+        other.m_size = 0;
         other.m_capacity = 0;
       }
       return *this;
@@ -1295,10 +1292,25 @@ public:
       return m_data[m_size++];
     }
 
-    auto push_back(const T &val) -> void { emplace_back(val); }
-    auto push_back(T &&val) -> void      { emplace_back(std::move(val)); }
-    auto push(const T &val) -> void      { emplace_back(val); }
-    auto push(T &&val) -> void           { emplace_back(std::move(val)); }
+    auto push_back(const T &val) -> void
+    {
+      emplace_back(val);
+    }
+
+    auto push_back(T &&val) -> void
+    {
+      emplace_back(std::move(val));
+    }
+
+    auto push(const T &val) -> void
+    {
+      emplace_back(val);
+    }
+
+    auto push(T &&val) -> void
+    {
+      emplace_back(std::move(val));
+    }
 
     auto pop_back() -> void
     {
@@ -1309,7 +1321,11 @@ public:
           au::destroy_at(&m_data[m_size]);
       }
     }
-    auto pop() -> void { pop_back(); }
+
+    auto pop() -> void
+    {
+      pop_back();
+    }
 
     auto clear() -> void
     {
@@ -1323,20 +1339,24 @@ public:
 
     auto reserve_exact(size_type new_cap) -> void
     {
-      if (new_cap <= m_capacity) return;
+      if (new_cap <= m_capacity)
+        return;
       reallocate(new_cap);
     }
 
     auto reserve_at_least(size_type new_cap) -> void
     {
-      if (new_cap <= m_capacity) return;
-      const size_type geom = (m_capacity == 0)
-          ? static_cast<size_type>(8)
-          : static_cast<size_type>(m_capacity + (m_capacity / 2) + 1);
+      if (new_cap <= m_capacity)
+        return;
+      const size_type geom =
+          (m_capacity == 0) ? static_cast<size_type>(8) : static_cast<size_type>(m_capacity + (m_capacity / 2) + 1);
       reallocate(geom > new_cap ? geom : new_cap);
     }
 
-    auto reserve(size_type new_cap) -> void { reserve_at_least(new_cap); }
+    auto reserve(size_type new_cap) -> void
+    {
+      reserve_at_least(new_cap);
+    }
 
     auto resize(size_type new_size) -> void
     {
@@ -1374,17 +1394,36 @@ public:
       m_size = new_size;
     }
 
-    [[nodiscard]] auto size() const noexcept     -> size_type { return m_size; }
-    [[nodiscard]] auto capacity() const noexcept -> size_type { return m_capacity; }
-    [[nodiscard]] auto empty() const noexcept    -> bool      { return m_size == 0; }
+    [[nodiscard]] auto size() const noexcept -> size_type
+    {
+      return m_size;
+    }
 
-    [[nodiscard]] auto data() noexcept           -> T *       { return m_data; }
-    [[nodiscard]] auto data() const noexcept     -> const T * { return m_data; }
+    [[nodiscard]] auto capacity() const noexcept -> size_type
+    {
+      return m_capacity;
+    }
+
+    [[nodiscard]] auto empty() const noexcept -> bool
+    {
+      return m_size == 0;
+    }
+
+    [[nodiscard]] auto data() noexcept -> T *
+    {
+      return m_data;
+    }
+
+    [[nodiscard]] auto data() const noexcept -> const T *
+    {
+      return m_data;
+    }
 
     auto operator[](size_type idx) -> T &
     {
 #if !defined(NDEBUG)
-      if (idx >= m_size) panic("CompactVecBase index out of bounds");
+      if (idx >= m_size)
+        panic("CompactVecBase index out of bounds");
 #endif
       return m_data[idx];
     }
@@ -1392,26 +1431,71 @@ public:
     auto operator[](size_type idx) const -> const T &
     {
 #if !defined(NDEBUG)
-      if (idx >= m_size) panic("CompactVecBase index out of bounds");
+      if (idx >= m_size)
+        panic("CompactVecBase index out of bounds");
 #endif
       return m_data[idx];
     }
 
-    auto begin() noexcept  -> T *       { return m_data; }
-    auto end() noexcept    -> T *       { return m_data + m_size; }
-    auto begin() const noexcept -> const T * { return m_data; }
-    auto end() const noexcept   -> const T * { return m_data + m_size; }
-    auto cbegin() const noexcept -> const_iterator { return begin(); }
-    auto cend()   const noexcept -> const_iterator { return end(); }
+    auto begin() noexcept -> T *
+    {
+      return m_data;
+    }
 
-    auto back() -> T &             { return m_data[m_size - 1]; }
-    auto back() const -> const T & { return m_data[m_size - 1]; }
+    auto end() noexcept -> T *
+    {
+      return m_data + m_size;
+    }
 
-    operator std::span<T>()       { return std::span<T>(m_data, m_size); }
-    operator std::span<const T>() const { return std::span<const T>(m_data, m_size); }
+    auto begin() const noexcept -> const T *
+    {
+      return m_data;
+    }
 
-    [[nodiscard]] auto as_span() -> std::span<T> { return std::span<T>(m_data, m_size); }
-    [[nodiscard]] auto as_span() const -> std::span<const T> { return std::span<const T>(m_data, m_size); }
+    auto end() const noexcept -> const T *
+    {
+      return m_data + m_size;
+    }
+
+    auto cbegin() const noexcept -> const_iterator
+    {
+      return begin();
+    }
+
+    auto cend() const noexcept -> const_iterator
+    {
+      return end();
+    }
+
+    auto back() -> T &
+    {
+      return m_data[m_size - 1];
+    }
+
+    auto back() const -> const T &
+    {
+      return m_data[m_size - 1];
+    }
+
+    operator std::span<T>()
+    {
+      return std::span<T>(m_data, m_size);
+    }
+
+    operator std::span<const T>() const
+    {
+      return std::span<const T>(m_data, m_size);
+    }
+
+    [[nodiscard]] auto as_span() -> std::span<T>
+    {
+      return std::span<T>(m_data, m_size);
+    }
+
+    [[nodiscard]] auto as_span() const -> std::span<const T>
+    {
+      return std::span<const T>(m_data, m_size);
+    }
 
 private:
     auto reallocate(size_type new_cap) -> void
@@ -1421,7 +1505,7 @@ private:
         if (m_data)
         {
           void *ptr = m_allocator.realloc(m_data, m_capacity * sizeof(T), new_cap * sizeof(T), alignof(T));
-          m_data    = static_cast<T *>(ptr);
+          m_data = static_cast<T *>(ptr);
           m_capacity = new_cap;
           return;
         }
@@ -1443,7 +1527,7 @@ private:
         }
         m_allocator.free(m_data, m_capacity * sizeof(T), alignof(T));
       }
-      m_data     = new_data;
+      m_data = new_data;
       m_capacity = new_cap;
     }
 
@@ -1452,9 +1536,9 @@ private:
       reserve_at_least(static_cast<size_type>(m_size + 1));
     }
 
-    T                                 *m_data      = nullptr;
-    size_type                          m_size      = 0;
-    size_type                          m_capacity  = 0;
+    T *m_data = nullptr;
+    size_type m_size = 0;
+    size_type m_capacity = 0;
     AUXID_NO_UNIQUE_ADDRESS AllocatorT m_allocator{};
   };
 
@@ -1476,15 +1560,13 @@ export namespace au
 
 export namespace au
 {
-  template<typename T, typename A>
-  [[nodiscard]] inline auto clone(const std::vector<T, A> &v) -> std::vector<T, A>
+  template<typename T, typename A> [[nodiscard]] inline auto clone(const std::vector<T, A> &v) -> std::vector<T, A>
   {
     return v;
   }
 
   template<typename T, typename I, typename A>
-  [[nodiscard]] inline auto clone(const containers::CompactVecBase<T, I, A> &v)
-      -> containers::CompactVecBase<T, I, A>
+  [[nodiscard]] inline auto clone(const containers::CompactVecBase<T, I, A> &v) -> containers::CompactVecBase<T, I, A>
   {
     return v;
   }
@@ -1498,7 +1580,8 @@ export namespace au
   template<typename T, typename A>
   inline auto reserve_at_least(std::vector<T, A> &v, typename std::vector<T, A>::size_type n) -> void
   {
-    if (n <= v.capacity()) return;
+    if (n <= v.capacity())
+      return;
     const auto geom = v.capacity() + (v.capacity() / 2) + 1;
     v.reserve(geom > n ? geom : n);
   }
@@ -1519,23 +1602,29 @@ export namespace au
   {
     v.push_back(std::forward<T>(x));
   }
+
   template<typename T, typename A> inline auto push(std::vector<T, A> &v, const T &x) -> void
   {
     v.push_back(x);
   }
+
   template<typename T, typename A> inline auto pop(std::vector<T, A> &v) -> void
   {
-    if (!v.empty()) v.pop_back();
+    if (!v.empty())
+      v.pop_back();
   }
 
   template<typename T, typename I, typename A> inline auto push(containers::CompactVecBase<T, I, A> &v, T &&x) -> void
   {
     v.push(std::forward<T>(x));
   }
-  template<typename T, typename I, typename A> inline auto push(containers::CompactVecBase<T, I, A> &v, const T &x) -> void
+
+  template<typename T, typename I, typename A>
+  inline auto push(containers::CompactVecBase<T, I, A> &v, const T &x) -> void
   {
     v.push(x);
   }
+
   template<typename T, typename I, typename A> inline auto pop(containers::CompactVecBase<T, I, A> &v) -> void
   {
     v.pop();
@@ -1545,7 +1634,9 @@ export namespace au
   {
     return std::span<T>(v);
   }
-  template<typename T, typename A> [[nodiscard]] inline auto as_span(const std::vector<T, A> &v) noexcept -> std::span<const T>
+
+  template<typename T, typename A>
+  [[nodiscard]] inline auto as_span(const std::vector<T, A> &v) noexcept -> std::span<const T>
   {
     return std::span<const T>(v);
   }
@@ -1683,8 +1774,7 @@ export namespace au::containers
     return seed ^ (detail::int_mix(value) + 0x9E3779B97F4A7C15ULL + (seed << 6) + (seed >> 2));
   }
 
-  template<typename It>
-  [[nodiscard]] inline u64 hash_combine_range(u64 seed, It first, It last) noexcept
+  template<typename It> [[nodiscard]] inline u64 hash_combine_range(u64 seed, It first, It last) noexcept
   {
     using value_type = std::remove_cvref_t<decltype(*first)>;
     Hash<value_type> hasher{};
@@ -1738,7 +1828,7 @@ export namespace au::containers
 {
   struct PairFirstKeyOf
   {
-    template<class P>[[nodiscard]] constexpr auto operator()(const P &p) const noexcept -> const auto &
+    template<class P> [[nodiscard]] constexpr auto operator()(const P &p) const noexcept -> const auto &
     {
       return p.first;
     }
@@ -1746,7 +1836,7 @@ export namespace au::containers
 
   struct IdentityKeyOf
   {
-    template<class T>[[nodiscard]] constexpr auto operator()(const T &v) const noexcept -> const T &
+    template<class T> [[nodiscard]] constexpr auto operator()(const T &v) const noexcept -> const T &
     {
       return v;
     }
@@ -1766,27 +1856,27 @@ export namespace au::containers
   class HashTable
   {
 public:
-    using entry_type             = Entry;
-    using key_type               = Key;
-    using size_type              = usize;
-    using difference_type        = isize;
-    using reference              = Entry &;
-    using const_reference        = const Entry &;
-    using pointer                = Entry *;
-    using const_pointer          = const Entry *;
-    using iterator               = Entry *;
-    using const_iterator         = const Entry *;
-    using reverse_iterator       = std::reverse_iterator<iterator>;
+    using entry_type = Entry;
+    using key_type = Key;
+    using size_type = usize;
+    using difference_type = isize;
+    using reference = Entry &;
+    using const_reference = const Entry &;
+    using pointer = Entry *;
+    using const_pointer = const Entry *;
+    using iterator = Entry *;
+    using const_iterator = const Entry *;
+    using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 private:
     VecT<Entry, usize, AllocatorT> m_entries;
-    VecT<u32, usize, AllocatorT>   m_buckets;
-    size_type                      m_mask = 0;
+    VecT<u32, usize, AllocatorT> m_buckets;
+    size_type m_mask = 0;
 
     AUXID_NO_UNIQUE_ADDRESS Hasher m_hasher{};
-    AUXID_NO_UNIQUE_ADDRESS KeyEq  m_eq{};
-    AUXID_NO_UNIQUE_ADDRESS KeyOf  m_key_of{};
+    AUXID_NO_UNIQUE_ADDRESS KeyEq m_eq{};
+    AUXID_NO_UNIQUE_ADDRESS KeyOf m_key_of{};
 
 public:
     constexpr HashTable() = default;
@@ -1808,8 +1898,15 @@ public:
       rehash_buckets(buckets_cap);
     }
 
-    void reserve_exact(size_type new_cap) { reserve_at_least(new_cap); }
-    void reserve(size_type new_cap)       { reserve_at_least(new_cap); }
+    void reserve_exact(size_type new_cap)
+    {
+      reserve_at_least(new_cap);
+    }
+
+    void reserve(size_type new_cap)
+    {
+      reserve_at_least(new_cap);
+    }
 
     void clear()
     {
@@ -1846,7 +1943,7 @@ public:
       if (should_grow())
         grow();
 
-      auto h   = hash_key(key);
+      auto h = hash_key(key);
       auto idx = h & m_mask;
 
       while (true)
@@ -1869,8 +1966,15 @@ public:
       }
     }
 
-    [[nodiscard]] Entry *find_entry(const Key &key) { return find_entry_impl(key); }
-    [[nodiscard]] const Entry *find_entry(const Key &key) const { return find_entry_impl(key); }
+    [[nodiscard]] Entry *find_entry(const Key &key)
+    {
+      return find_entry_impl(key);
+    }
+
+    [[nodiscard]] const Entry *find_entry(const Key &key) const
+    {
+      return find_entry_impl(key);
+    }
 
     template<class K2>
       requires TransparentLookup<Hasher, KeyEq, Key, K2>
@@ -1886,7 +1990,10 @@ public:
       return find_entry_impl(key);
     }
 
-    [[nodiscard]] bool contains(const Key &key) const { return find_entry(key) != nullptr; }
+    [[nodiscard]] bool contains(const Key &key) const
+    {
+      return find_entry(key) != nullptr;
+    }
 
     template<class K2>
       requires TransparentLookup<Hasher, KeyEq, Key, K2>
@@ -1895,7 +2002,10 @@ public:
       return find_entry(key) != nullptr;
     }
 
-    bool erase(const Key &key) { return erase_impl(key); }
+    bool erase(const Key &key)
+    {
+      return erase_impl(key);
+    }
 
     template<class K2>
       requires TransparentLookup<Hasher, KeyEq, Key, K2>
@@ -1904,22 +2014,75 @@ public:
       return erase_impl(key);
     }
 
-    [[nodiscard]] iterator       begin() noexcept       { return m_entries.begin(); }
-    [[nodiscard]] iterator       end()   noexcept       { return m_entries.end(); }
-    [[nodiscard]] const_iterator begin() const noexcept { return m_entries.begin(); }
-    [[nodiscard]] const_iterator end()   const noexcept { return m_entries.end(); }
-    [[nodiscard]] const_iterator cbegin() const noexcept { return begin(); }
-    [[nodiscard]] const_iterator cend()   const noexcept { return end(); }
+    [[nodiscard]] iterator begin() noexcept
+    {
+      return m_entries.begin();
+    }
 
-    [[nodiscard]] reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-    [[nodiscard]] reverse_iterator rend()   noexcept { return reverse_iterator(begin()); }
-    [[nodiscard]] const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
-    [[nodiscard]] const_reverse_iterator rend()   const noexcept { return const_reverse_iterator(begin()); }
-    [[nodiscard]] const_reverse_iterator crbegin() const noexcept { return rbegin(); }
-    [[nodiscard]] const_reverse_iterator crend()   const noexcept { return rend(); }
+    [[nodiscard]] iterator end() noexcept
+    {
+      return m_entries.end();
+    }
 
-    [[nodiscard]] size_type size()  const noexcept { return m_entries.size(); }
-    [[nodiscard]] bool      empty() const noexcept { return m_entries.empty(); }
+    [[nodiscard]] const_iterator begin() const noexcept
+    {
+      return m_entries.begin();
+    }
+
+    [[nodiscard]] const_iterator end() const noexcept
+    {
+      return m_entries.end();
+    }
+
+    [[nodiscard]] const_iterator cbegin() const noexcept
+    {
+      return begin();
+    }
+
+    [[nodiscard]] const_iterator cend() const noexcept
+    {
+      return end();
+    }
+
+    [[nodiscard]] reverse_iterator rbegin() noexcept
+    {
+      return reverse_iterator(end());
+    }
+
+    [[nodiscard]] reverse_iterator rend() noexcept
+    {
+      return reverse_iterator(begin());
+    }
+
+    [[nodiscard]] const_reverse_iterator rbegin() const noexcept
+    {
+      return const_reverse_iterator(end());
+    }
+
+    [[nodiscard]] const_reverse_iterator rend() const noexcept
+    {
+      return const_reverse_iterator(begin());
+    }
+
+    [[nodiscard]] const_reverse_iterator crbegin() const noexcept
+    {
+      return rbegin();
+    }
+
+    [[nodiscard]] const_reverse_iterator crend() const noexcept
+    {
+      return rend();
+    }
+
+    [[nodiscard]] size_type size() const noexcept
+    {
+      return m_entries.size();
+    }
+
+    [[nodiscard]] bool empty() const noexcept
+    {
+      return m_entries.empty();
+    }
 
 private:
     template<class K> [[nodiscard]] u64 hash_key(const K &key) const noexcept
@@ -1953,7 +2116,7 @@ private:
 
     template<class K> void insert_into_buckets(u32 entry_idx, const K &key)
     {
-      auto h   = hash_key(key);
+      auto h = hash_key(key);
       auto idx = h & m_mask;
 
       while (m_buckets[idx] != INDEX_INVALID)
@@ -1967,8 +2130,8 @@ private:
       if (m_buckets.empty())
         return nullptr;
 
-      auto h    = hash_key(key);
-      auto idx  = h & m_mask;
+      auto h = hash_key(key);
+      auto idx = h & m_mask;
       auto dist = static_cast<size_type>(0);
 
       while (true)
@@ -1996,7 +2159,7 @@ private:
       if (m_buckets.empty())
         return false;
 
-      auto h   = hash_key(key);
+      auto h = hash_key(key);
       auto idx = h & m_mask;
 
       while (true)
@@ -2042,16 +2205,16 @@ private:
         if (entry_idx == INDEX_INVALID)
           break;
 
-        auto h         = hash_key(m_key_of(m_entries[entry_idx]));
+        auto h = hash_key(m_key_of(m_entries[entry_idx]));
         auto ideal_idx = h & m_mask;
 
         auto dist_current = (static_cast<size_type>(next) - ideal_idx) & m_mask;
-        auto dist_hole    = (static_cast<size_type>(hole_idx) - ideal_idx) & m_mask;
+        auto dist_hole = (static_cast<size_type>(hole_idx) - ideal_idx) & m_mask;
 
         if (dist_hole < dist_current)
         {
           m_buckets[hole_idx] = entry_idx;
-          hole_idx            = next;
+          hole_idx = next;
         }
 
         next = (next + 1) & m_mask;
@@ -2062,7 +2225,7 @@ private:
 
     template<class K> void update_bucket_pointer(const K &key, u32 old_idx, u32 new_idx)
     {
-      auto h   = hash_key(key);
+      auto h = hash_key(key);
       auto idx = h & m_mask;
 
       while (true)
@@ -2086,18 +2249,18 @@ export namespace au::containers
   class HashMap
   {
 public:
-    using value_type             = Pair<K, V>;
-    using key_type               = K;
-    using mapped_type            = V;
-    using size_type              = usize;
-    using difference_type        = isize;
-    using reference              = value_type &;
-    using const_reference        = const value_type &;
-    using pointer                = value_type *;
-    using const_pointer          = const value_type *;
-    using iterator               = value_type *;
-    using const_iterator         = const value_type *;
-    using reverse_iterator       = std::reverse_iterator<iterator>;
+    using value_type = Pair<K, V>;
+    using key_type = K;
+    using mapped_type = V;
+    using size_type = usize;
+    using difference_type = isize;
+    using reference = value_type &;
+    using const_reference = const value_type &;
+    using pointer = value_type *;
+    using const_pointer = const value_type *;
+    using iterator = value_type *;
+    using const_iterator = const value_type *;
+    using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 private:
@@ -2106,12 +2269,30 @@ private:
 
 public:
     HashMap() = default;
-    explicit HashMap(size_type cap) : m_table(cap) {}
 
-    void reserve_at_least(size_type new_cap) { m_table.reserve_at_least(new_cap); }
-    void reserve_exact(size_type new_cap)    { m_table.reserve_exact(new_cap); }
-    void reserve(size_type new_cap)          { m_table.reserve(new_cap); }
-    void clear()                             { m_table.clear(); }
+    explicit HashMap(size_type cap) : m_table(cap)
+    {
+    }
+
+    void reserve_at_least(size_type new_cap)
+    {
+      m_table.reserve_at_least(new_cap);
+    }
+
+    void reserve_exact(size_type new_cap)
+    {
+      m_table.reserve_exact(new_cap);
+    }
+
+    void reserve(size_type new_cap)
+    {
+      m_table.reserve(new_cap);
+    }
+
+    void clear()
+    {
+      m_table.clear();
+    }
 
     V &operator[](const K &key)
     {
@@ -2156,7 +2337,10 @@ public:
       return entry ? &entry->second : nullptr;
     }
 
-    [[nodiscard]] bool contains(const K &key) const { return m_table.contains(key); }
+    [[nodiscard]] bool contains(const K &key) const
+    {
+      return m_table.contains(key);
+    }
 
     template<class K2>
       requires TransparentLookup<Hasher, KeyEq, K, K2>
@@ -2165,7 +2349,10 @@ public:
       return m_table.contains(key);
     }
 
-    bool erase(const K &key) { return m_table.erase(key); }
+    bool erase(const K &key)
+    {
+      return m_table.erase(key);
+    }
 
     template<class K2>
       requires TransparentLookup<Hasher, KeyEq, K, K2>
@@ -2174,22 +2361,75 @@ public:
       return m_table.erase(key);
     }
 
-    [[nodiscard]] iterator       begin() noexcept       { return m_table.begin(); }
-    [[nodiscard]] iterator       end()   noexcept       { return m_table.end(); }
-    [[nodiscard]] const_iterator begin() const noexcept { return m_table.begin(); }
-    [[nodiscard]] const_iterator end()   const noexcept { return m_table.end(); }
-    [[nodiscard]] const_iterator cbegin() const noexcept { return m_table.cbegin(); }
-    [[nodiscard]] const_iterator cend()   const noexcept { return m_table.cend(); }
+    [[nodiscard]] iterator begin() noexcept
+    {
+      return m_table.begin();
+    }
 
-    [[nodiscard]] reverse_iterator rbegin() noexcept { return m_table.rbegin(); }
-    [[nodiscard]] reverse_iterator rend()   noexcept { return m_table.rend(); }
-    [[nodiscard]] const_reverse_iterator rbegin() const noexcept { return m_table.rbegin(); }
-    [[nodiscard]] const_reverse_iterator rend()   const noexcept { return m_table.rend(); }
-    [[nodiscard]] const_reverse_iterator crbegin() const noexcept { return m_table.crbegin(); }
-    [[nodiscard]] const_reverse_iterator crend()   const noexcept { return m_table.crend(); }
+    [[nodiscard]] iterator end() noexcept
+    {
+      return m_table.end();
+    }
 
-    [[nodiscard]] size_type size()  const noexcept { return m_table.size(); }
-    [[nodiscard]] bool      empty() const noexcept { return m_table.empty(); }
+    [[nodiscard]] const_iterator begin() const noexcept
+    {
+      return m_table.begin();
+    }
+
+    [[nodiscard]] const_iterator end() const noexcept
+    {
+      return m_table.end();
+    }
+
+    [[nodiscard]] const_iterator cbegin() const noexcept
+    {
+      return m_table.cbegin();
+    }
+
+    [[nodiscard]] const_iterator cend() const noexcept
+    {
+      return m_table.cend();
+    }
+
+    [[nodiscard]] reverse_iterator rbegin() noexcept
+    {
+      return m_table.rbegin();
+    }
+
+    [[nodiscard]] reverse_iterator rend() noexcept
+    {
+      return m_table.rend();
+    }
+
+    [[nodiscard]] const_reverse_iterator rbegin() const noexcept
+    {
+      return m_table.rbegin();
+    }
+
+    [[nodiscard]] const_reverse_iterator rend() const noexcept
+    {
+      return m_table.rend();
+    }
+
+    [[nodiscard]] const_reverse_iterator crbegin() const noexcept
+    {
+      return m_table.crbegin();
+    }
+
+    [[nodiscard]] const_reverse_iterator crend() const noexcept
+    {
+      return m_table.crend();
+    }
+
+    [[nodiscard]] size_type size() const noexcept
+    {
+      return m_table.size();
+    }
+
+    [[nodiscard]] bool empty() const noexcept
+    {
+      return m_table.empty();
+    }
   };
 
   template<typename K, typename Hasher = Hash<K>, typename KeyEq = EqualTo<K>,
@@ -2198,17 +2438,17 @@ public:
   class HashSet
   {
 public:
-    using value_type             = K;
-    using key_type               = K;
-    using size_type              = usize;
-    using difference_type        = isize;
-    using reference              = value_type &;
-    using const_reference        = const value_type &;
-    using pointer                = value_type *;
-    using const_pointer          = const value_type *;
-    using iterator               = value_type *;
-    using const_iterator         = const value_type *;
-    using reverse_iterator       = std::reverse_iterator<iterator>;
+    using value_type = K;
+    using key_type = K;
+    using size_type = usize;
+    using difference_type = isize;
+    using reference = value_type &;
+    using const_reference = const value_type &;
+    using pointer = value_type *;
+    using const_pointer = const value_type *;
+    using iterator = value_type *;
+    using const_iterator = const value_type *;
+    using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 private:
@@ -2217,17 +2457,45 @@ private:
 
 public:
     HashSet() = default;
-    explicit HashSet(size_type cap) : m_table(cap) {}
 
-    void reserve_at_least(size_type new_cap) { m_table.reserve_at_least(new_cap); }
-    void reserve_exact(size_type new_cap)    { m_table.reserve_exact(new_cap); }
-    void reserve(size_type new_cap)          { m_table.reserve(new_cap); }
-    void clear()                             { m_table.clear(); }
+    explicit HashSet(size_type cap) : m_table(cap)
+    {
+    }
 
-    bool insert(const K &key)             { return m_table.try_insert(K{key}); }
-    bool insert(K &&key)                  { return m_table.try_insert(std::move(key)); }
+    void reserve_at_least(size_type new_cap)
+    {
+      m_table.reserve_at_least(new_cap);
+    }
 
-    [[nodiscard]] bool contains(const K &key) const { return m_table.contains(key); }
+    void reserve_exact(size_type new_cap)
+    {
+      m_table.reserve_exact(new_cap);
+    }
+
+    void reserve(size_type new_cap)
+    {
+      m_table.reserve(new_cap);
+    }
+
+    void clear()
+    {
+      m_table.clear();
+    }
+
+    bool insert(const K &key)
+    {
+      return m_table.try_insert(K{key});
+    }
+
+    bool insert(K &&key)
+    {
+      return m_table.try_insert(std::move(key));
+    }
+
+    [[nodiscard]] bool contains(const K &key) const
+    {
+      return m_table.contains(key);
+    }
 
     template<class K2>
       requires TransparentLookup<Hasher, KeyEq, K, K2>
@@ -2236,7 +2504,10 @@ public:
       return m_table.contains(key);
     }
 
-    bool erase(const K &key) { return m_table.erase(key); }
+    bool erase(const K &key)
+    {
+      return m_table.erase(key);
+    }
 
     template<class K2>
       requires TransparentLookup<Hasher, KeyEq, K, K2>
@@ -2245,29 +2516,82 @@ public:
       return m_table.erase(key);
     }
 
-    [[nodiscard]] iterator       begin() noexcept       { return m_table.begin(); }
-    [[nodiscard]] iterator       end()   noexcept       { return m_table.end(); }
-    [[nodiscard]] const_iterator begin() const noexcept { return m_table.begin(); }
-    [[nodiscard]] const_iterator end()   const noexcept { return m_table.end(); }
-    [[nodiscard]] const_iterator cbegin() const noexcept { return m_table.cbegin(); }
-    [[nodiscard]] const_iterator cend()   const noexcept { return m_table.cend(); }
+    [[nodiscard]] iterator begin() noexcept
+    {
+      return m_table.begin();
+    }
 
-    [[nodiscard]] reverse_iterator rbegin() noexcept { return m_table.rbegin(); }
-    [[nodiscard]] reverse_iterator rend()   noexcept { return m_table.rend(); }
-    [[nodiscard]] const_reverse_iterator rbegin() const noexcept { return m_table.rbegin(); }
-    [[nodiscard]] const_reverse_iterator rend()   const noexcept { return m_table.rend(); }
-    [[nodiscard]] const_reverse_iterator crbegin() const noexcept { return m_table.crbegin(); }
-    [[nodiscard]] const_reverse_iterator crend()   const noexcept { return m_table.crend(); }
+    [[nodiscard]] iterator end() noexcept
+    {
+      return m_table.end();
+    }
 
-    [[nodiscard]] size_type size()  const noexcept { return m_table.size(); }
-    [[nodiscard]] bool      empty() const noexcept { return m_table.empty(); }
+    [[nodiscard]] const_iterator begin() const noexcept
+    {
+      return m_table.begin();
+    }
+
+    [[nodiscard]] const_iterator end() const noexcept
+    {
+      return m_table.end();
+    }
+
+    [[nodiscard]] const_iterator cbegin() const noexcept
+    {
+      return m_table.cbegin();
+    }
+
+    [[nodiscard]] const_iterator cend() const noexcept
+    {
+      return m_table.cend();
+    }
+
+    [[nodiscard]] reverse_iterator rbegin() noexcept
+    {
+      return m_table.rbegin();
+    }
+
+    [[nodiscard]] reverse_iterator rend() noexcept
+    {
+      return m_table.rend();
+    }
+
+    [[nodiscard]] const_reverse_iterator rbegin() const noexcept
+    {
+      return m_table.rbegin();
+    }
+
+    [[nodiscard]] const_reverse_iterator rend() const noexcept
+    {
+      return m_table.rend();
+    }
+
+    [[nodiscard]] const_reverse_iterator crbegin() const noexcept
+    {
+      return m_table.crbegin();
+    }
+
+    [[nodiscard]] const_reverse_iterator crend() const noexcept
+    {
+      return m_table.crend();
+    }
+
+    [[nodiscard]] size_type size() const noexcept
+    {
+      return m_table.size();
+    }
+
+    [[nodiscard]] bool empty() const noexcept
+    {
+      return m_table.empty();
+    }
   };
 } // namespace au::containers
 
 export namespace au
 {
   template<typename K, typename V> using HashMap = containers::HashMap<K, V>;
-  template<typename T>             using HashSet = containers::HashSet<T>;
+  template<typename T> using HashSet = containers::HashSet<T>;
 } // namespace au
 
 export namespace au::containers

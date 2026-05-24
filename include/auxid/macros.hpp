@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -69,7 +69,7 @@
 
 #if defined(__clang__) || defined(__GNUC__)
 #  define AUXID_ATTR_CONST __attribute__((const))
-#  define AUXID_ATTR_PURE  __attribute__((pure))
+#  define AUXID_ATTR_PURE __attribute__((pure))
 #else
 #  define AUXID_ATTR_CONST
 #  define AUXID_ATTR_PURE
@@ -79,10 +79,10 @@
 #undef const_fn
 
 // IANOTE: Intentionally swapped, this naming convention makes more sense.
-#define pure_fn  AUXID_ATTR_CONST [[nodiscard]]
-#define const_fn AUXID_ATTR_PURE  [[nodiscard]]
+#define pure_fn AUXID_ATTR_CONST [[nodiscard]]
+#define const_fn AUXID_ATTR_PURE [[nodiscard]]
 
-#define AU_LIKELY(v)   (v) [[likely]]
+#define AU_LIKELY(v) (v) [[likely]]
 #define AU_UNLIKELY(v) (v) [[unlikely]]
 
 #define AU_UNUSED(v) (void) (v)
@@ -94,7 +94,7 @@
 #endif
 
 #define AU_CONCAT_IMPL(x, y) x##y
-#define AU_CONCAT(x, y)      AU_CONCAT_IMPL(x, y)
+#define AU_CONCAT(x, y) AU_CONCAT_IMPL(x, y)
 #define AU_UNIQUE_NAME(prefix) AU_CONCAT(prefix, __COUNTER__)
 
 #define AU_ENSURE_CLASS_HAS_CONCEPT(cls, cpt)                                                                          \
@@ -110,7 +110,7 @@
 
 #define AU_TRY_VAR(name, expr) AU_TRY_VAR_IMPL(name, expr, AU_UNIQUE_NAME(_au_try_res_))
 
-#define AU_TRY_IMPL(name, expr, res_name)                                                                          \
+#define AU_TRY_IMPL(name, expr, res_name)                                                                              \
   auto res_name = (expr);                                                                                              \
   if (res_name.is_err())                                                                                               \
   {                                                                                                                    \

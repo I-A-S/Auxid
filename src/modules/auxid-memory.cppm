@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -52,19 +52,21 @@ export namespace au::memory
   template<typename T, AllocatorType A = HeapAllocator> class StdAllocatorAdapter
   {
 public:
-    using value_type      = T;
-    using size_type       = std::size_t;
+    using value_type = T;
+    using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
 
     using propagate_on_container_move_assignment = std::true_type;
-    using is_always_equal                        = std::bool_constant<std::is_empty_v<A>>;
+    using is_always_equal = std::bool_constant<std::is_empty_v<A>>;
 
     constexpr StdAllocatorAdapter() noexcept = default;
-    constexpr explicit StdAllocatorAdapter(A alloc) noexcept : m_alloc(alloc) {}
+
+    constexpr explicit StdAllocatorAdapter(A alloc) noexcept : m_alloc(alloc)
+    {
+    }
 
     template<typename U>
-    constexpr StdAllocatorAdapter(const StdAllocatorAdapter<U, A> &other) noexcept
-        : m_alloc(other.inner())
+    constexpr StdAllocatorAdapter(const StdAllocatorAdapter<U, A> &other) noexcept : m_alloc(other.inner())
     {
     }
 
@@ -78,8 +80,7 @@ public:
       m_alloc.free(p, n * sizeof(T), alignof(T));
     }
 
-    template<typename U>
-    [[nodiscard]] auto operator==(const StdAllocatorAdapter<U, A> &other) const noexcept -> bool
+    template<typename U> [[nodiscard]] auto operator==(const StdAllocatorAdapter<U, A> &other) const noexcept -> bool
     {
       if constexpr (std::is_empty_v<A>)
         return true;
@@ -87,7 +88,10 @@ public:
         return m_alloc == other.inner();
     }
 
-    [[nodiscard]] auto inner() const noexcept -> const A & { return m_alloc; }
+    [[nodiscard]] auto inner() const noexcept -> const A &
+    {
+      return m_alloc;
+    }
 
 private:
     AUXID_NO_UNIQUE_ADDRESS A m_alloc{};
@@ -239,7 +243,7 @@ export namespace au::memory
 {
   struct ArenaAllocator
   {
-    u8   *buffer = nullptr;
+    u8 *buffer = nullptr;
     usize length = 0;
     usize offset = 0;
 
@@ -270,9 +274,9 @@ export namespace au::memory
 
     [[nodiscard]] inline auto try_alloc(usize size, usize align) -> void *
     {
-      uintptr_t curr_addr    = reinterpret_cast<uintptr_t>(buffer) + offset;
+      uintptr_t curr_addr = reinterpret_cast<uintptr_t>(buffer) + offset;
       uintptr_t misalignment = curr_addr & (align - 1);
-      ptrdiff_t padding      = (align - misalignment) & (align - 1);
+      ptrdiff_t padding = (align - misalignment) & (align - 1);
 
       usize total = size + padding;
 
@@ -322,7 +326,10 @@ export namespace au::memory
     AUXID_NO_UNIQUE_ADDRESS Allocator m_alloc{};
 
     constexpr AuxidDeleter() noexcept = default;
-    constexpr explicit AuxidDeleter(Allocator alloc) noexcept : m_alloc(std::move(alloc)) {}
+
+    constexpr explicit AuxidDeleter(Allocator alloc) noexcept : m_alloc(std::move(alloc))
+    {
+    }
 
     constexpr auto operator()(T *ptr) const noexcept -> void
     {
@@ -336,8 +343,7 @@ export namespace au::memory
 
   template<typename T, typename Allocator> using BoxAllocatorDeleter = AuxidDeleter<T, Allocator>;
 
-  template<typename T, typename Deleter = AuxidDeleter<T, HeapAllocator>>
-  using Box = std::unique_ptr<T, Deleter>;
+  template<typename T, typename Deleter = AuxidDeleter<T, HeapAllocator>> using Box = std::unique_ptr<T, Deleter>;
 
   template<typename T, AllocatorType Allocator = HeapAllocator, typename... Args>
   [[nodiscard]] auto make_box(Allocator alloc, Args &&...args) -> Box<T, AuxidDeleter<T, Allocator>>
@@ -360,8 +366,11 @@ export namespace au::memory
   {
     struct Enabler : public T
     {
-      explicit Enabler(Args &&...a) : T(std::forward<Args>(a)...) {}
+      explicit Enabler(Args &&...a) : T(std::forward<Args>(a)...)
+      {
+      }
     };
+
     void *mem = alloc.alloc(sizeof(T), alignof(T));
     if (!mem)
       panic("make_box_protected: allocation failed");
@@ -384,11 +393,9 @@ public:
     struct ControlBlock
     {
       std::atomic<u32> refs;
-      T                storage;
+      T storage;
 
-      template<typename... Args>
-      explicit ControlBlock(Args &&...args)
-          : refs(1), storage(std::forward<Args>(args)...)
+      template<typename... Args> explicit ControlBlock(Args &&...args) : refs(1), storage(std::forward<Args>(args)...)
       {
       }
     };
@@ -475,7 +482,9 @@ public:
       return m_block == nullptr;
     }
 
-    constexpr Arc(ControlBlock *cb, Allocator alloc) noexcept : m_block(cb), m_alloc(alloc) {}
+    constexpr Arc(ControlBlock *cb, Allocator alloc) noexcept : m_block(cb), m_alloc(alloc)
+    {
+    }
 
 private:
     auto retain() const noexcept -> void
@@ -496,23 +505,22 @@ private:
       }
     }
 
-    ControlBlock                   *m_block = nullptr;
+    ControlBlock *m_block = nullptr;
     AUXID_NO_UNIQUE_ADDRESS Allocator m_alloc{};
   };
 
   template<typename T, AllocatorType Allocator = HeapAllocator, typename... Args>
   [[nodiscard]] auto make_arc(Allocator alloc, Args &&...args) -> Arc<T, Allocator>
   {
-    using CB    = typename Arc<T, Allocator>::ControlBlock;
-    void *mem   = alloc.alloc(sizeof(CB), alignof(CB));
+    using CB = typename Arc<T, Allocator>::ControlBlock;
+    void *mem = alloc.alloc(sizeof(CB), alignof(CB));
     if (!mem)
       panic("make_arc: allocation failed");
     auto *cb = new (mem) CB(std::forward<Args>(args)...);
     return Arc<T, Allocator>(cb, alloc);
   }
 
-  template<typename T, typename... Args>
-  [[nodiscard]] auto make_arc(Args &&...args) -> Arc<T, HeapAllocator>
+  template<typename T, typename... Args> [[nodiscard]] auto make_arc(Args &&...args) -> Arc<T, HeapAllocator>
   {
     return make_arc<T, HeapAllocator>(HeapAllocator{}, std::forward<Args>(args)...);
   }
@@ -522,9 +530,12 @@ private:
   {
     struct Enabler : public T
     {
-      explicit Enabler(Args &&...a) : T(std::forward<Args>(a)...) {}
+      explicit Enabler(Args &&...a) : T(std::forward<Args>(a)...)
+      {
+      }
     };
-    using CB  = typename Arc<T, Allocator>::ControlBlock;
+
+    using CB = typename Arc<T, Allocator>::ControlBlock;
     void *mem = alloc.alloc(sizeof(CB), alignof(CB));
     if (!mem)
       panic("make_arc_protected: allocation failed");
@@ -532,8 +543,7 @@ private:
     return Arc<T, Allocator>(cb, alloc);
   }
 
-  template<typename T, typename... Args>
-  [[nodiscard]] auto make_arc_protected(Args &&...args) -> Arc<T, HeapAllocator>
+  template<typename T, typename... Args> [[nodiscard]] auto make_arc_protected(Args &&...args) -> Arc<T, HeapAllocator>
   {
     return make_arc_protected<T, HeapAllocator>(HeapAllocator{}, std::forward<Args>(args)...);
   }
@@ -542,8 +552,15 @@ private:
   {
 public:
     constexpr RefCounted() noexcept = default;
-    RefCounted(const RefCounted &) noexcept : m_refs(0) {}
-    auto operator=(const RefCounted &) noexcept -> RefCounted & { return *this; }
+
+    RefCounted(const RefCounted &) noexcept : m_refs(0)
+    {
+    }
+
+    auto operator=(const RefCounted &) noexcept -> RefCounted &
+    {
+      return *this;
+    }
 
     auto arc_retain() const noexcept -> void
     {
@@ -576,18 +593,21 @@ private:
 public:
     constexpr IntrusiveArc() noexcept = default;
 
-    explicit IntrusiveArc(T *ptr, Allocator alloc = Allocator{}) noexcept
-        : m_ptr(ptr), m_alloc(alloc)
+    explicit IntrusiveArc(T *ptr, Allocator alloc = Allocator{}) noexcept : m_ptr(ptr), m_alloc(alloc)
     {
       if (m_ptr)
         m_ptr->arc_retain();
     }
 
-    ~IntrusiveArc() { release(); }
+    ~IntrusiveArc()
+    {
+      release();
+    }
 
     IntrusiveArc(const IntrusiveArc &o) noexcept : m_ptr(o.m_ptr), m_alloc(o.m_alloc)
     {
-      if (m_ptr) m_ptr->arc_retain();
+      if (m_ptr)
+        m_ptr->arc_retain();
     }
 
     IntrusiveArc(IntrusiveArc &&o) noexcept : m_ptr(o.m_ptr), m_alloc(o.m_alloc)
@@ -602,7 +622,8 @@ public:
         release();
         m_ptr = o.m_ptr;
         m_alloc = o.m_alloc;
-        if (m_ptr) m_ptr->arc_retain();
+        if (m_ptr)
+          m_ptr->arc_retain();
       }
       return *this;
     }
@@ -619,16 +640,46 @@ public:
       return *this;
     }
 
-    [[nodiscard]] auto get() const noexcept -> T * { return m_ptr; }
-    [[nodiscard]] auto operator->() const noexcept -> T * { return m_ptr; }
-    [[nodiscard]] auto operator*() const noexcept -> T & { return *m_ptr; }
-    [[nodiscard]] explicit operator bool() const noexcept { return m_ptr != nullptr; }
-    [[nodiscard]] auto use_count() const noexcept -> u32 { return m_ptr ? m_ptr->arc_count() : 0; }
+    [[nodiscard]] auto get() const noexcept -> T *
+    {
+      return m_ptr;
+    }
 
-    auto reset() noexcept -> void { release(); m_ptr = nullptr; }
+    [[nodiscard]] auto operator->() const noexcept -> T *
+    {
+      return m_ptr;
+    }
 
-    [[nodiscard]] auto operator==(const IntrusiveArc &rhs) const noexcept -> bool { return m_ptr == rhs.m_ptr; }
-    [[nodiscard]] auto operator==(decltype(nullptr)) const noexcept -> bool { return m_ptr == nullptr; }
+    [[nodiscard]] auto operator*() const noexcept -> T &
+    {
+      return *m_ptr;
+    }
+
+    [[nodiscard]] explicit operator bool() const noexcept
+    {
+      return m_ptr != nullptr;
+    }
+
+    [[nodiscard]] auto use_count() const noexcept -> u32
+    {
+      return m_ptr ? m_ptr->arc_count() : 0;
+    }
+
+    auto reset() noexcept -> void
+    {
+      release();
+      m_ptr = nullptr;
+    }
+
+    [[nodiscard]] auto operator==(const IntrusiveArc &rhs) const noexcept -> bool
+    {
+      return m_ptr == rhs.m_ptr;
+    }
+
+    [[nodiscard]] auto operator==(decltype(nullptr)) const noexcept -> bool
+    {
+      return m_ptr == nullptr;
+    }
 
 private:
     auto release() noexcept -> void
@@ -640,7 +691,7 @@ private:
       }
     }
 
-    T                                *m_ptr = nullptr;
+    T *m_ptr = nullptr;
     AUXID_NO_UNIQUE_ADDRESS Allocator m_alloc{};
   };
 
@@ -665,14 +716,14 @@ export namespace au
 {
   using ::au::memory::Arc;
   using ::au::memory::IntrusiveArc;
-  using ::au::memory::RefCounted;
   using ::au::memory::make_arc;
   using ::au::memory::make_arc_protected;
   using ::au::memory::make_intrusive_arc;
+  using ::au::memory::RefCounted;
 
   using ::au::memory::AuxidDeleter;
-  using ::au::memory::BoxAllocatorDeleter;
   using ::au::memory::Box;
+  using ::au::memory::BoxAllocatorDeleter;
   using ::au::memory::make_box;
   using ::au::memory::make_box_protected;
-}
+} // namespace au

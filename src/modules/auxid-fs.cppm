@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -69,21 +69,22 @@ namespace au::filesystem::_internal
     return ret;
   }
 
-  template <typename It>
-  auto directory_iterator_advance_impl(It &it, std::error_code &ec, int)
-      -> decltype(void(it.operator++(ec)))
+  template<typename It>
+  auto directory_iterator_advance_impl(It &it, std::error_code &ec, int) -> decltype(void(it.operator++(ec)))
   {
     it.operator++(ec);
   }
 
-  template <typename It>
-  void directory_iterator_advance_impl(It &it, std::error_code &ec, long)
+  template<typename It> void directory_iterator_advance_impl(It &it, std::error_code &ec, long)
   {
 #if defined(__EXCEPTIONS) && __EXCEPTIONS
     ec.clear();
-    try {
+    try
+    {
       ++it;
-    } catch (const fs::filesystem_error &e) {
+    }
+    catch (const fs::filesystem_error &e)
+    {
       ec = e.code();
     }
 #else

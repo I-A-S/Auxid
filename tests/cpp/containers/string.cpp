@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -23,28 +23,30 @@ namespace
 {
   struct StringBlock final : test::Block
   {
-    [[nodiscard]] auto get_name() const -> const char * override { return "containers::string"; }
+    [[nodiscard]] auto get_name() const -> const char * override
+    {
+      return "containers::string";
+    }
 
     auto declare_tests() -> void override
     {
-      add_test("sso",                [this] { return sso(); });
-      add_test("heap_allocation",    [this] { return heap_allocation(); });
-      add_test("append_and_concat",  [this] { return append_and_concat(); });
-      add_test("push_pop",           [this] { return push_pop(); });
+      add_test("sso", [this] { return sso(); });
+      add_test("heap_allocation", [this] { return heap_allocation(); });
+      add_test("append_and_concat", [this] { return append_and_concat(); });
+      add_test("push_pop", [this] { return push_pop(); });
     }
 
     auto sso() -> bool
     {
       String s("Orthodox");
-      return check_eq(s.size(), 8u, "s.size() == 8")
-          && check_eq(s, "Orthodox", "s == \"Orthodox\"");
+      return check_eq(s.size(), 8u, "s.size() == 8") && check_eq(s, "Orthodox", "s == \"Orthodox\"");
     }
 
     auto heap_allocation() -> bool
     {
       String s("This string is deliberately long to bypass the SSO capacity.");
-      return check(s.size() > 23u, "s.size() > 23 (heap path)")
-          && check_eq(s.substr(0, 4), "This", "s.substr(0,4) == \"This\"");
+      return check(s.size() > 23u, "s.size() > 23 (heap path)") &&
+             check_eq(s.substr(0, 4), "This", "s.substr(0,4) == \"This\"");
     }
 
     auto append_and_concat() -> bool

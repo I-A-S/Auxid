@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -25,7 +25,10 @@ namespace
 {
   struct ThreadBlock final : test::Block
   {
-    [[nodiscard]] auto get_name() const -> const char * override { return "core::thread"; }
+    [[nodiscard]] auto get_name() const -> const char * override
+    {
+      return "core::thread";
+    }
 
     auto declare_tests() -> void override
     {
@@ -45,10 +48,12 @@ namespace
         return false;
 
       Thread t = std::move(thread_res.unwrap());
-      if (!check(t.joinable(), "thread is joinable")) return false;
+      if (!check(t.joinable(), "thread is joinable"))
+        return false;
 
       t.join();
-      if (!check_not(t.joinable(), "thread is not joinable after join")) return false;
+      if (!check_not(t.joinable(), "thread is not joinable after join"))
+        return false;
 
       LockGuard<Mutex> lock(mtx);
       return check_eq(shared_counter, 42, "shared_counter == 42");

@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -47,14 +47,17 @@ namespace
 {
   struct IteratorConceptsBlock final : test::Block
   {
-    [[nodiscard]] auto get_name() const -> const char * override { return "containers::iterator_concepts"; }
+    [[nodiscard]] auto get_name() const -> const char * override
+    {
+      return "containers::iterator_concepts";
+    }
 
     auto declare_tests() -> void override
     {
-      add_test("std_sort_on_vec",       [this] { return std_sort_on_vec(); });
-      add_test("std_sort_on_string",    [this] { return std_sort_on_string(); });
-      add_test("stringview_range_for",  [this] { return stringview_range_for(); });
-      add_test("hash_map_iteration",    [this] { return hash_map_iteration(); });
+      add_test("std_sort_on_vec", [this] { return std_sort_on_vec(); });
+      add_test("std_sort_on_string", [this] { return std_sort_on_string(); });
+      add_test("stringview_range_for", [this] { return stringview_range_for(); });
+      add_test("hash_map_iteration", [this] { return hash_map_iteration(); });
     }
 
     auto std_sort_on_vec() -> bool
@@ -64,9 +67,7 @@ namespace
       v.push_back(1);
       v.push_back(2);
       std::ranges::sort(v);
-      return check_eq(v[0], 1, "v[0] == 1")
-          && check_eq(v[1], 2, "v[1] == 2")
-          && check_eq(v[2], 3, "v[2] == 3");
+      return check_eq(v[0], 1, "v[0] == 1") && check_eq(v[1], 2, "v[1] == 2") && check_eq(v[2], 3, "v[2] == 3");
     }
 
     auto std_sort_on_string() -> bool
@@ -82,8 +83,7 @@ namespace
       usize sum = 0;
       for (char c : sv)
         sum += static_cast<usize>(c);
-      return check_eq(sum, static_cast<usize>('x') + static_cast<usize>('y'),
-                      "sum == 'x' + 'y'");
+      return check_eq(sum, static_cast<usize>('x') + static_cast<usize>('y'), "sum == 'x' + 'y'");
     }
 
     auto hash_map_iteration() -> bool

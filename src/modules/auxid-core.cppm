@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -360,16 +360,45 @@ public:
       return unwrap_err(loc);
     }
 
-    [[nodiscard]] constexpr bool is_ok() const     { return m_is_ok; }
-    [[nodiscard]] constexpr bool is_err() const    { return !m_is_ok; }
-    [[nodiscard]] constexpr bool has_value() const { return m_is_ok; }
+    [[nodiscard]] constexpr bool is_ok() const
+    {
+      return m_is_ok;
+    }
 
-    constexpr T &operator*() &                  { return unwrap(); }
-    constexpr const T &operator*() const &      { return unwrap(); }
-    constexpr T *operator->()                   { return &unwrap(); }
-    constexpr const T *operator->() const       { return &unwrap(); }
+    [[nodiscard]] constexpr bool is_err() const
+    {
+      return !m_is_ok;
+    }
 
-    constexpr explicit operator bool() const { return is_ok(); }
+    [[nodiscard]] constexpr bool has_value() const
+    {
+      return m_is_ok;
+    }
+
+    constexpr T &operator*() &
+    {
+      return unwrap();
+    }
+
+    constexpr const T &operator*() const &
+    {
+      return unwrap();
+    }
+
+    constexpr T *operator->()
+    {
+      return &unwrap();
+    }
+
+    constexpr const T *operator->() const
+    {
+      return &unwrap();
+    }
+
+    constexpr explicit operator bool() const
+    {
+      return is_ok();
+    }
   };
 
   template<typename E> class [[nodiscard]] ResultT<void, E>
@@ -437,9 +466,20 @@ public:
         au::panic("Called unwrap() on an Error Result", loc);
     }
 
-    [[nodiscard]] constexpr bool is_ok() const     { return m_is_ok; }
-    [[nodiscard]] constexpr bool is_err() const    { return !m_is_ok; }
-    [[nodiscard]] constexpr bool has_value() const { return m_is_ok; }
+    [[nodiscard]] constexpr bool is_ok() const
+    {
+      return m_is_ok;
+    }
+
+    [[nodiscard]] constexpr bool is_err() const
+    {
+      return !m_is_ok;
+    }
+
+    [[nodiscard]] constexpr bool has_value() const
+    {
+      return m_is_ok;
+    }
 
     constexpr const E &unwrap_err(std::source_location loc = std::source_location::current()) const &
     {
@@ -458,7 +498,10 @@ public:
       return unwrap_err(loc);
     }
 
-    constexpr explicit operator bool() const { return is_ok(); }
+    constexpr explicit operator bool() const
+    {
+      return is_ok();
+    }
   };
 } // namespace au
 
@@ -503,16 +546,30 @@ export namespace au
   class Mutex
   {
 public:
-    Mutex() noexcept                                       = default;
-    ~Mutex()                                               = default;
-    Mutex(const Mutex &)                                   = delete;
-    auto operator=(const Mutex &) -> Mutex &               = delete;
+    Mutex() noexcept = default;
+    ~Mutex() = default;
+    Mutex(const Mutex &) = delete;
+    auto operator=(const Mutex &) -> Mutex & = delete;
 
-    auto lock()       -> void { m_handle.lock(); }
-    auto unlock()     -> void { m_handle.unlock(); }
-    [[nodiscard]] auto try_lock() -> bool { return m_handle.try_lock(); }
+    auto lock() -> void
+    {
+      m_handle.lock();
+    }
 
-    auto native_handle() noexcept -> std::mutex & { return m_handle; }
+    auto unlock() -> void
+    {
+      m_handle.unlock();
+    }
+
+    [[nodiscard]] auto try_lock() -> bool
+    {
+      return m_handle.try_lock();
+    }
+
+    auto native_handle() noexcept -> std::mutex &
+    {
+      return m_handle;
+    }
 
 private:
     std::mutex m_handle{};

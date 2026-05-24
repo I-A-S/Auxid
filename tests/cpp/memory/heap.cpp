@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -25,12 +25,15 @@ namespace
 {
   struct HeapBlock final : test::Block
   {
-    [[nodiscard]] auto get_name() const -> const char * override { return "memory::heap"; }
+    [[nodiscard]] auto get_name() const -> const char * override
+    {
+      return "memory::heap";
+    }
 
     auto declare_tests() -> void override
     {
-      add_test("alloc_free",     [this] { return alloc_free(); });
-      add_test("aligned_alloc",  [this] { return aligned_alloc_(); });
+      add_test("alloc_free", [this] { return alloc_free(); });
+      add_test("aligned_alloc", [this] { return aligned_alloc_(); });
     }
 
     auto alloc_free() -> bool
@@ -41,7 +44,7 @@ namespace
         return false;
 
       u8 *bytes = static_cast<u8 *>(ptr);
-      bytes[0]   = 0xFF;
+      bytes[0] = 0xFF;
       bytes[127] = 0xAA;
 
       heap.free(ptr, 128, memory::HeapAllocator::natural_align);
@@ -56,7 +59,7 @@ namespace
         return false;
 
       uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
-      bool aligned   = (addr % 64) == 0;
+      bool aligned = (addr % 64) == 0;
 
       heap.free(ptr, 64, 64);
       return check(aligned, "alloc(64, 64) is 64-byte aligned");

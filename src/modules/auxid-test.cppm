@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -103,8 +103,7 @@ public:
       return m_units;
     }
 
-    template<typename T1, typename T2>
-    auto check_eq(const T1 &lhs, const T2 &rhs, const char *description) -> bool
+    template<typename T1, typename T2> auto check_eq(const T1 &lhs, const T2 &rhs, const char *description) -> bool
     {
       if (lhs != rhs)
       {
@@ -114,8 +113,7 @@ public:
       return true;
     }
 
-    template<typename T1, typename T2>
-    auto check_neq(const T1 &lhs, const T2 &rhs, const char *description) -> bool
+    template<typename T1, typename T2> auto check_neq(const T1 &lhs, const T2 &rhs, const char *description) -> bool
     {
       if (lhs == rhs)
       {
@@ -204,8 +202,15 @@ public:
       requires ValidBlockClass<BlockClass>
     auto test_block() -> void;
 
-    [[nodiscard]] auto fail_count() const noexcept -> usize { return m_fail_count; }
-    [[nodiscard]] auto test_count() const noexcept -> usize { return m_test_count; }
+    [[nodiscard]] auto fail_count() const noexcept -> usize
+    {
+      return m_fail_count;
+    }
+
+    [[nodiscard]] auto test_count() const noexcept -> usize
+    {
+      return m_test_count;
+    }
 
 private:
     auto summarize() -> void;

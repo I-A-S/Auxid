@@ -8,13 +8,13 @@
   <img src="https://img.shields.io/badge/platforms-Linux | Windows | WASM-darkslateblue.svg" alt="Platforms"/>
 
   <p style="padding-top: 0.2rem;">
-    <b>Auxid: The Orthodox C++ Platform.</b>
+    <b>Auxid: The Rigid C++ Platform.</b>
   </p>
 </div>
 
 ## The vision
 
-Auxid is a platform for building modern, high-performance C++ applications using **Orthodox C++** and **data-oriented design (DOD)** principles, delivered as a **C++23 named module**.
+Auxid is a platform for building modern, high-performance C++ applications using [**Rigid C++**](https://github.com/I-A-S/Rigid-Cpp) principles, delivered as a **C++23 named module**.
 
 Mainstream "modern C++" often pays for heavy template metaprogramming, slow builds, and an STL whose node-based containers and allocator model work against CPU caches and DOD-friendly layouts. Auxid keeps the language close to fast, predictable, systems-style C++ - but it doesn't reject the STL. Where the standard library is already the right tool (contiguous storage, `std::filesystem`, `std::expected`, `std::optional`, ranges/iterator concepts), **LibAuxid composes with it**; where it isn't (small-string optimization, sparse-dense hashing, scoped arenas, strict allocator control), Auxid ships its own.
 

@@ -1,4 +1,4 @@
-// Auxid: The Orthodox C++ Platform.
+// Auxid: The Rigid C++ Platform.
 //
 // Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 //
@@ -23,13 +23,16 @@ namespace
 {
   struct ArenaBlock final : test::Block
   {
-    [[nodiscard]] auto get_name() const -> const char * override { return "memory::arena"; }
+    [[nodiscard]] auto get_name() const -> const char * override
+    {
+      return "memory::arena";
+    }
 
     auto declare_tests() -> void override
     {
-      add_test("alloc",      [this] { return alloc_(); });
+      add_test("alloc", [this] { return alloc_(); });
       add_test("exhaustion", [this] { return exhaustion(); });
-      add_test("clear",      [this] { return clear_(); });
+      add_test("clear", [this] { return clear_(); });
     }
 
     auto alloc_() -> bool
@@ -39,12 +42,13 @@ namespace
       arena.init(buffer, sizeof(buffer));
 
       void *ptr1 = arena.alloc(16);
-      if (!check_not(ptr1 == nullptr, "alloc(16) != nullptr"))    return false;
-      if (!check(arena.offset >= 16u, "arena.offset >= 16"))      return false;
+      if (!check_not(ptr1 == nullptr, "alloc(16) != nullptr"))
+        return false;
+      if (!check(arena.offset >= 16u, "arena.offset >= 16"))
+        return false;
 
       void *ptr2 = arena.alloc(32);
-      return check_not(ptr2 == nullptr, "alloc(32) != nullptr")
-          && check(arena.offset >= 48u, "arena.offset >= 48");
+      return check_not(ptr2 == nullptr, "alloc(32) != nullptr") && check(arena.offset >= 48u, "arena.offset >= 48");
     }
 
     auto exhaustion() -> bool
