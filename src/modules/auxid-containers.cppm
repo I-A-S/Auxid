@@ -25,6 +25,7 @@ module;
 #include <format>
 #include <functional>
 #include <iterator>
+#include <new>
 #include <optional>
 #include <ranges>
 #include <source_location>
@@ -59,12 +60,16 @@ export namespace au
 
 export namespace au
 {
-  struct StringView;
+#if defined(__cpp_lib_hardware_interference_size)
+  inline constexpr usize CACHE_LINE_SIZE = std::hardware_destructive_interference_size;
+#else
+  inline constexpr usize CACHE_LINE_SIZE = 64;
+#endif
+} // namespace au
 
-  namespace containers
-  {
-    struct String;
-  }
+export namespace au
+{
+  struct StringView;
 } // namespace au
 
 namespace au
@@ -272,7 +277,7 @@ public:
 
 export namespace au::containers
 {
-  struct String
+  template<memory::AllocatorType A = memory::HeapAllocator> struct BasicString
   {
     static constexpr usize npos = StringView::npos;
 
@@ -289,6 +294,7 @@ export namespace au::containers
     using const_iterator = const char *;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+    using allocator_type = A;
 
 private:
     struct LongLayout
@@ -309,7 +315,7 @@ private:
       ShortLayout s;
     } m_storage;
 
-    AUXID_NO_UNIQUE_ADDRESS memory::HeapAllocator m_allocator;
+    AUXID_NO_UNIQUE_ADDRESS A m_allocator;
 
     [[nodiscard]] bool is_short() const
     {
@@ -352,13 +358,19 @@ private:
     }
 
 public:
-    String()
+    BasicString()
     {
       m_storage.s.size_shifted = 0;
       m_storage.s.data[0] = '\0';
     }
 
-    String(const char *str)
+    explicit BasicString(A alloc) : m_allocator(std::move(alloc))
+    {
+      m_storage.s.size_shifted = 0;
+      m_storage.s.data[0] = '\0';
+    }
+
+    BasicString(const char *str)
     {
       m_storage.s.size_shifted = 0;
       if (str)
@@ -367,7 +379,7 @@ public:
         m_storage.s.data[0] = '\0';
     }
 
-    String(const char *str, usize len)
+    BasicString(const char *str, usize len)
     {
       m_storage.s.size_shifted = 0;
 
@@ -381,13 +393,19 @@ public:
       }
     }
 
-    String(StringView sv)
+    BasicString(StringView sv)
     {
       m_storage.s.size_shifted = 0;
       assign(sv);
     }
 
-    String(String &&other) noexcept : m_allocator(static_cast<memory::HeapAllocator &&>(other.m_allocator))
+    BasicString(StringView sv, A alloc) : m_allocator(std::move(alloc))
+    {
+      m_storage.s.size_shifted = 0;
+      assign(sv);
+    }
+
+    BasicString(BasicString &&other) noexcept : m_allocator(static_cast<A &&>(other.m_allocator))
     {
       std::memcpy(&m_storage, &other.m_storage, sizeof(m_storage));
 
@@ -395,12 +413,12 @@ public:
       other.m_storage.s.data[0] = '\0';
     }
 
-    String &operator=(String &&other) noexcept
+    BasicString &operator=(BasicString &&other) noexcept
     {
       if (this != &other)
       {
         destroy();
-        m_allocator = static_cast<memory::HeapAllocator &&>(other.m_allocator);
+        m_allocator = static_cast<A &&>(other.m_allocator);
 
         std::memcpy(&m_storage, &other.m_storage, sizeof(m_storage));
         other.m_storage.s.size_shifted = 0;
@@ -409,13 +427,13 @@ public:
       return *this;
     }
 
-    String(const String &other)
+    BasicString(const BasicString &other) : m_allocator(other.m_allocator)
     {
       m_storage.s.size_shifted = 0;
       assign(StringView(other.data(), other.size()));
     }
 
-    String &operator=(const String &other)
+    BasicString &operator=(const BasicString &other)
     {
       if (this != &other)
       {
@@ -424,16 +442,21 @@ public:
       return *this;
     }
 
-    ~String()
+    ~BasicString()
     {
       destroy();
     }
 
-    [[nodiscard]] String clone() const
+    [[nodiscard]] BasicString clone() const
     {
-      String new_str;
+      BasicString new_str(m_allocator);
       new_str.assign(StringView(get_data(), get_size()));
       return new_str;
+    }
+
+    [[nodiscard]] auto get_allocator() const noexcept -> const A &
+    {
+      return m_allocator;
     }
 
     void destroy()
@@ -774,17 +797,19 @@ public:
     }
 
 public:
-    static String vformat(std::string_view fmt, std::format_args args)
+    static BasicString vformat(std::string_view fmt, std::format_args args)
     {
       std::string tmp = std::vformat(fmt, args);
-      return String(tmp.data(), tmp.size());
+      return BasicString(tmp.data(), tmp.size());
     }
 
-    template<typename... Args> static String format(std::format_string<Args...> fmt, Args &&...args)
+    template<typename... Args> static BasicString format(std::format_string<Args...> fmt, Args &&...args)
     {
       return vformat(fmt.get(), std::make_format_args(args...));
     }
   };
+
+  using String = BasicString<memory::HeapAllocator>;
 } // namespace au::containers
 
 export namespace au
@@ -802,75 +827,79 @@ export namespace au
 
 export namespace au::containers
 {
-  inline bool operator==(const String &lhs, const String &rhs)
+  template<class A1, class A2>
+  inline bool operator==(const BasicString<A1> &lhs, const BasicString<A2> &rhs)
   {
-    if (&lhs == &rhs)
-      return true;
+    if constexpr (std::is_same_v<A1, A2>)
+    {
+      if (&lhs == &rhs)
+        return true;
+    }
     if (lhs.size() != rhs.size())
       return false;
     return StringView(lhs.data(), lhs.size()) == StringView(rhs.data(), rhs.size());
   }
 
-  inline bool operator==(const String &lhs, StringView rhs)
+  template<class A> inline bool operator==(const BasicString<A> &lhs, StringView rhs)
   {
     return StringView(lhs.data(), lhs.size()) == rhs;
   }
 
-  inline bool operator==(StringView lhs, const String &rhs)
+  template<class A> inline bool operator==(StringView lhs, const BasicString<A> &rhs)
   {
     return lhs == StringView(rhs.data(), rhs.size());
   }
 
-  inline bool operator==(const String &lhs, const char *rhs)
+  template<class A> inline bool operator==(const BasicString<A> &lhs, const char *rhs)
   {
     return StringView(lhs.data(), lhs.size()) == StringView(rhs);
   }
 
-  inline bool operator==(const char *lhs, const String &rhs)
+  template<class A> inline bool operator==(const char *lhs, const BasicString<A> &rhs)
   {
     return StringView(lhs) == StringView(rhs.data(), rhs.size());
   }
 
-  inline String operator+(const String &lhs, StringView rhs)
+  template<class A> inline BasicString<A> operator+(const BasicString<A> &lhs, StringView rhs)
   {
-    String result;
+    BasicString<A> result(lhs.get_allocator());
     result.reserve(lhs.size() + rhs.size());
     result.append(lhs);
     result.append(rhs);
     return result;
   }
 
-  inline String operator+(StringView lhs, const String &rhs)
+  template<class A> inline BasicString<A> operator+(StringView lhs, const BasicString<A> &rhs)
   {
-    String result;
+    BasicString<A> result(rhs.get_allocator());
     result.reserve(lhs.size() + rhs.size());
     result.append(lhs);
     result.append(rhs);
     return result;
   }
 
-  inline String operator+(const String &lhs, const String &rhs)
+  template<class A> inline BasicString<A> operator+(const BasicString<A> &lhs, const BasicString<A> &rhs)
   {
-    String result;
+    BasicString<A> result(lhs.get_allocator());
     result.reserve(lhs.size() + rhs.size());
     result.append(lhs);
     result.append(rhs);
     return result;
   }
 
-  inline String operator+(const char *lhs, const String &rhs)
+  template<class A> inline BasicString<A> operator+(const char *lhs, const BasicString<A> &rhs)
   {
     return StringView(lhs) + rhs;
   }
 
-  inline String operator+(const String &lhs, const char *rhs)
+  template<class A> inline BasicString<A> operator+(const BasicString<A> &lhs, const char *rhs)
   {
     return lhs + StringView(rhs);
   }
 
-  inline String operator+(const String &lhs, char rhs)
+  template<class A> inline BasicString<A> operator+(const BasicString<A> &lhs, char rhs)
   {
-    String result;
+    BasicString<A> result(lhs.get_allocator());
     result.reserve(lhs.size() + 1);
     result.append(lhs);
     result.push(rhs);
@@ -882,6 +911,7 @@ export template<> inline constexpr bool std::ranges::enable_borrowed_range<au::S
 
 export namespace au
 {
+  template<memory::AllocatorType A> using BasicString = containers::BasicString<A>;
   using String = containers::String;
 }
 
@@ -1703,7 +1733,7 @@ export namespace au::containers
     }
   };
 
-  template<> struct Hash<String>
+  template<class A> struct Hash<BasicString<A>>
   {
     using is_transparent = void;
 
@@ -1749,7 +1779,7 @@ export namespace au::containers
     }
   };
 
-  template<> struct EqualTo<String>
+  template<class A> struct EqualTo<BasicString<A>>
   {
     using is_transparent = void;
 
@@ -2596,6 +2626,223 @@ export namespace au
 
 export namespace au::containers
 {
+  template<typename T, memory::AllocatorType AllocatorT = memory::HeapAllocator>
+    requires memory::AllocatorType<AllocatorT>
+  class SlotMap
+  {
+public:
+    struct Key
+    {
+      u32 idx;
+      u32 gen;
+
+      [[nodiscard]] constexpr bool operator==(const Key &other) const noexcept
+      {
+        return idx == other.idx && gen == other.gen;
+      }
+    };
+
+    using value_type = T;
+    using size_type = u32;
+    using difference_type = std::make_signed_t<u32>;
+    using reference = T &;
+    using const_reference = const T &;
+    using pointer = T *;
+    using const_pointer = const T *;
+    using iterator = T *;
+    using const_iterator = const T *;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+private:
+    struct Slot
+    {
+      u32 generation;
+      u32 dense_idx;
+    };
+
+    static constexpr u32 FREE_SENTINEL = static_cast<u32>(-1);
+
+    CompactVecBase<Slot, u32, AllocatorT> m_slots;
+    CompactVecBase<T, u32, AllocatorT> m_dense;
+    CompactVecBase<u32, u32, AllocatorT> m_dense_to_slot;
+    u32 m_free_head = FREE_SENTINEL;
+
+public:
+    SlotMap() = default;
+
+    [[nodiscard]] auto insert(T value) -> Key
+    {
+      u32 slot_idx;
+      if (m_free_head != FREE_SENTINEL)
+      {
+        slot_idx = m_free_head;
+        m_free_head = m_slots[slot_idx].dense_idx;
+      }
+      else
+      {
+        slot_idx = static_cast<u32>(m_slots.size());
+        m_slots.push_back(Slot{0u, 0u});
+      }
+
+      const u32 dense_idx = static_cast<u32>(m_dense.size());
+      m_dense.push_back(std::move(value));
+      m_dense_to_slot.push_back(slot_idx);
+
+      m_slots[slot_idx].dense_idx = dense_idx;
+      return Key{slot_idx, m_slots[slot_idx].generation};
+    }
+
+    auto erase(Key k) -> bool
+    {
+      if (k.idx >= m_slots.size())
+        return false;
+      Slot &slot = m_slots[k.idx];
+      if (slot.generation != k.gen)
+        return false;
+
+      const u32 dense_idx = slot.dense_idx;
+      const u32 last_dense_idx = static_cast<u32>(m_dense.size() - 1);
+
+      if (dense_idx != last_dense_idx)
+      {
+        m_dense[dense_idx] = std::move(m_dense[last_dense_idx]);
+        const u32 moved_slot_idx = m_dense_to_slot[last_dense_idx];
+        m_dense_to_slot[dense_idx] = moved_slot_idx;
+        m_slots[moved_slot_idx].dense_idx = dense_idx;
+      }
+      m_dense.pop_back();
+      m_dense_to_slot.pop_back();
+
+      slot.generation += 1;
+      slot.dense_idx = m_free_head;
+      m_free_head = k.idx;
+      return true;
+    }
+
+    [[nodiscard]] auto get(Key k) -> T *
+    {
+      if (k.idx >= m_slots.size())
+        return nullptr;
+      const Slot &slot = m_slots[k.idx];
+      if (slot.generation != k.gen)
+        return nullptr;
+      return &m_dense[slot.dense_idx];
+    }
+
+    [[nodiscard]] auto get(Key k) const -> const T *
+    {
+      if (k.idx >= m_slots.size())
+        return nullptr;
+      const Slot &slot = m_slots[k.idx];
+      if (slot.generation != k.gen)
+        return nullptr;
+      return &m_dense[slot.dense_idx];
+    }
+
+    [[nodiscard]] auto contains(Key k) const -> bool
+    {
+      return get(k) != nullptr;
+    }
+
+    [[nodiscard]] auto size() const noexcept -> size_type
+    {
+      return static_cast<size_type>(m_dense.size());
+    }
+
+    [[nodiscard]] auto empty() const noexcept -> bool
+    {
+      return m_dense.empty();
+    }
+
+    auto clear() -> void
+    {
+      m_dense.clear();
+      m_dense_to_slot.clear();
+      m_slots.clear();
+      m_free_head = FREE_SENTINEL;
+    }
+
+    [[nodiscard]] auto data() noexcept -> T *
+    {
+      return m_dense.data();
+    }
+
+    [[nodiscard]] auto data() const noexcept -> const T *
+    {
+      return m_dense.data();
+    }
+
+    [[nodiscard]] auto begin() noexcept -> iterator
+    {
+      return m_dense.begin();
+    }
+
+    [[nodiscard]] auto end() noexcept -> iterator
+    {
+      return m_dense.end();
+    }
+
+    [[nodiscard]] auto begin() const noexcept -> const_iterator
+    {
+      return m_dense.begin();
+    }
+
+    [[nodiscard]] auto end() const noexcept -> const_iterator
+    {
+      return m_dense.end();
+    }
+
+    [[nodiscard]] auto cbegin() const noexcept -> const_iterator
+    {
+      return m_dense.cbegin();
+    }
+
+    [[nodiscard]] auto cend() const noexcept -> const_iterator
+    {
+      return m_dense.cend();
+    }
+
+    [[nodiscard]] auto rbegin() noexcept -> reverse_iterator
+    {
+      return reverse_iterator(end());
+    }
+
+    [[nodiscard]] auto rend() noexcept -> reverse_iterator
+    {
+      return reverse_iterator(begin());
+    }
+
+    [[nodiscard]] auto rbegin() const noexcept -> const_reverse_iterator
+    {
+      return const_reverse_iterator(end());
+    }
+
+    [[nodiscard]] auto rend() const noexcept -> const_reverse_iterator
+    {
+      return const_reverse_iterator(begin());
+    }
+
+    [[nodiscard]] auto crbegin() const noexcept -> const_reverse_iterator
+    {
+      return rbegin();
+    }
+
+    [[nodiscard]] auto crend() const noexcept -> const_reverse_iterator
+    {
+      return rend();
+    }
+  };
+} // namespace au::containers
+
+export namespace au
+{
+  template<typename T, memory::AllocatorType A = memory::HeapAllocator>
+  using SlotMap = containers::SlotMap<T, A>;
+} // namespace au
+
+export namespace au::containers
+{
   template<typename T, usize Capacity>
     requires((Capacity != 0) && ((Capacity & (Capacity - 1)) == 0))
   class SpscQueue
@@ -2653,8 +2900,8 @@ public:
 private:
     static constexpr usize K_MASK = Capacity - 1;
 
-    alignas(64) std::atomic<usize> m_write_pos{0};
-    alignas(64) std::atomic<usize> m_read_pos{0};
+    alignas(CACHE_LINE_SIZE) std::atomic<usize> m_write_pos{0};
+    alignas(CACHE_LINE_SIZE) std::atomic<usize> m_read_pos{0};
 
     alignas(T) u8 m_slots[Capacity * sizeof(T)];
   };
@@ -2675,9 +2922,9 @@ export namespace au::containers
   template<typename T> using Result = ::au::ResultT<T, String>;
 }
 
-template<> struct std::formatter<au::containers::String> : std::formatter<std::string_view>
+template<class A> struct std::formatter<au::containers::BasicString<A>> : std::formatter<std::string_view>
 {
-  auto format(const au::containers::String &s, auto &ctx) const
+  auto format(const au::containers::BasicString<A> &s, auto &ctx) const
   {
     return std::formatter<std::string_view>::format(std::string_view(s.data(), s.size()), ctx);
   }

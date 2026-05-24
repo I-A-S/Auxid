@@ -154,7 +154,7 @@ export namespace au
     return Unexpected<std::decay_t<E>>(std::forward<E>(error));
   }
 
-  extern auto panic_handler(const char *msg, const char *file, u32 line) -> void;
+  [[noreturn]] extern auto panic_handler(const char *msg, const char *file, u32 line) -> void;
 
   [[noreturn]] inline auto panic(const char *msg, std::source_location loc = std::source_location::current()) -> void
   {

@@ -1,3 +1,19 @@
+# Auxid: The Rigid C++ Platform.
+#
+# Copyright (C) 2026 I-A-S (ias@iasoft.dev)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 cmake_minimum_required(VERSION 3.28)
 
 project(Auxid C CXX)
@@ -38,4 +54,11 @@ add_subdirectory(src)
 
 if(Auxid_BUILD_TESTS)
   add_subdirectory(tests)
+
+  add_test(
+    NAME RigidCppBanList
+    COMMAND ${CMAKE_COMMAND}
+            -DAUXID_SRC_DIR=${CMAKE_SOURCE_DIR}/src
+            -P ${CMAKE_SOURCE_DIR}/cmake/auxid_lint_ban_list.cmake
+  )
 endif()

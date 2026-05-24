@@ -1,5 +1,6 @@
 # Auxid: The Rigid C++ Platform.
-# Copyright (C) 2026 IAS (ias@iasoft.dev)
+#
+# Copyright (C) 2026 I-A-S (ias@iasoft.dev)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 
 set(CMAKE_SYSTEM_NAME Windows)
 set(CMAKE_SYSTEM_PROCESSOR aarch64)

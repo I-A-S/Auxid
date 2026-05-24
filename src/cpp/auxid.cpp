@@ -16,8 +16,8 @@
 
 module;
 
+#include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <print>
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
@@ -149,9 +149,9 @@ namespace au::auxid
 namespace au
 {
 #if !defined(AUXID_DISABLE_DEFAULT_PANIC_HANDLER)
-  auto panic_handler(const char *msg, const char *file, u32 line) -> void
+  [[noreturn]] auto panic_handler(const char *msg, const char *file, u32 line) -> void
   {
-    std::println(std::cerr, "[PANIC]: ({}:{}): {}", file, line, msg);
+    std::println(stderr, "[PANIC]: ({}:{}): {}", file, line, msg);
     std::abort();
   }
 #endif

@@ -14,6 +14,7 @@ set(SRC_FILES
     "cpp/containers/hash_set.cpp"
     "cpp/containers/pair.cpp"
     "cpp/containers/iterator_concepts.cpp"
+    "cpp/containers/slot_map.cpp"
 )
 
 add_executable(TestSuite ${SRC_FILES})

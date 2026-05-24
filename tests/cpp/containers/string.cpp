@@ -34,6 +34,7 @@ namespace
       add_test("heap_allocation", [this] { return heap_allocation(); });
       add_test("append_and_concat", [this] { return append_and_concat(); });
       add_test("push_pop", [this] { return push_pop(); });
+      add_test("arena_basic_string", [this] { return arena_basic_string(); });
     }
 
     auto sso() -> bool
@@ -68,6 +69,33 @@ namespace
         return false;
       s.pop_back();
       return check_eq(s, "C+", "after pop_back");
+    }
+
+    auto arena_basic_string() -> bool
+    {
+      using ArenaString = BasicString<memory::ArenaAllocator>;
+
+      alignas(8) static u8 arena_buffer[1024];
+      memory::ArenaAllocator arena;
+      arena.init(arena_buffer, sizeof(arena_buffer));
+
+      ArenaString sso(arena);
+      sso.assign(StringView("Orthodox"));
+      if (!check_eq(sso.size(), 8u, "arena sso size"))
+        return false;
+      if (!check_eq(sso, StringView("Orthodox"), "arena sso content"))
+        return false;
+
+      ArenaString heap(arena);
+      heap.reserve(128);
+      heap.assign(StringView("This string is deliberately long to bypass SSO capacity."));
+      if (!check(heap.size() > 23u, "arena heap path size > 23"))
+        return false;
+      if (!check_eq(heap.substr(0, 4), StringView("This"), "arena heap substr(0,4)"))
+        return false;
+
+      heap.append(StringView(" tail"));
+      return check(heap.size() > 50u, "arena heap appended");
     }
   };
 

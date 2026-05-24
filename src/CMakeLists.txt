@@ -1,11 +1,13 @@
 if(MSVC)
     set(AUXID_CXX_FLAGS_NO_EXCEPTIONS "/EHs-c-")
     set(AUXID_CXX_FLAGS_NO_EXCEPTIONS "${AUXID_CXX_FLAGS_NO_EXCEPTIONS};/wd4530")
+    set(AUXID_CXX_FLAGS_NO_RTTI "/GR-")
 else()
     set(AUXID_CXX_FLAGS_NO_EXCEPTIONS "-fno-exceptions")
+    set(AUXID_CXX_FLAGS_NO_RTTI "-fno-rtti")
 endif()
 
-set(AUXID_CXX_FLAGS_INTERNAL "${AUXID_CXX_FLAGS_NO_EXCEPTIONS}" CACHE INTERNAL "Auxid compiler flags")
+set(AUXID_CXX_FLAGS_INTERNAL "${AUXID_CXX_FLAGS_NO_EXCEPTIONS};${AUXID_CXX_FLAGS_NO_RTTI}" CACHE INTERNAL "Auxid compiler flags")
 set(AUXID_LINK_FLAGS_INTERNAL "" CACHE INTERNAL "Auxid linker flags")
 
 set(SRC_FILES
@@ -41,6 +43,7 @@ if(MSVC)
     foreach(_cfg CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_MINSIZEREL)
         if(DEFINED ${_cfg})
             string(REPLACE "/EHsc" "" ${_cfg} "${${_cfg}}")
+            string(REGEX REPLACE "/GR( |$)" " " ${_cfg} "${${_cfg}}")
         endif()
     endforeach()
 endif()
@@ -54,7 +57,7 @@ target_include_directories(libauxid PRIVATE
         "hpp"
 )
 
-target_compile_options(libauxid PUBLIC  ${AUXID_CXX_FLAGS_NO_EXCEPTIONS})
+target_compile_options(libauxid PUBLIC  ${AUXID_CXX_FLAGS_NO_EXCEPTIONS} ${AUXID_CXX_FLAGS_NO_RTTI})
 target_link_options(libauxid    PRIVATE ${AUXID_LINK_FLAGS_INTERNAL})
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
