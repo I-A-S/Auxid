@@ -21,6 +21,7 @@ module;
 #include <cstdlib>
 #include <functional>
 #include <print>
+#include <string_view>
 #include <type_traits>
 
 export module auxid.test;
@@ -30,13 +31,13 @@ import auxid.containers;
 
 export namespace au::console
 {
-  inline constexpr const char *RESET = "\033[0m";
-  inline constexpr const char *RED = "\033[31m";
-  inline constexpr const char *GREEN = "\033[32m";
-  inline constexpr const char *YELLOW = "\033[33m";
-  inline constexpr const char *BLUE = "\033[34m";
-  inline constexpr const char *MAGENTA = "\033[35m";
-  inline constexpr const char *CYAN = "\033[36m";
+  inline constexpr std::string_view RESET = "\033[0m";
+  inline constexpr std::string_view RED = "\033[31m";
+  inline constexpr std::string_view GREEN = "\033[32m";
+  inline constexpr std::string_view YELLOW = "\033[33m";
+  inline constexpr std::string_view BLUE = "\033[34m";
+  inline constexpr std::string_view MAGENTA = "\033[35m";
+  inline constexpr std::string_view CYAN = "\033[36m";
 } // namespace au::console
 
 export namespace au::test
@@ -154,7 +155,8 @@ public:
     {
       if (!value)
       {
-        std::println("{}    {}... {}FAILED{}", console::BLUE, description, console::RED, console::RESET);
+        std::println("{}    {}... {}FAILED{}", console::BLUE, std::string_view(description), console::RED,
+                     console::RESET);
         return false;
       }
       return true;
@@ -164,7 +166,8 @@ public:
     {
       if (value)
       {
-        std::println("{}    {}... {}FAILED{}", console::BLUE, description, console::RED, console::RESET);
+        std::println("{}    {}... {}FAILED{}", console::BLUE, std::string_view(description), console::RED,
+                     console::RESET);
         return false;
       }
       return true;
@@ -178,8 +181,8 @@ public:
 private:
     auto print_fail(const char *desc, const String &v1, const String &v2) -> void
     {
-      std::println("{}    {}... {}FAILED\n      Expected: {}\n      Actual:   {}{}", console::BLUE, desc, console::RED,
-                   v2, v1, console::RESET);
+      std::println("{}    {}... {}FAILED\n      Expected: {}\n      Actual:   {}{}", console::BLUE,
+                   std::string_view(desc), console::RED, v2, v1, console::RESET);
     }
 
     Mut<Vec<TestUnit>> m_units;
@@ -229,7 +232,7 @@ private:
     Mut<BlockClass> b;
     b.declare_tests();
 
-    std::println("{}Testing [{}]...{}", console::MAGENTA, b.get_name(), console::RESET);
+    std::println("{}Testing [{}]...{}", console::MAGENTA, std::string_view(b.get_name()), console::RESET);
 
     for (TestUnit &v : b.units())
     {

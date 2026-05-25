@@ -49,13 +49,13 @@ module;
 #  include <wasm_simd128.h>
 #endif
 
-static_assert(std::endian::native == std::endian::little,
-              "Auxid String SSO is designed for Little-Endian architectures.");
-
 export module auxid.containers;
 
 export import auxid.core;
 export import auxid.memory;
+
+static_assert(std::endian::native == std::endian::little,
+              "Auxid String SSO is designed for Little-Endian architectures.");
 
 export namespace au::containers
 {

@@ -40,7 +40,7 @@ namespace
     auto sso() -> bool
     {
       String s("Rigid");
-      return check_eq(s.size(), 8u, "s.size() == 8") && check_eq(s, "Rigid", "s == \"Rigid\"");
+      return check_eq(s.size(), 5u, "s.size() == 5") && check_eq(s, "Rigid", "s == \"Rigid\"");
     }
 
     auto heap_allocation() -> bool
@@ -81,7 +81,7 @@ namespace
 
       ArenaString sso(arena);
       sso.assign(StringView("Rigid"));
-      if (!check_eq(sso.size(), 8u, "arena sso size"))
+      if (!check_eq(sso.size(), 5u, "arena sso size"))
         return false;
       if (!check_eq(sso, StringView("Rigid"), "arena sso content"))
         return false;
