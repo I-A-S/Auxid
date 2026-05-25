@@ -13,6 +13,7 @@ set(AUXID_LINK_FLAGS_INTERNAL "" CACHE INTERNAL "Auxid linker flags")
 set(SRC_FILES
         "cpp/auxid.cpp"
         "cpp/logger.cpp"
+        "cpp/test.cpp"
 )
 
 if(NOT AUXID_USE_SYSTEM_MALLOC)

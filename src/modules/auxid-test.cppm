@@ -191,6 +191,15 @@ private:
   template<typename T>
   concept ValidBlockClass = std::derived_from<T, Block>;
 
+  namespace impl
+  {
+    auto print_block_header(std::string_view name) -> void;
+    auto print_test_progress(std::string_view name) -> void;
+    auto print_blank_line() -> void;
+    auto print_discovered(usize count) -> void;
+    auto print_summary(usize fail_count, usize test_count, usize block_count) -> void;
+  } // namespace impl
+
   template<bool StopOnFail = false, bool IsVerbose = false> class Runner
   {
 public:
@@ -232,14 +241,14 @@ private:
     Mut<BlockClass> b;
     b.declare_tests();
 
-    std::println("{}Testing [{}]...{}", console::MAGENTA, std::string_view(b.get_name()), console::RESET);
+    impl::print_block_header(std::string_view(b.get_name()));
 
     for (TestUnit &v : b.units())
     {
       m_test_count++;
       if constexpr (IsVerbose)
       {
-        std::print("{}  Testing {}...\n{}", console::YELLOW, v.name, console::RESET);
+        impl::print_test_progress(std::string_view(v.name.data(), v.name.size()));
       }
 
       const bool result = v.functor();
@@ -254,29 +263,12 @@ private:
         }
       }
     }
-    std::println();
+    impl::print_blank_line();
   }
 
   template<bool StopOnFail, bool IsVerbose> auto Runner<StopOnFail, IsVerbose>::summarize() -> void
   {
-    std::println("{}\n-----------------------------------\n\t      SUMMARY\n-----------------------------------",
-                 console::GREEN);
-
-    if (m_fail_count == 0)
-    {
-      std::println("\n\tALL TESTS PASSED!\n");
-    }
-    else
-    {
-      const f64 success_rate =
-          m_test_count == 0 ? 0.0
-                            : (100.0 * static_cast<f64>(m_test_count - m_fail_count) / static_cast<f64>(m_test_count));
-      std::println("{}{} OF {} TESTS FAILED\n{}Success Rate: {:.2f}%", console::RED, m_fail_count, m_test_count,
-                   console::YELLOW, success_rate);
-    }
-
-    std::println("{}Ran {} test(s) across {} block(s)\n{}-----------------------------------{}", console::MAGENTA,
-                 m_test_count, m_block_count, console::GREEN, console::RESET);
+    impl::print_summary(m_fail_count, m_test_count, m_block_count);
   }
 
   using DefaultRunner = Runner<false, true>;
@@ -296,7 +288,7 @@ public:
     {
       Mut<DefaultRunner> r;
       Vec<TestEntry> &entries = get_entries();
-      std::print("{}[AUTest] Discovered {} Test Blocks\n\n{}", console::CYAN, entries.size(), console::RESET);
+      impl::print_discovered(entries.size());
 
       for (TestEntry &entry : entries)
       {
