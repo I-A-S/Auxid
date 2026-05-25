@@ -24,7 +24,7 @@ Mainstream "modern C++" often pays for heavy template metaprogramming, slow buil
 - **No exceptions, ever.** `libauxid` propagates `-fno-exceptions` / `/EHs-c-` to every consumer via `PUBLIC` compile options. Errors flow through `Result<T>` and `AU_TRY`.
 - **Strong allocators.** Integrated [rpmalloc](https://github.com/mjansson/rpmalloc) thread-caching heap, plus an `ArenaAllocator` for scoped bump-allocation. Both satisfy a single `memory::AllocatorType` concept, and `StdAllocatorAdapter` plugs them into standard containers.
 - **STL interop built in.** `Vec<T>` is `std::vector<T, StdAllocatorAdapter<T, A>>`, `Pair` / `Span` are direct std aliases, `Result<T, E>` round-trips with `std::expected`, `Option<T>` round-trips with `std::optional`, and `auxid::filesystem` wraps `std::filesystem` with non-throwing `Result<T>` returns.
-- **Cache-friendly custom containers.** Sparse-dense `HashMap` / `HashSet` (Robin Hood probing), `String` with little-endian SSO, `CompactVec<T>` (u32 index) and `TinyVec<T>` (u16 index), lock-free `SpscQueue<T, N>`.
+- **Cache-friendly custom containers.** SwissTable-style `HashMap` / `HashSet` (SIMD 16-slot group probing with SSE2/NEON/WASM SIMD128, triangular probing, per-instance random seed) over a dense entry array, `String` with little-endian SSO, `CompactVec<T>` (u32 index) and `TinyVec<T>` (u16 index), lock-free `SpscQueue<T, N>`.
 - **Standard-algorithm friendly iterators.** `Vec`, `String`, `StringView`, and `Span` model `std::contiguous_iterator` and `std::ranges::contiguous_range`; `StringView` is a `std::ranges::borrowed_range`. `std::ranges::sort` on a `Vec<i32>` or a `String` Just Works!
 - **Lightweight smart pointers.** `Box<T>` (allocator-aware `unique_ptr`), `Arc<T>` (atomic shared), `IntrusiveArc<T>` over a `RefCounted` base.
 - **Cross-platform.** x64 / ARM64 on Linux & Windows, plus WebAssembly via Emscripten.
@@ -47,7 +47,7 @@ LibAuxid is meant to drop into an existing CMake project via `FetchContent`. **C
 
 ```cmake
 cmake_minimum_required(VERSION 3.28)
-project(MyOrthodoxEngine CXX)
+project(MyRigidEngine CXX)
 
 include(FetchContent)
 
@@ -88,7 +88,7 @@ auto main() -> int
     auxid::MainThreadGuard _main_thread_guard;
 
     Vec<String> names;
-    names.push_back(String("Orthodox"));
+    names.push_back(String("Rigid"));
     names.push_back(String("C++"));
 
     auto cfg = load_config();

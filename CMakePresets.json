@@ -97,6 +97,22 @@
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/wasm32-emscripten-clang.cmake",
         "AUXID_USE_SYSTEM_MALLOC": "TRUE"
       }
+    },
+    {
+      "name": "x64-windows-msvc-bench",
+      "displayName": "Auxid Windows x64 (MSVC, Benchmarks)",
+      "inherits": "x64-windows-msvc",
+      "cacheVariables": {
+        "Auxid_BUILD_BENCHMARKS": "ON"
+      }
+    },
+    {
+      "name": "x64-windows-clang-bench",
+      "displayName": "Auxid Windows x64 (Clang, Benchmarks)",
+      "inherits": "x64-windows-clang",
+      "cacheVariables": {
+        "Auxid_BUILD_BENCHMARKS": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -135,6 +151,18 @@
     {
       "name": "wasm32-emscripten",
       "configurePreset": "wasm32-emscripten"
+    },
+    {
+      "name": "x64-windows-msvc-bench",
+      "configurePreset": "x64-windows-msvc-bench",
+      "configuration": "Release",
+      "targets": ["AuxidBench"]
+    },
+    {
+      "name": "x64-windows-clang-bench",
+      "configurePreset": "x64-windows-clang-bench",
+      "configuration": "Release",
+      "targets": ["AuxidBench"]
     }
   ],
   "testPresets": [

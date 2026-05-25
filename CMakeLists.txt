@@ -33,6 +33,7 @@ endif()
 set(AUXID_ROOT "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "")
 
 option(Auxid_BUILD_TESTS "Build unit tests" ${AUXID_IS_TOP_LEVEL})
+option(Auxid_BUILD_BENCHMARKS "Build microbenchmarks (requires Google Benchmark via FetchContent)" OFF)
 
 if(EMSCRIPTEN)
     add_compile_options(
@@ -61,4 +62,9 @@ if(Auxid_BUILD_TESTS)
             -DAUXID_SRC_DIR=${CMAKE_SOURCE_DIR}/src
             -P ${CMAKE_SOURCE_DIR}/cmake/auxid_lint_ban_list.cmake
   )
+endif()
+
+if(Auxid_BUILD_BENCHMARKS)
+  include(cmake/auxid_fetch_google_benchmark.cmake)
+  add_subdirectory(benchmarks)
 endif()

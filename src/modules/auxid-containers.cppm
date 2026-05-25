@@ -27,6 +27,7 @@ module;
 #include <iterator>
 #include <new>
 #include <optional>
+#include <random>
 #include <ranges>
 #include <source_location>
 #include <span>
@@ -37,6 +38,16 @@ module;
 #include <vector>
 
 #include <wyhash/wyhash.h>
+
+#if defined(AUXID_HAS_SSE2) && !defined(AUXID_DISABLE_HASHMAP_SIMD)
+#  include <emmintrin.h>
+#endif
+#if defined(AUXID_HAS_NEON) && !defined(AUXID_DISABLE_HASHMAP_SIMD)
+#  include <arm_neon.h>
+#endif
+#if defined(AUXID_HAS_WASM_SIMD128) && !defined(AUXID_DISABLE_HASHMAP_SIMD)
+#  include <wasm_simd128.h>
+#endif
 
 static_assert(std::endian::native == std::endian::little,
               "Auxid String SSO is designed for Little-Endian architectures.");
@@ -827,8 +838,7 @@ export namespace au
 
 export namespace au::containers
 {
-  template<class A1, class A2>
-  inline bool operator==(const BasicString<A1> &lhs, const BasicString<A2> &rhs)
+  template<class A1, class A2> inline bool operator==(const BasicString<A1> &lhs, const BasicString<A2> &rhs)
   {
     if constexpr (std::is_same_v<A1, A2>)
     {
@@ -913,7 +923,7 @@ export namespace au
 {
   template<memory::AllocatorType A> using BasicString = containers::BasicString<A>;
   using String = containers::String;
-}
+} // namespace au
 
 export namespace au::containers
 {
@@ -1681,6 +1691,63 @@ export namespace au::containers
     return ::wyhash(data, len, seed, ::_wyp);
   }
 
+  namespace detail
+  {
+    [[nodiscard]] inline constexpr u64 int_mix(u64 x) noexcept
+    {
+      auto t = x * 11400714819323198485ULL;
+      t ^= (t >> 32);
+      return t;
+    }
+
+    [[nodiscard]] inline u64 wymix(u64 a, u64 b) noexcept
+    {
+#if defined(_MSC_VER) && defined(_M_X64)
+      u64 hi = 0;
+      const u64 lo = _umul128(a, b, &hi);
+      return lo ^ hi;
+#elif defined(__SIZEOF_INT128__)
+      __uint128_t r = static_cast<__uint128_t>(a) * static_cast<__uint128_t>(b);
+      return static_cast<u64>(r) ^ static_cast<u64>(r >> 64);
+#else
+      const u64 ha = a >> 32, la = a & 0xFFFFFFFFULL;
+      const u64 hb = b >> 32, lb = b & 0xFFFFFFFFULL;
+      const u64 rh = ha * hb;
+      const u64 rm0 = ha * lb;
+      const u64 rm1 = hb * la;
+      const u64 rl = la * lb;
+      const u64 t = rl + (rm0 << 32);
+      u64 c = static_cast<u64>(t < rl);
+      const u64 lo = t + (rm1 << 32);
+      c += static_cast<u64>(lo < t);
+      const u64 hi = rh + (rm0 >> 32) + (rm1 >> 32) + c;
+      return lo ^ hi;
+#endif
+    }
+
+    [[nodiscard]] inline u64 random_seed_64() noexcept
+    {
+      static std::atomic<u64> g_salt{0x9E3779B97F4A7C15ULL};
+
+      struct ThreadRng
+      {
+        std::mt19937_64 engine;
+
+        ThreadRng() noexcept
+        {
+          std::random_device rd;
+          const u64 a = (static_cast<u64>(rd()) << 32) ^ static_cast<u64>(rd());
+          const u64 b = (static_cast<u64>(rd()) << 32) ^ static_cast<u64>(rd());
+          const u64 salt = g_salt.fetch_add(0xBF58476D1CE4E5B9ULL, std::memory_order_relaxed);
+          engine.seed(wymix(a ^ salt, b ^ 0x94D049BB133111EBULL));
+        }
+      };
+
+      thread_local ThreadRng rng;
+      return rng.engine();
+    }
+  } // namespace detail
+
   template<typename T> struct Hash;
 
   template<typename T>
@@ -1691,17 +1758,12 @@ export namespace au::containers
     {
       return hash_bytes(&val, sizeof(T));
     }
-  };
 
-  namespace detail
-  {
-    [[nodiscard]] inline constexpr u64 int_mix(u64 x) noexcept
+    [[nodiscard]] u64 operator()(const T &val, u64 seed) const noexcept
     {
-      auto t = x * 11400714819323198485ULL;
-      t ^= (t >> 32);
-      return t;
+      return hash_bytes(&val, sizeof(T), seed);
     }
-  } // namespace detail
+  };
 
 #define AU_DEFINE_INT_HASH(T)                                                                                          \
   template<> struct Hash<T>                                                                                            \
@@ -1709,6 +1771,10 @@ export namespace au::containers
     [[nodiscard]] u64 operator()(T x) const noexcept                                                                   \
     {                                                                                                                  \
       return detail::int_mix(static_cast<u64>(x));                                                                     \
+    }                                                                                                                  \
+    [[nodiscard]] u64 operator()(T x, u64 seed) const noexcept                                                         \
+    {                                                                                                                  \
+      return detail::int_mix(static_cast<u64>(x) ^ seed);                                                              \
     }                                                                                                                  \
   }
 
@@ -1731,6 +1797,11 @@ export namespace au::containers
     {
       return detail::int_mix(reinterpret_cast<uintptr_t>(p));
     }
+
+    [[nodiscard]] u64 operator()(const T *p, u64 seed) const noexcept
+    {
+      return detail::int_mix(reinterpret_cast<uintptr_t>(p) ^ seed);
+    }
   };
 
   template<class A> struct Hash<BasicString<A>>
@@ -1745,6 +1816,17 @@ export namespace au::containers
     [[nodiscard]] u64 operator()(const char *s) const noexcept
     {
       return hash_string_view(StringView(s));
+    }
+
+    [[nodiscard]] u64 operator()(StringView sv, u64 seed) const noexcept
+    {
+      return hash_bytes(sv.data(), sv.size(), seed);
+    }
+
+    [[nodiscard]] u64 operator()(const char *s, u64 seed) const noexcept
+    {
+      const StringView sv(s);
+      return hash_bytes(sv.data(), sv.size(), seed);
     }
   };
 
@@ -1761,6 +1843,17 @@ export namespace au::containers
     {
       return hash_string_view(StringView(s));
     }
+
+    [[nodiscard]] u64 operator()(StringView sv, u64 seed) const noexcept
+    {
+      return hash_bytes(sv.data(), sv.size(), seed);
+    }
+
+    [[nodiscard]] u64 operator()(const char *s, u64 seed) const noexcept
+    {
+      const StringView sv(s);
+      return hash_bytes(sv.data(), sv.size(), seed);
+    }
   };
 
   template<> struct Hash<const char *>
@@ -1768,6 +1861,12 @@ export namespace au::containers
     [[nodiscard]] u64 operator()(const char *s) const noexcept
     {
       return hash_string_view(StringView(s));
+    }
+
+    [[nodiscard]] u64 operator()(const char *s, u64 seed) const noexcept
+    {
+      const StringView sv(s);
+      return hash_bytes(sv.data(), sv.size(), seed);
     }
   };
 
@@ -1821,6 +1920,13 @@ export namespace au::containers
       const u64 h2 = Hash<V>{}(p.second);
       return hash_combine(h1, h2);
     }
+
+    [[nodiscard]] u64 operator()(const Pair<K, V> &p, u64 seed) const noexcept
+    {
+      const u64 h1 = Hash<K>{}(p.first, seed);
+      const u64 h2 = Hash<V>{}(p.second, seed ^ 0xD6E8FEB86659FD93ULL);
+      return hash_combine(h1, h2);
+    }
   };
 
   template<typename... Ts> struct Hash<std::tuple<Ts...>>
@@ -1828,6 +1934,11 @@ export namespace au::containers
     [[nodiscard]] u64 operator()(const std::tuple<Ts...> &t) const noexcept
     {
       return hash_impl(t, std::index_sequence_for<Ts...>{});
+    }
+
+    [[nodiscard]] u64 operator()(const std::tuple<Ts...> &t, u64 seed) const noexcept
+    {
+      return hash_impl_seeded(t, seed, std::index_sequence_for<Ts...>{});
     }
 
 private:
@@ -1843,6 +1954,19 @@ private:
         return seed;
       }
     }
+
+    template<usize... Is>
+    [[nodiscard]] static u64 hash_impl_seeded(const std::tuple<Ts...> &t, u64 seed, std::index_sequence<Is...>) noexcept
+    {
+      if constexpr (sizeof...(Ts) == 0)
+        return seed;
+      else
+      {
+        u64 acc = seed;
+        ((acc = hash_combine(acc, Hash<Ts>{}(std::get<Is>(t), seed))), ...);
+        return acc;
+      }
+    }
   };
 
   template<> struct Hash<Span<const u8>>
@@ -1851,8 +1975,283 @@ private:
     {
       return hash_bytes(bytes.data(), bytes.size());
     }
+
+    [[nodiscard]] u64 operator()(Span<const u8> bytes, u64 seed) const noexcept
+    {
+      return hash_bytes(bytes.data(), bytes.size(), seed);
+    }
   };
 } // namespace au::containers
+
+namespace au::containers::swiss
+{
+  using ctrl_t = u8;
+
+  // 0b1000_0000 = slot has never been occupied.
+  // 0b1111_1110 = slot was occupied but its entry was erased.
+  // 16 slots loaded per SIMD group.
+  inline constexpr ctrl_t kEmpty = static_cast<ctrl_t>(0x80);
+  inline constexpr ctrl_t kDeleted = static_cast<ctrl_t>(0xFE);
+  inline constexpr usize kGroupWidth = 16;
+
+  [[nodiscard]] inline constexpr bool is_full(ctrl_t c) noexcept
+  {
+    return (c & static_cast<ctrl_t>(0x80)) == 0;
+  }
+
+  // 7-bit fingerprint stored verbatim in the control array. The highest bit
+  // is reserved for the empty/deleted markers.
+  [[nodiscard]] inline constexpr u8 h2(u64 hash) noexcept
+  {
+    return static_cast<u8>(hash & 0x7Fu);
+  }
+
+  // Upper-57 bits seed the group probe; H2 sits in the lower 7 so attackers
+  // controlling H2 alone do not control also the starting group.
+  [[nodiscard]] inline constexpr u64 h1(u64 hash) noexcept
+  {
+    return hash >> 7;
+  }
+
+  // Bitmask over a 16-slot group. ith bit set means slot i matched.
+  class BitMask
+  {
+public:
+    constexpr explicit BitMask(u32 mask) noexcept : m_mask(mask)
+    {
+    }
+
+    [[nodiscard]] constexpr explicit operator bool() const noexcept
+    {
+      return m_mask != 0;
+    }
+
+    [[nodiscard]] constexpr bool any() const noexcept
+    {
+      return m_mask != 0;
+    }
+
+    [[nodiscard]] constexpr u32 lowest() const noexcept
+    {
+      return static_cast<u32>(std::countr_zero(m_mask));
+    }
+
+    constexpr void clear_lowest() noexcept
+    {
+      m_mask &= (m_mask - 1);
+    }
+
+    struct Iterator
+    {
+      u32 m;
+
+      [[nodiscard]] constexpr u32 operator*() const noexcept
+      {
+        return static_cast<u32>(std::countr_zero(m));
+      }
+
+      constexpr auto operator++() noexcept -> Iterator &
+      {
+        m &= (m - 1);
+        return *this;
+      }
+
+      [[nodiscard]] constexpr bool operator!=(const Iterator &other) const noexcept
+      {
+        return m != other.m;
+      }
+    };
+
+    [[nodiscard]] constexpr auto begin() const noexcept -> Iterator
+    {
+      return Iterator{m_mask};
+    }
+
+    [[nodiscard]] constexpr auto end() const noexcept -> Iterator
+    {
+      return Iterator{0};
+    }
+
+private:
+    u32 m_mask;
+  };
+
+  // 16-byte SIMD probe group
+  class Group
+  {
+public:
+#if defined(AUXID_HAS_SSE2) && !defined(AUXID_DISABLE_HASHMAP_SIMD)
+    explicit Group(const ctrl_t *p) noexcept : m_vec(_mm_loadu_si128(reinterpret_cast<const __m128i *>(p)))
+    {
+    }
+
+    [[nodiscard]] BitMask match(u8 needle) const noexcept
+    {
+      const __m128i needle_vec = _mm_set1_epi8(static_cast<char>(needle));
+      const __m128i eq = _mm_cmpeq_epi8(needle_vec, m_vec);
+      return BitMask(static_cast<u32>(_mm_movemask_epi8(eq)) & 0xFFFFu);
+    }
+
+    [[nodiscard]] BitMask match_empty() const noexcept
+    {
+      const __m128i needle_vec = _mm_set1_epi8(static_cast<char>(0x80));
+      const __m128i eq = _mm_cmpeq_epi8(needle_vec, m_vec);
+      return BitMask(static_cast<u32>(_mm_movemask_epi8(eq)) & 0xFFFFu);
+    }
+
+    [[nodiscard]] BitMask match_empty_or_deleted() const noexcept
+    {
+      return BitMask(static_cast<u32>(_mm_movemask_epi8(m_vec)) & 0xFFFFu);
+    }
+
+private:
+    __m128i m_vec;
+
+#elif defined(AUXID_HAS_NEON) && !defined(AUXID_DISABLE_HASHMAP_SIMD)
+    explicit Group(const ctrl_t *p) noexcept : m_vec(vld1q_u8(p))
+    {
+    }
+
+    [[nodiscard]] BitMask match(u8 needle) const noexcept
+    {
+      const uint8x16_t needle_vec = vdupq_n_u8(needle);
+      const uint8x16_t eq = vceqq_u8(needle_vec, m_vec);
+      return BitMask(neon_movemask(eq));
+    }
+
+    [[nodiscard]] BitMask match_empty() const noexcept
+    {
+      const uint8x16_t needle_vec = vdupq_n_u8(static_cast<u8>(0x80));
+      const uint8x16_t eq = vceqq_u8(needle_vec, m_vec);
+      return BitMask(neon_movemask(eq));
+    }
+
+    [[nodiscard]] BitMask match_empty_or_deleted() const noexcept
+    {
+      const uint8x16_t high_bit_mask = vdupq_n_u8(static_cast<u8>(0x80));
+      const uint8x16_t high_bit = vandq_u8(m_vec, high_bit_mask);
+      const uint8x16_t set = vceqq_u8(high_bit, high_bit_mask);
+      return BitMask(neon_movemask(set));
+    }
+
+private:
+    uint8x16_t m_vec;
+
+    [[nodiscard]] static u32 neon_movemask(uint8x16_t v) noexcept
+    {
+      alignas(16) static constexpr u8 kBitMaskBytes[16] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
+                                                           0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+      const uint8x16_t bit_mask = vld1q_u8(kBitMaskBytes);
+      const uint8x16_t masked = vandq_u8(v, bit_mask);
+      const u32 lo = static_cast<u32>(vaddv_u8(vget_low_u8(masked)));
+      const u32 hi = static_cast<u32>(vaddv_u8(vget_high_u8(masked)));
+      return lo | (hi << 8);
+    }
+
+#elif defined(AUXID_HAS_WASM_SIMD128) && !defined(AUXID_DISABLE_HASHMAP_SIMD)
+    explicit Group(const ctrl_t *p) noexcept : m_vec(wasm_v128_load(p))
+    {
+    }
+
+    [[nodiscard]] BitMask match(u8 needle) const noexcept
+    {
+      const v128_t needle_vec = wasm_i8x16_splat(static_cast<int8_t>(needle));
+      const v128_t eq = wasm_i8x16_eq(needle_vec, m_vec);
+      return BitMask(static_cast<u32>(wasm_i8x16_bitmask(eq)) & 0xFFFFu);
+    }
+
+    [[nodiscard]] BitMask match_empty() const noexcept
+    {
+      const v128_t needle_vec = wasm_i8x16_splat(static_cast<int8_t>(0x80));
+      const v128_t eq = wasm_i8x16_eq(needle_vec, m_vec);
+      return BitMask(static_cast<u32>(wasm_i8x16_bitmask(eq)) & 0xFFFFu);
+    }
+
+    [[nodiscard]] BitMask match_empty_or_deleted() const noexcept
+    {
+      return BitMask(static_cast<u32>(wasm_i8x16_bitmask(m_vec)) & 0xFFFFu);
+    }
+
+private:
+    v128_t m_vec;
+
+#else
+    explicit Group(const ctrl_t *p) noexcept
+    {
+      std::memcpy(&m_lo, p, sizeof(u64));
+      std::memcpy(&m_hi, p + 8, sizeof(u64));
+    }
+
+    [[nodiscard]] BitMask match(u8 needle) const noexcept
+    {
+      const u64 broadcast = 0x0101010101010101ULL * static_cast<u64>(needle);
+      const u64 lx = m_lo ^ broadcast;
+      const u64 hx = m_hi ^ broadcast;
+      const u64 lm = (lx - 0x0101010101010101ULL) & ~lx & 0x8080808080808080ULL;
+      const u64 hm = (hx - 0x0101010101010101ULL) & ~hx & 0x8080808080808080ULL;
+      return BitMask(pack_high_bits(lm) | (pack_high_bits(hm) << 8));
+    }
+
+    [[nodiscard]] BitMask match_empty() const noexcept
+    {
+      constexpr u64 broadcast = 0x8080808080808080ULL;
+      const u64 lx = m_lo ^ broadcast;
+      const u64 hx = m_hi ^ broadcast;
+      const u64 lm = (lx - 0x0101010101010101ULL) & ~lx & 0x8080808080808080ULL;
+      const u64 hm = (hx - 0x0101010101010101ULL) & ~hx & 0x8080808080808080ULL;
+      return BitMask(pack_high_bits(lm) | (pack_high_bits(hm) << 8));
+    }
+
+    [[nodiscard]] BitMask match_empty_or_deleted() const noexcept
+    {
+      const u64 lm = m_lo & 0x8080808080808080ULL;
+      const u64 hm = m_hi & 0x8080808080808080ULL;
+      return BitMask(pack_high_bits(lm) | (pack_high_bits(hm) << 8));
+    }
+
+private:
+    u64 m_lo = 0;
+    u64 m_hi = 0;
+
+    [[nodiscard]] static u32 pack_high_bits(u64 v) noexcept
+    {
+      u32 m = 0;
+      m |= static_cast<u32>((v >> 7) & 1u) << 0;
+      m |= static_cast<u32>((v >> 15) & 1u) << 1;
+      m |= static_cast<u32>((v >> 23) & 1u) << 2;
+      m |= static_cast<u32>((v >> 31) & 1u) << 3;
+      m |= static_cast<u32>((v >> 39) & 1u) << 4;
+      m |= static_cast<u32>((v >> 47) & 1u) << 5;
+      m |= static_cast<u32>((v >> 55) & 1u) << 6;
+      m |= static_cast<u32>((v >> 63) & 1u) << 7;
+      return m;
+    }
+#endif
+  };
+
+  struct ProbeSeq
+  {
+    usize group_index;
+    usize step;
+    usize n_groups_mask;
+
+    constexpr ProbeSeq(u64 hash, usize ngm) noexcept
+        : group_index(static_cast<usize>(h1(hash)) & ngm), step(0), n_groups_mask(ngm)
+    {
+    }
+
+    [[nodiscard]] constexpr usize offset() const noexcept
+    {
+      return group_index * kGroupWidth;
+    }
+
+    constexpr void next() noexcept
+    {
+      ++step;
+      group_index = (group_index + step) & n_groups_mask;
+    }
+  };
+} // namespace au::containers::swiss
 
 export namespace au::containers
 {
@@ -1880,6 +2279,11 @@ export namespace au::containers
     { e(k2, k) } -> std::convertible_to<bool>;
   };
 
+  template<class H, class K>
+  concept SeedableHasher = requires(const H h, const K &k, u64 s) {
+    { h(k, s) } -> std::convertible_to<u64>;
+  };
+
   template<class Entry, class Key, class KeyOf, class Hasher = Hash<Key>, class KeyEq = EqualTo<Key>,
            class AllocatorT = memory::HeapAllocator>
     requires memory::AllocatorType<AllocatorT>
@@ -1900,32 +2304,117 @@ public:
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 private:
-    VecT<Entry, usize, AllocatorT> m_entries;
-    VecT<u32, usize, AllocatorT> m_buckets;
-    size_type m_mask = 0;
+    using ctrl_t = swiss::ctrl_t;
+    static constexpr usize kGroupWidth = swiss::kGroupWidth;
+    static constexpr usize kCtrlAlign = 16;
+
+    VecT<Entry, usize, AllocatorT> m_entries{};
+    ctrl_t *m_ctrl = nullptr;
+    u32 *m_index = nullptr;
+    size_type m_capacity = 0;    // n_slots, power-of-two multiple of 16 (or zero)
+    size_type m_groups_mask = 0; // n_groups - 1
+    size_type m_tombstones = 0;
+    u64 m_seed = 0;
 
     AUXID_NO_UNIQUE_ADDRESS Hasher m_hasher{};
     AUXID_NO_UNIQUE_ADDRESS KeyEq m_eq{};
     AUXID_NO_UNIQUE_ADDRESS KeyOf m_key_of{};
 
 public:
-    constexpr HashTable() = default;
-
-    explicit HashTable(size_type cap)
+    HashTable() noexcept : m_seed(detail::random_seed_64())
     {
-      reserve(cap);
+    }
+
+    explicit HashTable(size_type cap) : m_seed(detail::random_seed_64())
+    {
+      if (cap > 0)
+        reserve(cap);
+    }
+
+    HashTable(size_type cap, u64 seed) : m_seed(seed)
+    {
+      if (cap > 0)
+        reserve(cap);
+    }
+
+    ~HashTable()
+    {
+      free_buffer();
+    }
+
+    HashTable(const HashTable &other)
+        : m_entries(other.m_entries), m_seed(other.m_seed), m_hasher(other.m_hasher), m_eq(other.m_eq),
+          m_key_of(other.m_key_of)
+    {
+      if (other.m_capacity > 0)
+      {
+        allocate_buffer(other.m_capacity);
+        std::memcpy(m_ctrl, other.m_ctrl, other.m_capacity);
+        std::memcpy(m_index, other.m_index, other.m_capacity * sizeof(u32));
+        m_tombstones = other.m_tombstones;
+      }
+    }
+
+    HashTable &operator=(const HashTable &other)
+    {
+      if (this != &other)
+      {
+        HashTable tmp(other);
+        *this = std::move(tmp);
+      }
+      return *this;
+    }
+
+    HashTable(HashTable &&other) noexcept
+        : m_entries(std::move(other.m_entries)), m_ctrl(other.m_ctrl), m_index(other.m_index),
+          m_capacity(other.m_capacity), m_groups_mask(other.m_groups_mask), m_tombstones(other.m_tombstones),
+          m_seed(other.m_seed), m_hasher(std::move(other.m_hasher)), m_eq(std::move(other.m_eq)),
+          m_key_of(std::move(other.m_key_of))
+    {
+      other.m_ctrl = nullptr;
+      other.m_index = nullptr;
+      other.m_capacity = 0;
+      other.m_groups_mask = 0;
+      other.m_tombstones = 0;
+    }
+
+    HashTable &operator=(HashTable &&other) noexcept
+    {
+      if (this != &other)
+      {
+        free_buffer();
+        m_entries = std::move(other.m_entries);
+        m_ctrl = other.m_ctrl;
+        m_index = other.m_index;
+        m_capacity = other.m_capacity;
+        m_groups_mask = other.m_groups_mask;
+        m_tombstones = other.m_tombstones;
+        m_seed = other.m_seed;
+        m_hasher = std::move(other.m_hasher);
+        m_eq = std::move(other.m_eq);
+        m_key_of = std::move(other.m_key_of);
+        other.m_ctrl = nullptr;
+        other.m_index = nullptr;
+        other.m_capacity = 0;
+        other.m_groups_mask = 0;
+        other.m_tombstones = 0;
+      }
+      return *this;
     }
 
     void reserve_at_least(size_type new_cap)
     {
-      if (new_cap <= m_entries.capacity())
+      if (new_cap == 0)
+        return;
+
+      const size_type needed_slots = (new_cap * 8 + 6) / 7;
+      size_type new_slots = kGroupWidth;
+      while (new_slots < needed_slots)
+        new_slots <<= 1;
+      if (new_slots <= m_capacity)
         return;
       m_entries.reserve(new_cap);
-
-      size_type buckets_cap = 8;
-      while (buckets_cap < new_cap * 2)
-        buckets_cap *= 2;
-      rehash_buckets(buckets_cap);
+      rehash_to(new_slots);
     }
 
     void reserve_exact(size_type new_cap)
@@ -1941,24 +2430,16 @@ public:
     void clear()
     {
       m_entries.clear();
-      if (!m_buckets.empty())
-      {
-        std::fill(m_buckets.begin(), m_buckets.end(), INDEX_INVALID);
-      }
+      if (m_ctrl)
+        std::memset(m_ctrl, swiss::kEmpty, m_capacity);
+      m_tombstones = 0;
     }
 
     bool try_insert(Entry &&entry)
     {
-      const Key &key = m_key_of(entry);
-      if (contains(key))
+      if (contains(m_key_of(entry)))
         return false;
-
-      if (should_grow())
-        grow();
-
-      const u32 entry_idx = static_cast<u32>(m_entries.size());
-      m_entries.push(std::move(entry));
-      insert_into_buckets(entry_idx, m_key_of(m_entries[entry_idx]));
+      insert_unique(std::move(entry));
       return true;
     }
 
@@ -1970,30 +2451,8 @@ public:
 
     template<class Factory> Entry &find_or_emplace(const Key &key, Factory &&factory)
     {
-      if (should_grow())
-        grow();
-
-      auto h = hash_key(key);
-      auto idx = h & m_mask;
-
-      while (true)
-      {
-        u32 entry_idx = m_buckets[idx];
-
-        if (entry_idx == INDEX_INVALID)
-        {
-          m_buckets[idx] = static_cast<u32>(m_entries.size());
-          m_entries.push(static_cast<Factory &&>(factory)());
-          return m_entries[m_entries.size() - 1];
-        }
-
-        if (m_eq(m_key_of(m_entries[entry_idx]), key))
-        {
-          return m_entries[entry_idx];
-        }
-
-        idx = (idx + 1) & m_mask;
-      }
+      ensure_growth_room();
+      return find_or_emplace_locked(key, std::forward<Factory>(factory));
     }
 
     [[nodiscard]] Entry *find_entry(const Key &key)
@@ -2114,158 +2573,271 @@ public:
       return m_entries.empty();
     }
 
+    [[nodiscard]] u64 seed() const noexcept
+    {
+      return m_seed;
+    }
+
+    [[nodiscard]] size_type capacity_slots() const noexcept
+    {
+      return m_capacity;
+    }
+
+    [[nodiscard]] size_type tombstones() const noexcept
+    {
+      return m_tombstones;
+    }
+
 private:
     template<class K> [[nodiscard]] u64 hash_key(const K &key) const noexcept
     {
-      return m_hasher(key);
+      if constexpr (SeedableHasher<Hasher, K>)
+        return m_hasher(key, m_seed);
+      else
+        return detail::wymix(m_hasher(key), m_seed ^ 0xBF58476D1CE4E5B9ULL);
     }
 
-    [[nodiscard]] bool should_grow() const noexcept
+    [[nodiscard]] static size_type max_load_for(size_type n_slots) noexcept
     {
-      return m_entries.size() * 10 >= m_buckets.size() * 8 || m_buckets.empty();
+      return n_slots - (n_slots / 8);
     }
 
-    void grow()
+    [[nodiscard]] bool has_room_for_one() const noexcept
     {
-      size_type new_cap = m_buckets.empty() ? 16 : m_buckets.size() * 2;
-      rehash_buckets(new_cap);
+      if (m_capacity == 0)
+        return false;
+      return (m_entries.size() + m_tombstones) < max_load_for(m_capacity);
     }
 
-    void rehash_buckets(size_type new_cap)
+    void ensure_growth_room()
     {
-      m_buckets.clear();
-      m_buckets.reserve(new_cap);
-      m_buckets.resize(new_cap, INDEX_INVALID);
-      m_mask = new_cap - 1;
-
-      for (u32 i = 0; i < m_entries.size(); ++i)
+      if (has_room_for_one())
+        return;
+      if (m_capacity == 0)
       {
-        insert_into_buckets(i, m_key_of(m_entries[i]));
+        rehash_to(kGroupWidth);
+        return;
+      }
+      if (m_entries.size() * 2 <= m_capacity)
+        drop_deleted_in_place();
+      else
+        rehash_to(m_capacity * 2);
+    }
+
+    void allocate_buffer(size_type n_slots)
+    {
+      const size_type ctrl_bytes = n_slots * sizeof(ctrl_t);
+      constexpr size_type idx_align = alignof(u32);
+      const size_type ctrl_padded = (ctrl_bytes + idx_align - 1) & ~(idx_align - 1);
+      const size_type idx_bytes = n_slots * sizeof(u32);
+      const size_type total = ctrl_padded + idx_bytes;
+
+      AllocatorT alloc{};
+      void *raw = alloc.alloc(total, kCtrlAlign);
+      m_ctrl = static_cast<ctrl_t *>(raw);
+      m_index = reinterpret_cast<u32 *>(static_cast<u8 *>(raw) + ctrl_padded);
+      std::memset(m_ctrl, swiss::kEmpty, ctrl_bytes);
+      m_capacity = n_slots;
+      m_groups_mask = (n_slots / kGroupWidth) - 1;
+      m_tombstones = 0;
+    }
+
+    void free_buffer() noexcept
+    {
+      if (!m_ctrl)
+        return;
+      const size_type ctrl_bytes = m_capacity * sizeof(ctrl_t);
+      constexpr size_type idx_align = alignof(u32);
+      const size_type ctrl_padded = (ctrl_bytes + idx_align - 1) & ~(idx_align - 1);
+      const size_type idx_bytes = m_capacity * sizeof(u32);
+      const size_type total = ctrl_padded + idx_bytes;
+      AllocatorT alloc{};
+      alloc.free(m_ctrl, total, kCtrlAlign);
+      m_ctrl = nullptr;
+      m_index = nullptr;
+      m_capacity = 0;
+      m_groups_mask = 0;
+      m_tombstones = 0;
+    }
+
+    void rehash_to(size_type new_n_slots)
+    {
+      free_buffer();
+      allocate_buffer(new_n_slots);
+      for (u32 i = 0; i < static_cast<u32>(m_entries.size()); ++i)
+        place_unique(i);
+    }
+
+    void drop_deleted_in_place()
+    {
+      if (m_capacity == 0)
+        return;
+      std::memset(m_ctrl, swiss::kEmpty, m_capacity);
+      m_tombstones = 0;
+      for (u32 i = 0; i < static_cast<u32>(m_entries.size()); ++i)
+        place_unique(i);
+    }
+
+    void place_unique(u32 entry_idx) noexcept
+    {
+      const auto &key = m_key_of(m_entries[entry_idx]);
+      const u64 h = hash_key(key);
+      const u8 h2v = swiss::h2(h);
+      swiss::ProbeSeq seq(h, m_groups_mask);
+      for (;;)
+      {
+        const swiss::Group g(m_ctrl + seq.offset());
+        if (auto ed = g.match_empty_or_deleted(); ed.any())
+        {
+          const size_type slot = seq.offset() + ed.lowest();
+          m_ctrl[slot] = static_cast<ctrl_t>(h2v);
+          m_index[slot] = entry_idx;
+          return;
+        }
+        seq.next();
       }
     }
 
-    template<class K> void insert_into_buckets(u32 entry_idx, const K &key)
+    void insert_unique(Entry &&entry)
     {
-      auto h = hash_key(key);
-      auto idx = h & m_mask;
+      ensure_growth_room();
+      const u32 entry_idx = static_cast<u32>(m_entries.size());
+      m_entries.push(std::move(entry));
+      place_unique(entry_idx);
+    }
 
-      while (m_buckets[idx] != INDEX_INVALID)
-        idx = (idx + 1) & m_mask;
+    template<class Factory> Entry &find_or_emplace_locked(const Key &key, Factory &&factory)
+    {
+      const u64 h = hash_key(key);
+      const u8 h2v = swiss::h2(h);
+      swiss::ProbeSeq seq(h, m_groups_mask);
+      constexpr size_type kNoSlot = static_cast<size_type>(-1);
+      size_type tombstone_slot = kNoSlot;
 
-      m_buckets[idx] = entry_idx;
+      for (size_type i = 0; i <= m_groups_mask; ++i)
+      {
+        const swiss::Group g(m_ctrl + seq.offset());
+
+        for (auto m = g.match(h2v); m.any(); m.clear_lowest())
+        {
+          const u32 bit = m.lowest();
+          const u32 entry_idx = m_index[seq.offset() + bit];
+          if AU_LIKELY (m_eq(m_key_of(m_entries[entry_idx]), key))
+            return m_entries[entry_idx];
+        }
+
+        if (tombstone_slot == kNoSlot)
+        {
+          if (auto ed = g.match_empty_or_deleted(); ed.any())
+          {
+            const size_type slot = seq.offset() + ed.lowest();
+            if (m_ctrl[slot] == swiss::kDeleted)
+              tombstone_slot = slot;
+          }
+        }
+
+        if (auto e = g.match_empty(); e.any())
+        {
+          const size_type empty_slot = seq.offset() + e.lowest();
+          const bool reuse_tomb = (tombstone_slot != kNoSlot);
+          const size_type place = reuse_tomb ? tombstone_slot : empty_slot;
+
+          const u32 entry_idx = static_cast<u32>(m_entries.size());
+          m_entries.push(static_cast<Factory &&>(factory)());
+          m_ctrl[place] = static_cast<ctrl_t>(h2v);
+          m_index[place] = entry_idx;
+          if (reuse_tomb)
+            --m_tombstones;
+          return m_entries[entry_idx];
+        }
+
+        seq.next();
+      }
+      panic("HashTable::find_or_emplace: probe sequence exhausted");
     }
 
     template<class K> [[nodiscard]] Entry *find_entry_impl(const K &key) const
     {
-      if (m_buckets.empty())
+      if (m_capacity == 0)
         return nullptr;
+      const u64 h = hash_key(key);
+      const u8 h2v = swiss::h2(h);
+      swiss::ProbeSeq seq(h, m_groups_mask);
 
-      auto h = hash_key(key);
-      auto idx = h & m_mask;
-      auto dist = static_cast<size_type>(0);
-
-      while (true)
+      for (size_type i = 0; i <= m_groups_mask; ++i)
       {
-        u32 entry_idx = m_buckets[idx];
-
-        if (entry_idx == INDEX_INVALID)
-          return nullptr;
-
-        if (m_eq(m_key_of(m_entries[entry_idx]), key))
+        const swiss::Group g(m_ctrl + seq.offset());
+        for (auto m = g.match(h2v); m.any(); m.clear_lowest())
         {
-          return const_cast<Entry *>(&m_entries[entry_idx]);
+          const u32 bit = m.lowest();
+          const u32 entry_idx = m_index[seq.offset() + bit];
+          if AU_LIKELY (m_eq(m_key_of(m_entries[entry_idx]), key))
+            return const_cast<Entry *>(&m_entries[entry_idx]);
         }
-
-        ++dist;
-        idx = (idx + 1) & m_mask;
-
-        if (dist > m_mask)
+        if (g.match_empty().any())
           return nullptr;
+        seq.next();
       }
+      return nullptr;
     }
 
     template<class K> bool erase_impl(const K &key)
     {
-      if (m_buckets.empty())
+      if (m_capacity == 0)
         return false;
+      const u64 h = hash_key(key);
+      const u8 h2v = swiss::h2(h);
+      swiss::ProbeSeq seq(h, m_groups_mask);
 
-      auto h = hash_key(key);
-      auto idx = h & m_mask;
-
-      while (true)
+      for (size_type i = 0; i <= m_groups_mask; ++i)
       {
-        u32 entry_idx = m_buckets[idx];
+        const swiss::Group g(m_ctrl + seq.offset());
+        for (auto m = g.match(h2v); m.any(); m.clear_lowest())
+        {
+          const u32 bit = m.lowest();
+          const size_type slot = seq.offset() + bit;
+          const u32 entry_idx = m_index[slot];
+          if (m_eq(m_key_of(m_entries[entry_idx]), key))
+          {
+            m_ctrl[slot] = swiss::kDeleted;
+            ++m_tombstones;
 
-        if (entry_idx == INDEX_INVALID)
+            const u32 last_idx = static_cast<u32>(m_entries.size() - 1);
+            if (entry_idx != last_idx)
+            {
+              m_entries[entry_idx] = std::move(m_entries[last_idx]);
+              relocate_index(m_key_of(m_entries[entry_idx]), last_idx, entry_idx);
+            }
+            m_entries.pop();
+            return true;
+          }
+        }
+        if (g.match_empty().any())
           return false;
-
-        if (m_eq(m_key_of(m_entries[entry_idx]), key))
-        {
-          remove_at_bucket(static_cast<u32>(idx), entry_idx);
-          return true;
-        }
-
-        idx = (idx + 1) & m_mask;
+        seq.next();
       }
+      return false;
     }
 
-    void remove_at_bucket(u32 bucket_idx, u32 entry_idx_to_remove)
+    template<class K> void relocate_index(const K &key, u32 old_idx, u32 new_idx) noexcept
     {
-      backward_shift(bucket_idx);
-
-      const u32 last_idx = static_cast<u32>(m_entries.size() - 1);
-
-      if (entry_idx_to_remove != last_idx)
+      const u64 h = hash_key(key);
+      const u8 h2v = swiss::h2(h);
+      swiss::ProbeSeq seq(h, m_groups_mask);
+      for (;;)
       {
-        m_entries[entry_idx_to_remove] = std::move(m_entries[last_idx]);
-        update_bucket_pointer(m_key_of(m_entries[entry_idx_to_remove]), last_idx, entry_idx_to_remove);
-      }
-
-      m_entries.pop();
-    }
-
-    void backward_shift(u32 hole_idx)
-    {
-      u32 next = (hole_idx + 1) & m_mask;
-
-      while (true)
-      {
-        u32 entry_idx = m_buckets[next];
-
-        if (entry_idx == INDEX_INVALID)
-          break;
-
-        auto h = hash_key(m_key_of(m_entries[entry_idx]));
-        auto ideal_idx = h & m_mask;
-
-        auto dist_current = (static_cast<size_type>(next) - ideal_idx) & m_mask;
-        auto dist_hole = (static_cast<size_type>(hole_idx) - ideal_idx) & m_mask;
-
-        if (dist_hole < dist_current)
+        const swiss::Group g(m_ctrl + seq.offset());
+        for (auto m = g.match(h2v); m.any(); m.clear_lowest())
         {
-          m_buckets[hole_idx] = entry_idx;
-          hole_idx = next;
+          const u32 bit = m.lowest();
+          const size_type slot = seq.offset() + bit;
+          if (m_index[slot] == old_idx)
+          {
+            m_index[slot] = new_idx;
+            return;
+          }
         }
-
-        next = (next + 1) & m_mask;
-      }
-
-      m_buckets[hole_idx] = INDEX_INVALID;
-    }
-
-    template<class K> void update_bucket_pointer(const K &key, u32 old_idx, u32 new_idx)
-    {
-      auto h = hash_key(key);
-      auto idx = h & m_mask;
-
-      while (true)
-      {
-        if (m_buckets[idx] == old_idx)
-        {
-          m_buckets[idx] = new_idx;
-          return;
-        }
-        idx = (idx + 1) & m_mask;
+        seq.next();
       }
     }
   };
@@ -2302,6 +2874,15 @@ public:
 
     explicit HashMap(size_type cap) : m_table(cap)
     {
+    }
+
+    HashMap(size_type cap, u64 seed) : m_table(cap, seed)
+    {
+    }
+
+    [[nodiscard]] u64 seed() const noexcept
+    {
+      return m_table.seed();
     }
 
     void reserve_at_least(size_type new_cap)
@@ -2490,6 +3071,15 @@ public:
 
     explicit HashSet(size_type cap) : m_table(cap)
     {
+    }
+
+    HashSet(size_type cap, u64 seed) : m_table(cap, seed)
+    {
+    }
+
+    [[nodiscard]] u64 seed() const noexcept
+    {
+      return m_table.seed();
     }
 
     void reserve_at_least(size_type new_cap)
@@ -2837,8 +3427,7 @@ public:
 
 export namespace au
 {
-  template<typename T, memory::AllocatorType A = memory::HeapAllocator>
-  using SlotMap = containers::SlotMap<T, A>;
+  template<typename T, memory::AllocatorType A = memory::HeapAllocator> using SlotMap = containers::SlotMap<T, A>;
 } // namespace au
 
 export namespace au::containers

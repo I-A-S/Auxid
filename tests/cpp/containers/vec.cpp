@@ -63,8 +63,8 @@ namespace
 
     auto initializer_list_() -> bool
     {
-      Vec<String> v = {"Orthodox", "C++", "Auxid"};
-      return check_eq(v.size(), 3u, "v.size() == 3") && check_eq(v[0], "Orthodox", "v[0] == Orthodox") &&
+      Vec<String> v = {"Rigid", "C++", "Auxid"};
+      return check_eq(v.size(), 3u, "v.size() == 3") && check_eq(v[0], "Rigid", "v[0] == Rigid") &&
              check_eq(v[1], "C++", "v[1] == C++") && check_eq(v[2], "Auxid", "v[2] == Auxid");
     }
 

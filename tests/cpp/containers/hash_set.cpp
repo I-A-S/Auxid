@@ -32,6 +32,9 @@ namespace
     {
       add_test("insert_and_contains", [this] { return insert_and_contains(); });
       add_test("erase_and_clear", [this] { return erase_and_clear(); });
+      add_test("high_h2_collision_stress", [this] { return high_h2_collision_stress(); });
+      add_test("insert_erase_pingpong_compacts", [this] { return insert_erase_pingpong_compacts(); });
+      add_test("default_seeds_differ_between_instances", [this] { return default_seeds_differ_between_instances(); });
     }
 
     auto insert_and_contains() -> bool
@@ -73,6 +76,63 @@ namespace
 
       set.clear();
       return check(set.empty(), "set.empty() after clear") && check_eq(set.size(), 0u, "size == 0 after clear");
+    }
+
+    auto high_h2_collision_stress() -> bool
+    {
+      constexpr i32 kN = 4096;
+      HashSet<u64> set;
+      set.reserve(kN);
+      for (i32 i = 0; i < kN; ++i)
+      {
+        const u64 key = static_cast<u64>(i) * 0x9E3779B97F4A7C15ULL;
+        if (!check(set.insert(key), "insert distinct key"))
+          return false;
+      }
+      if (!check_eq(set.size(), static_cast<usize>(kN), "all keys present"))
+        return false;
+      for (i32 i = 0; i < kN; ++i)
+      {
+        const u64 key = static_cast<u64>(i) * 0x9E3779B97F4A7C15ULL;
+        if (!check(set.contains(key), "stress key found"))
+          return false;
+      }
+      return true;
+    }
+
+    auto insert_erase_pingpong_compacts() -> bool
+    {
+      HashSet<i32> set(64, 0xA55A55A55A55A55AULL);
+      for (i32 i = 0; i < 4096; ++i)
+      {
+        set.insert(i);
+        if (i >= 64)
+        {
+          if (!check(set.erase(i - 64), "erase(i - 64)"))
+            return false;
+        }
+      }
+      if (!check_eq(set.size(), static_cast<usize>(64), "live set size held at 64"))
+        return false;
+      for (i32 i = 4096 - 64; i < 4096; ++i)
+      {
+        if (!check(set.contains(i), "live key still in set"))
+          return false;
+      }
+      return true;
+    }
+
+    auto default_seeds_differ_between_instances() -> bool
+    {
+      u64 prev = HashSet<i32>{}.seed();
+      for (i32 i = 0; i < 8; ++i)
+      {
+        const u64 next = HashSet<i32>{}.seed();
+        if (!check_neq(prev, next, "consecutive HashSets must draw fresh seeds"))
+          return false;
+        prev = next;
+      }
+      return true;
     }
   };
 

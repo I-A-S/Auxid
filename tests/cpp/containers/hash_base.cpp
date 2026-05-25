@@ -80,6 +80,12 @@ namespace
       add_test("tuple_hash_empty_is_zero", [this] { return tuple_hash_empty_is_zero(); });
       add_test("span_bytes_hash_matches_hash_bytes", [this] { return span_bytes_hash_matches_hash_bytes(); });
       add_test("hash_combine_range_basic", [this] { return hash_combine_range_basic(); });
+      add_test("seeded_int_hash_differs_by_seed", [this] { return seeded_int_hash_differs_by_seed(); });
+      add_test("seeded_string_hash_differs_by_seed", [this] { return seeded_string_hash_differs_by_seed(); });
+      add_test("seeded_struct_hash_differs_by_seed", [this] { return seeded_struct_hash_differs_by_seed(); });
+      add_test("seeded_pair_hash_differs_by_seed", [this] { return seeded_pair_hash_differs_by_seed(); });
+      add_test("seeded_tuple_hash_differs_by_seed", [this] { return seeded_tuple_hash_differs_by_seed(); });
+      add_test("seedable_hasher_concept_holds", [this] { return seedable_hasher_concept_holds(); });
     }
 
     auto int_mixer_disperses_sequential_inputs() -> bool
@@ -202,6 +208,66 @@ namespace
       u64 c = hash_combine_range(0, forward, forward + 3);
       return check_eq(a, c, "hash_combine_range is deterministic") &&
              check_neq(a, b, "hash_combine_range is order-sensitive");
+    }
+
+    auto seeded_int_hash_differs_by_seed() -> bool
+    {
+      Hash<u64> h;
+      const u64 v = 0xDEADBEEFCAFEBABEULL;
+      const u64 h0 = h(v, 0ULL);
+      const u64 h1 = h(v, 0xA5A5A5A5A5A5A5A5ULL);
+      const u64 h2 = h(v, 0x5A5A5A5A5A5A5A5AULL);
+      return check_neq(h0, h1, "h(v, 0) != h(v, A5..)") && check_neq(h1, h2, "h(v, A5..) != h(v, 5A..)") &&
+             check_neq(h0, h2, "h(v, 0) != h(v, 5A..)") &&
+             check_eq(h(v, 0xA5A5A5A5A5A5A5A5ULL), h1, "seeded hash is deterministic for a fixed seed");
+    }
+
+    auto seeded_string_hash_differs_by_seed() -> bool
+    {
+      Hash<StringView> h;
+      const StringView sv("rigid c++ swiss table");
+      const u64 h0 = h(sv, 0ULL);
+      const u64 h1 = h(sv, 0x9E3779B97F4A7C15ULL);
+      return check_neq(h0, h1, "wyhash output changes with the per-instance seed") &&
+             check_eq(h(sv, 0x9E3779B97F4A7C15ULL), h1, "seeded string hash is deterministic for a fixed seed");
+    }
+
+    auto seeded_struct_hash_differs_by_seed() -> bool
+    {
+      Hash<NoPadding> h;
+      NoPadding v{0x11223344u, 0x55667788u};
+      const u64 h0 = h(v, 0ULL);
+      const u64 h1 = h(v, 0xCAFEBABE12345678ULL);
+      return check_neq(h0, h1, "padding-free struct hash uses seed");
+    }
+
+    auto seeded_pair_hash_differs_by_seed() -> bool
+    {
+      Hash<au::Pair<u32, u64>> h;
+      au::Pair<u32, u64> v{42u, 0xFEEDFACEDEADBEEFULL};
+      const u64 h0 = h(v, 0ULL);
+      const u64 h1 = h(v, 0xC0FFEEC0FFEEC0FFULL);
+      return check_neq(h0, h1, "pair hash threads seed through both halves");
+    }
+
+    auto seeded_tuple_hash_differs_by_seed() -> bool
+    {
+      Hash<std::tuple<u32, u32, u32>> h;
+      std::tuple<u32, u32, u32> v{1u, 2u, 3u};
+      const u64 h0 = h(v, 0ULL);
+      const u64 h1 = h(v, 0xC001D00DC001D00DULL);
+      return check_neq(h0, h1, "tuple hash threads seed through every field");
+    }
+
+    auto seedable_hasher_concept_holds() -> bool
+    {
+      using namespace au::containers;
+      static_assert(SeedableHasher<Hash<u32>, u32>, "Hash<u32> must be SeedableHasher");
+      static_assert(SeedableHasher<Hash<u64>, u64>, "Hash<u64> must be SeedableHasher");
+      static_assert(SeedableHasher<Hash<StringView>, StringView>, "Hash<StringView> must be SeedableHasher");
+      static_assert(SeedableHasher<Hash<String>, StringView>, "Hash<String> must be SeedableHasher transparently");
+      static_assert(SeedableHasher<Hash<NoPadding>, NoPadding>, "Hash<NoPadding> must be SeedableHasher");
+      return check(true, "static_asserts above");
     }
   };
 

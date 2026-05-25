@@ -39,8 +39,8 @@ namespace
 
     auto sso() -> bool
     {
-      String s("Orthodox");
-      return check_eq(s.size(), 8u, "s.size() == 8") && check_eq(s, "Orthodox", "s == \"Orthodox\"");
+      String s("Rigid");
+      return check_eq(s.size(), 8u, "s.size() == 8") && check_eq(s, "Rigid", "s == \"Rigid\"");
     }
 
     auto heap_allocation() -> bool
@@ -80,10 +80,10 @@ namespace
       arena.init(arena_buffer, sizeof(arena_buffer));
 
       ArenaString sso(arena);
-      sso.assign(StringView("Orthodox"));
+      sso.assign(StringView("Rigid"));
       if (!check_eq(sso.size(), 8u, "arena sso size"))
         return false;
-      if (!check_eq(sso, StringView("Orthodox"), "arena sso content"))
+      if (!check_eq(sso, StringView("Rigid"), "arena sso content"))
         return false;
 
       ArenaString heap(arena);
