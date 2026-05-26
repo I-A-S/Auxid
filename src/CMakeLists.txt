@@ -69,6 +69,15 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(libauxid PRIVATE
         -Wno-subobject-linkage
     )
+    # GCC 15: -O3 causes an internal compiler error with GCC 15.2 on auxid-test.cppm (alias/nonnull on memcpy).
+    # Override -O2 with -O3 on this TU only.
+    set_source_files_properties(
+        FILE_SET auxid_modules
+        FILES "${CMAKE_CURRENT_LIST_DIR}/modules/auxid-test.cppm"
+        TARGET libauxid
+        PROPERTIES
+            COMPILE_OPTIONS "-O2"
+    )
 endif()
 
 if(MSVC AND NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
