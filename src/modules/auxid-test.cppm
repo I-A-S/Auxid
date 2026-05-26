@@ -20,6 +20,7 @@ module;
 #include <concepts>
 #include <cstdlib>
 #include <functional>
+#include <new>
 #include <print>
 #include <string_view>
 #include <type_traits>
@@ -88,8 +89,8 @@ export namespace au::test
 
   struct TestUnit
   {
-    Mut<String> name;
-    Mut<TestFunctor> functor;
+    String name;
+    TestFunctor functor;
   };
 
   class Block
@@ -185,7 +186,7 @@ private:
                    std::string_view(desc), console::RED, v2, v1, console::RESET);
     }
 
-    Mut<Vec<TestUnit>> m_units;
+    Vec<TestUnit> m_units;
   };
 
   template<typename T>
@@ -227,9 +228,9 @@ public:
 private:
     auto summarize() -> void;
 
-    Mut<usize> m_test_count{0};
-    Mut<usize> m_fail_count{0};
-    Mut<usize> m_block_count{0};
+    usize m_test_count{0};
+    usize m_fail_count{0};
+    usize m_block_count{0};
   };
 
   template<bool StopOnFail, bool IsVerbose>
@@ -238,13 +239,15 @@ private:
   auto Runner<StopOnFail, IsVerbose>::test_block() -> void
   {
     m_block_count++;
-    Mut<BlockClass> b;
+    BlockClass b;
     b.declare_tests();
 
     impl::print_block_header(std::string_view(b.get_name()));
 
-    for (TestUnit &v : b.units())
+    Vec<TestUnit> &units = b.units();
+    for (usize i = 0; i < units.size(); ++i)
     {
+      TestUnit &v = units[i];
       m_test_count++;
       if constexpr (IsVerbose)
       {
@@ -276,34 +279,41 @@ private:
   class TestRegistry
   {
 public:
-    using TestEntry = std::function<void(DefaultRunner &)>;
+    using TestEntry = void (*)(DefaultRunner &);
 
     static auto get_entries() -> Vec<TestEntry> &
     {
-      static Mut<Vec<TestEntry>> entries;
+      static Vec<TestEntry> entries;
       return entries;
     }
 
     static auto run_all() -> i32
     {
-      Mut<DefaultRunner> r;
+      DefaultRunner r;
       Vec<TestEntry> &entries = get_entries();
       impl::print_discovered(entries.size());
 
-      for (TestEntry &entry : entries)
+      for (usize i = 0; i < entries.size(); ++i)
       {
-        entry(r);
+        entries[i](r);
       }
 
       return r.fail_count() == 0 ? 0 : 1;
     }
   };
 
+  auto register_test_block(TestRegistry::TestEntry entry) -> void;
+
+  template<typename BlockType> void invoke_test_block(DefaultRunner &r)
+  {
+    r.test_block<BlockType>();
+  }
+
   template<typename BlockType> struct AutoRegister
   {
     AutoRegister()
     {
-      TestRegistry::get_entries().push_back([](DefaultRunner &r) { r.test_block<BlockType>(); });
+      register_test_block(&invoke_test_block<BlockType>);
     }
   };
 } // namespace au::test

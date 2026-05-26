@@ -917,7 +917,7 @@ export namespace au::containers
   }
 } // namespace au::containers
 
-export template<> inline constexpr bool std::ranges::enable_borrowed_range<au::StringView> = true;
+template<> inline constexpr bool std::ranges::enable_borrowed_range<au::StringView> = true;
 
 export namespace au
 {
@@ -1725,27 +1725,7 @@ export namespace au::containers
 #endif
     }
 
-    [[nodiscard]] inline u64 random_seed_64() noexcept
-    {
-      static std::atomic<u64> g_salt{0x9E3779B97F4A7C15ULL};
-
-      struct ThreadRng
-      {
-        std::mt19937_64 engine;
-
-        ThreadRng() noexcept
-        {
-          std::random_device rd;
-          const u64 a = (static_cast<u64>(rd()) << 32) ^ static_cast<u64>(rd());
-          const u64 b = (static_cast<u64>(rd()) << 32) ^ static_cast<u64>(rd());
-          const u64 salt = g_salt.fetch_add(0xBF58476D1CE4E5B9ULL, std::memory_order_relaxed);
-          engine.seed(wymix(a ^ salt, b ^ 0x94D049BB133111EBULL));
-        }
-      };
-
-      thread_local ThreadRng rng;
-      return rng.engine();
-    }
+    [[nodiscard]] auto random_seed_64() noexcept -> u64;
   } // namespace detail
 
   template<typename T> struct Hash;

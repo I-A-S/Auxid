@@ -1,0 +1,47 @@
+// Auxid: The Rigid C++ Platform.
+//
+// Copyright (C) 2026 I-A-S (ias@iasoft.dev)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+module;
+
+#include <atomic>
+#include <random>
+
+module auxid.containers;
+
+namespace au::containers::detail
+{
+  [[nodiscard]] auto random_seed_64() noexcept -> u64
+  {
+    static std::atomic<u64> g_salt{0x9E3779B97F4A7C15ULL};
+
+    struct ThreadRng
+    {
+      std::mt19937_64 engine;
+
+      ThreadRng() noexcept
+      {
+        std::random_device rd;
+        const u64 a = (static_cast<u64>(rd()) << 32) ^ static_cast<u64>(rd());
+        const u64 b = (static_cast<u64>(rd()) << 32) ^ static_cast<u64>(rd());
+        const u64 salt = g_salt.fetch_add(0xBF58476D1CE4E5B9ULL, std::memory_order_relaxed);
+        engine.seed(wymix(a ^ salt, b ^ 0x94D049BB133111EBULL));
+      }
+    };
+
+    thread_local ThreadRng rng;
+    return rng.engine();
+  }
+} // namespace au::containers::detail

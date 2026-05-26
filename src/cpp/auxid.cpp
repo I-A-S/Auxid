@@ -24,10 +24,7 @@ module;
 #  include <auxid/vendor/rpmalloc/rpmalloc.h>
 #endif
 
-module auxid.core;
-
-import auxid.thread;
-import auxid.containers;
+module auxid.thread;
 
 namespace au::auxid
 {
@@ -61,13 +58,13 @@ namespace au::auxid
     RpmallocLifetime rpmalloc_lifetime{};
 #endif
     Mutex logger_mutex{};
-    Mut<Thread::ThreadID> main_thread_id{};
-    Mut<HashMap<Thread::ThreadID, ThreadData>> thread_data{};
+    Thread::ThreadID main_thread_id{};
+    HashMap<Thread::ThreadID, ThreadData> thread_data{};
   };
 
   static auto get_state() -> State &
   {
-    static Mut<State> s_state{};
+    static State s_state{};
     return s_state;
   }
 
@@ -145,14 +142,3 @@ namespace au::auxid
     return *get_state().thread_data[Thread::get_calling_thread_id()].logger;
   }
 } // namespace au::auxid
-
-namespace au
-{
-#if !defined(AUXID_DISABLE_DEFAULT_PANIC_HANDLER)
-  [[noreturn]] auto panic_handler(const char *msg, const char *file, u32 line) -> void
-  {
-    std::println(stderr, "[PANIC]: ({}:{}): {}", file, line, msg);
-    std::abort();
-  }
-#endif
-} // namespace au

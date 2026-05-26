@@ -20,10 +20,7 @@ module;
 #include <print>
 #include <string_view>
 
-module auxid.core;
-
-import auxid.thread;
-import auxid.containers;
+module auxid.thread;
 
 namespace au
 {

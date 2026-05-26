@@ -12,7 +12,9 @@ set(AUXID_LINK_FLAGS_INTERNAL "" CACHE INTERNAL "Auxid linker flags")
 
 set(SRC_FILES
         "cpp/auxid.cpp"
+        "cpp/containers.cpp"
         "cpp/logger.cpp"
+        "cpp/panic.cpp"
         "cpp/test.cpp"
 )
 

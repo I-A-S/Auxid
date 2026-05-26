@@ -18,8 +18,17 @@ module;
 
 #include <print>
 #include <string_view>
+#include <vector>
 
 module auxid.test;
+
+namespace au::test
+{
+  auto register_test_block(TestRegistry::TestEntry entry) -> void
+  {
+    TestRegistry::get_entries().push_back(entry);
+  }
+} // namespace au::test
 
 namespace au::test::impl
 {

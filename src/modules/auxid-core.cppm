@@ -56,8 +56,6 @@ export namespace au
   using isize = std::ptrdiff_t;
   using alignval = std::align_val_t;
 
-  template<typename T> using Mut = T;
-
   template<typename T> [[nodiscard]] constexpr decltype(auto) mut(T &&arg) noexcept
   {
     return std::forward<T>(arg);
@@ -156,11 +154,9 @@ export namespace au
 
   [[noreturn]] extern auto panic_handler(const char *msg, const char *file, u32 line) -> void;
 
-  [[noreturn]] inline auto panic(const char *msg, std::source_location loc = std::source_location::current()) -> void
-  {
-    panic_handler(msg, loc.file_name(), loc.line());
-    compiler::trap();
-  }
+  [[noreturn]] auto panic_at(const char *msg, const char *file, u32 line) -> void;
+
+  [[noreturn]] auto panic(const char *msg, std::source_location loc = std::source_location::current()) -> void;
 } // namespace au
 
 export namespace au
@@ -575,100 +571,3 @@ private:
     std::mutex m_handle{};
   };
 } // namespace au
-
-export namespace au
-{
-  class Logger
-  {
-public:
-    enum ELevel
-    {
-      LEVEL_TRACE,
-      LEVEL_DEBUG,
-      LEVEL_INFO,
-      LEVEL_WARN,
-      LEVEL_ERROR
-    };
-
-    typedef void (*LogHandler_FuncT)(const char *msg, ELevel level);
-
-public:
-    template<typename... Args> auto trace(std::format_string<Args...> fmt, Args &&...args) -> void
-    {
-      log_impl(LEVEL_TRACE, fmt.get(), std::make_format_args(args...));
-    }
-
-    template<typename... Args> auto debug(std::format_string<Args...> fmt, Args &&...args) -> void
-    {
-      log_impl(LEVEL_DEBUG, fmt.get(), std::make_format_args(args...));
-    }
-
-    template<typename... Args> auto info(std::format_string<Args...> fmt, Args &&...args) -> void
-    {
-      log_impl(LEVEL_INFO, fmt.get(), std::make_format_args(args...));
-    }
-
-    template<typename... Args> auto warn(std::format_string<Args...> fmt, Args &&...args) -> void
-    {
-      log_impl(LEVEL_WARN, fmt.get(), std::make_format_args(args...));
-    }
-
-    template<typename... Args> auto error(std::format_string<Args...> fmt, Args &&...args) -> void
-    {
-      log_impl(LEVEL_ERROR, fmt.get(), std::make_format_args(args...));
-    }
-
-public:
-    Logger(Mutex &logger_mutex);
-
-    auto set_log_handler(LogHandler_FuncT handler) -> void
-    {
-      m_handler = handler;
-    }
-
-private:
-    auto log_impl(ELevel level, std::string_view fmt, std::format_args args) -> void;
-    static auto default_handler(const char *msg, ELevel level) -> void;
-
-    Mutex &m_logger_mutex_ref;
-    LogHandler_FuncT m_handler{default_handler};
-  };
-} // namespace au
-
-export namespace au::auxid
-{
-  auto initialize_main_thread() -> void;
-  auto terminate_main_thread() -> void;
-  auto initialize_worker_thread() -> void;
-  auto terminate_worker_thread() -> void;
-
-  struct MainThreadGuard
-  {
-    MainThreadGuard()
-    {
-      initialize_main_thread();
-    }
-
-    ~MainThreadGuard()
-    {
-      terminate_main_thread();
-    }
-  };
-
-  struct WorkerThreadGuard
-  {
-    WorkerThreadGuard()
-    {
-      initialize_worker_thread();
-    }
-
-    ~WorkerThreadGuard()
-    {
-      terminate_worker_thread();
-    }
-  };
-
-  auto is_main_thread() -> bool;
-  auto is_thread_initialized() -> bool;
-  auto get_thread_logger() -> Logger &;
-} // namespace au::auxid

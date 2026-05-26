@@ -147,7 +147,7 @@ public:
     {
       void *p = std::malloc(size);
       if (!p)
-        panic("HeapAllocator::alloc: out of memory");
+        panic_at("HeapAllocator::alloc: out of memory", __FILE__, __LINE__);
       return p;
     }
 
@@ -157,7 +157,7 @@ public:
         return alloc(size);
       void *p = sys_aligned_alloc(size, align);
       if (!p)
-        panic("HeapAllocator::alloc: out of memory");
+        panic_at("HeapAllocator::alloc: out of memory", __FILE__, __LINE__);
       return p;
     }
 
@@ -179,7 +179,7 @@ public:
       {
         void *p = std::realloc(ptr, new_size);
         if (!p)
-          panic("HeapAllocator::realloc: out of memory");
+          panic_at("HeapAllocator::realloc: out of memory", __FILE__, __LINE__);
         return p;
       }
       void *fresh = alloc(new_size, align);
@@ -204,7 +204,7 @@ public:
     {
       void *p = ::rpmalloc(size);
       if (!p)
-        panic("HeapAllocator::alloc: out of memory");
+        panic_at("HeapAllocator::alloc: out of memory", __FILE__, __LINE__);
       return p;
     }
 
@@ -212,7 +212,7 @@ public:
     {
       void *p = (align <= RPMALLOC_NATURAL_ALIGN) ? ::rpmalloc(size) : ::rpaligned_alloc(align, size);
       if (!p)
-        panic("HeapAllocator::alloc: out of memory");
+        panic_at("HeapAllocator::alloc: out of memory", __FILE__, __LINE__);
       return p;
     }
 
@@ -230,7 +230,7 @@ public:
     {
       void *p = ::rpaligned_realloc(ptr, align, new_size, old_size, 0);
       if (!p)
-        panic("HeapAllocator::realloc: out of memory");
+        panic_at("HeapAllocator::realloc: out of memory", __FILE__, __LINE__);
       return p;
     }
 
@@ -270,7 +270,7 @@ export namespace au::memory
     {
       void *p = try_alloc(size, align);
       if (!p)
-        panic("ArenaAllocator::alloc: arena exhausted");
+        panic_at("ArenaAllocator::alloc: arena exhausted", __FILE__, __LINE__);
       return p;
     }
 
@@ -301,7 +301,7 @@ export namespace au::memory
       AU_UNUSED(old_size);
       AU_UNUSED(new_size);
       AU_UNUSED(align);
-      panic("ArenaAllocator::realloc: not supported");
+      panic_at("ArenaAllocator::realloc: not supported", __FILE__, __LINE__);
       return nullptr;
     }
 
@@ -357,7 +357,7 @@ export namespace au::memory
   {
     void *mem = alloc.alloc(sizeof(T), alignof(T));
     if (!mem)
-      panic("make_box: allocation failed");
+      panic_at("make_box: allocation failed", __FILE__, __LINE__);
     T *ptr = new (mem) T(std::forward<Args>(args)...);
     return Box<T, AuxidDeleter<T, Allocator>>(ptr, AuxidDeleter<T, Allocator>(alloc));
   }
@@ -380,7 +380,7 @@ export namespace au::memory
 
     void *mem = alloc.alloc(sizeof(T), alignof(T));
     if (!mem)
-      panic("make_box_protected: allocation failed");
+      panic_at("make_box_protected: allocation failed", __FILE__, __LINE__);
     T *ptr = new (mem) Enabler(std::forward<Args>(args)...);
     return Box<T, AuxidDeleter<T, Allocator>>(ptr, AuxidDeleter<T, Allocator>(alloc));
   }
@@ -522,7 +522,7 @@ private:
     using CB = typename Arc<T, Allocator>::ControlBlock;
     void *mem = alloc.alloc(sizeof(CB), alignof(CB));
     if (!mem)
-      panic("make_arc: allocation failed");
+      panic_at("make_arc: allocation failed", __FILE__, __LINE__);
     auto *cb = new (mem) CB(std::forward<Args>(args)...);
     return Arc<T, Allocator>(cb, alloc);
   }
@@ -545,7 +545,7 @@ private:
     using CB = typename Arc<T, Allocator>::ControlBlock;
     void *mem = alloc.alloc(sizeof(CB), alignof(CB));
     if (!mem)
-      panic("make_arc_protected: allocation failed");
+      panic_at("make_arc_protected: allocation failed", __FILE__, __LINE__);
     auto *cb = new (mem) CB(Enabler(std::forward<Args>(args)...));
     return Arc<T, Allocator>(cb, alloc);
   }
@@ -707,7 +707,7 @@ private:
   {
     void *mem = alloc.alloc(sizeof(T), alignof(T));
     if (!mem)
-      panic("make_intrusive_arc: allocation failed");
+      panic_at("make_intrusive_arc: allocation failed", __FILE__, __LINE__);
     auto *p = new (mem) T(std::forward<Args>(args)...);
     return IntrusiveArc<T, Allocator>(p, alloc);
   }
