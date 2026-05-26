@@ -4,7 +4,7 @@
 
   <img src="https://img.shields.io/badge/license-Apache_v2-darkblue.svg" alt="License"/>
   <img src="https://img.shields.io/badge/standard-C%2B%2B23-darkred.svg" alt="C++ Standard"/>
-  <img src="https://img.shields.io/badge/compiler-MSVC | Clang | Clang--CL-darkgreen.svg" alt="Compiler"/>
+  <img src="https://img.shields.io/badge/compiler-MSVC | Clang | GCC-darkgreen.svg" alt="Compiler"/>
   <img src="https://img.shields.io/badge/platforms-Linux | Windows | WASM-darkslateblue.svg" alt="Platforms"/>
 
   <p style="padding-top: 0.2rem;">
@@ -65,7 +65,7 @@ target_link_libraries(my_app PRIVATE libauxid)
 > [!NOTE]
 > **Compiler requirements**
 >
-> Auxid hard-errors at configure time on anything other than **Clang**, **Clang-CL**, or **native MSVC** (see [cmake/auxid_setup_project.cmake](cmake/auxid_setup_project.cmake)). Your consumer code must compile at C++23, and `libauxid` will propagate `-fno-exceptions` / `/EHs-c-` to it - this is a property of the library, not opt-in.
+> Auxid hard-errors at configure time on anything other than **Clang**, **Clang-CL**, **native MSVC**, or **GCC 15.2+** (see [cmake/auxid_setup_project.cmake](cmake/auxid_setup_project.cmake)). Your consumer code must compile at C++23, and `libauxid` will propagate `-fno-exceptions` / `/EHs-c-` to it - this is a property of the library, not opt-in.
 
 ## Example
 
@@ -129,28 +129,31 @@ A few things worth pointing out:
 │   └── toolchains/                   # Per-target toolchain files
 ├── CMakeLists.txt                    # Top-level; calls auxid_setup_project()
 ├── CMakePresets.json                 # Configure / build / test presets
-└── .github/workflows/ci.yaml         # Linux x64, Windows x64, WASM CI
+└── .github/workflows/ci.yaml         # Linux x64 (Clang/GCC), Windows x64, WASM CI
 ```
 
 ## Supported compilers & platforms
 
-- **Compilers** (configure-time enforced): Clang, Clang-CL, native MSVC.
+- **Compilers** (configure-time enforced): Clang, Clang-CL, native MSVC, GCC 15.2+.
 - **Architectures** (auto-detected, exposes `AUXID_ARCH_X64` / `AUXID_ARCH_ARM64` / `AUXID_ARCH_WASM`): x86_64, ARM64, WebAssembly (Emscripten forces `AUXID_USE_SYSTEM_MALLOC`).
 - **Configure presets** from [CMakePresets.json](CMakePresets.json):
 
-  | Preset                | Generator               | Target                          |
-  | --------------------- | ----------------------- | ------------------------------- |
-  | `x64-linux`           | Ninja Multi-Config      | Linux x64 (Clang)               |
-  | `arm64-linux`         | Ninja Multi-Config      | Linux ARM64 (Clang cross)       |
-  | `x64-windows-clang`   | Ninja Multi-Config      | Windows x64 (Clang)             |
-  | `arm64-windows-clang` | Ninja Multi-Config      | Windows ARM64 (Clang cross)     |
-  | `x64-windows-msvc`    | Ninja Multi-Config      | Windows x64 (MSVC)              |
-  | `arm64-windows-msvc`  | Ninja Multi-Config      | Windows ARM64 (MSVC)            |
-  | `x64-windows`         | Visual Studio 18 2026   | Windows x64 (VS / MSVC)         |
-  | `arm64-windows`       | Visual Studio 18 2026   | Windows ARM64 (VS / MSVC)       |
-  | `wasm32-emscripten`   | Ninja Multi-Config      | WebAssembly (Emscripten)        |
+  | Preset                  | Generator               | Target                          |
+  | ----------------------- | ----------------------- | ------------------------------- |
+  | `x64-linux`             | Ninja Multi-Config      | Linux x64 (Clang)               |
+  | `x64-linux-gcc`         | Ninja Multi-Config      | Linux x64 (GCC 15.2)            |
+  | `arm64-linux`           | Ninja Multi-Config      | Linux ARM64 (Clang cross)       |
+  | `arm64-linux-gcc`       | Ninja Multi-Config      | Linux ARM64 (GCC 15.2 cross)    |
+  | `x64-windows-clang`     | Ninja Multi-Config      | Windows x64 (Clang)             |
+  | `arm64-windows-clang`   | Ninja Multi-Config      | Windows ARM64 (Clang cross)     |
+  | `x64-windows-msvc`      | Ninja Multi-Config      | Windows x64 (MSVC)              |
+  | `arm64-windows-msvc`    | Ninja Multi-Config      | Windows ARM64 (MSVC)            |
+  | `x64-windows-mingw-gcc` | Ninja Multi-Config      | Windows x64 (MinGW GCC 15.2)    |
+  | `x64-windows`           | Visual Studio 18 2026   | Windows x64 (VS / MSVC)         |
+  | `arm64-windows`         | Visual Studio 18 2026   | Windows ARM64 (VS / MSVC)       |
+  | `wasm32-emscripten`     | Ninja Multi-Config      | WebAssembly (Emscripten)        |
 
-- **CI** ([.github/workflows/ci.yaml](.github/workflows/ci.yaml)) currently covers `x64-linux`, `x64-windows`, and `wasm32-emscripten` on every push and PR to `main`.
+- **CI** ([.github/workflows/ci.yaml](.github/workflows/ci.yaml)) currently covers `x64-linux`, `x64-linux-gcc`, `x64-windows`, `x64-windows-mingw-gcc` (experimental), and `wasm32-emscripten` on every push and PR to `main`.
 
 ## Building & testing locally
 

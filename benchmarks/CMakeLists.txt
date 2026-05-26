@@ -46,8 +46,23 @@ target_link_libraries(AuxidBench
         auxid_bench_throw_baseline
 )
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     target_compile_options(AuxidBench PRIVATE
         -Wno-deprecated-declarations
+    )
+endif()
+
+include(${CMAKE_SOURCE_DIR}/cmake/auxid_msvc_pgo.cmake)
+auxid_msvc_pgo_target(libauxid)
+auxid_msvc_pgo_target(AuxidBench)
+auxid_msvc_pgo_target(auxid_bench_throw_baseline)
+
+if(AUXID_MSVC_PGO_PHASE STREQUAL "INSTRUMENT")
+    add_custom_target(auxid_bench_pgo_train
+        COMMAND "$<TARGET_FILE:AuxidBench>"
+                --benchmark_min_time=0.05s
+        DEPENDS AuxidBench
+        VERBATIM
+        COMMENT "Collecting MSVC PGO training data (runs full AuxidBench suite)"
     )
 endif()

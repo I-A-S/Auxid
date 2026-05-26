@@ -16,8 +16,8 @@
 
 macro(auxid_setup_project)
 
-    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|AppleClang|MSVC)$")
-        message(FATAL_ERROR "Auxid requires Clang, Clang-CL, or native MSVC. Current compiler detected: ${CMAKE_CXX_COMPILER_ID}")
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|AppleClang|MSVC|GNU)$")
+        message(FATAL_ERROR "Auxid requires Clang, Clang-CL, native MSVC, or GCC 15.2+. Current compiler detected: ${CMAKE_CXX_COMPILER_ID}")
     endif()
 
     set(CMAKE_CXX_STANDARD 23)

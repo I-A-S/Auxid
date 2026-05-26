@@ -17,6 +17,17 @@
       }
     },
     {
+      "name": "auxid-gcc-base",
+      "hidden": true,
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc-15",
+        "CMAKE_CXX_COMPILER": "g++-15",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/${presetName}.cmake"
+      }
+    },
+    {
       "name": "x64-linux",
       "displayName": "Auxid Linux x64 (Clang)",
       "inherits": "auxid-base"
@@ -25,6 +36,29 @@
       "name": "arm64-linux",
       "displayName": "Auxid Linux ARM64 (Clang Cross)",
       "inherits": "auxid-base"
+    },
+    {
+      "name": "x64-linux-gcc",
+      "displayName": "Auxid Linux x64 (GCC 15.2)",
+      "inherits": "auxid-gcc-base"
+    },
+    {
+      "name": "arm64-linux-gcc",
+      "displayName": "Auxid Linux ARM64 (GCC 15.2 Cross)",
+      "inherits": "auxid-gcc-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "aarch64-linux-gnu-gcc-15",
+        "CMAKE_CXX_COMPILER": "aarch64-linux-gnu-g++-15"
+      }
+    },
+    {
+      "name": "x64-windows-mingw-gcc",
+      "displayName": "Auxid Windows x64 (MinGW GCC 15.2)",
+      "inherits": "auxid-gcc-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "x86_64-w64-mingw32-gcc",
+        "CMAKE_CXX_COMPILER": "x86_64-w64-mingw32-g++"
+      }
     },
     {
       "name": "x64-windows-msvc",
@@ -107,6 +141,28 @@
       }
     },
     {
+      "name": "x64-windows-msvc-bench-pgo-base",
+      "hidden": true,
+      "inherits": "x64-windows-msvc-bench",
+      "binaryDir": "${sourceDir}/out/build/x64-windows-msvc-bench-pgo"
+    },
+    {
+      "name": "x64-windows-msvc-bench-pgo-gen",
+      "displayName": "Auxid Windows x64 (MSVC, Benchmarks, PGO instrument)",
+      "inherits": "x64-windows-msvc-bench-pgo-base",
+      "cacheVariables": {
+        "AUXID_MSVC_PGO_PHASE": "INSTRUMENT"
+      }
+    },
+    {
+      "name": "x64-windows-msvc-bench-pgo",
+      "displayName": "Auxid Windows x64 (MSVC, Benchmarks, PGO optimized)",
+      "inherits": "x64-windows-msvc-bench-pgo-base",
+      "cacheVariables": {
+        "AUXID_MSVC_PGO_PHASE": "USE"
+      }
+    },
+    {
       "name": "x64-windows-clang-bench",
       "displayName": "Auxid Windows x64 (Clang, Benchmarks)",
       "inherits": "x64-windows-clang",
@@ -123,6 +179,18 @@
     {
       "name": "arm64-linux",
       "configurePreset": "arm64-linux"
+    },
+    {
+      "name": "x64-linux-gcc",
+      "configurePreset": "x64-linux-gcc"
+    },
+    {
+      "name": "arm64-linux-gcc",
+      "configurePreset": "arm64-linux-gcc"
+    },
+    {
+      "name": "x64-windows-mingw-gcc",
+      "configurePreset": "x64-windows-mingw-gcc"
     },
     {
       "name": "x64-windows-msvc",
@@ -159,6 +227,24 @@
       "targets": ["AuxidBench"]
     },
     {
+      "name": "x64-windows-msvc-bench-pgo-gen",
+      "configurePreset": "x64-windows-msvc-bench-pgo-gen",
+      "configuration": "Release",
+      "targets": ["AuxidBench"]
+    },
+    {
+      "name": "x64-windows-msvc-bench-pgo-train",
+      "configurePreset": "x64-windows-msvc-bench-pgo-gen",
+      "configuration": "Release",
+      "targets": ["auxid_bench_pgo_train"]
+    },
+    {
+      "name": "x64-windows-msvc-bench-pgo",
+      "configurePreset": "x64-windows-msvc-bench-pgo",
+      "configuration": "Release",
+      "targets": ["AuxidBench"]
+    },
+    {
       "name": "x64-windows-clang-bench",
       "configurePreset": "x64-windows-clang-bench",
       "configuration": "Release",
@@ -169,6 +255,22 @@
     {
       "name": "x64-linux",
       "configurePreset": "x64-linux",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "x64-linux-gcc",
+      "configurePreset": "x64-linux-gcc",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "x64-windows-mingw-gcc",
+      "configurePreset": "x64-windows-mingw-gcc",
       "configuration": "Release",
       "output": {
         "outputOnFailure": true

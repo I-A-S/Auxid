@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <auxid/macros.hpp>
 #include <benchmark/benchmark.h>
 
 #include "result_vs_exceptions_shared.hpp"
@@ -31,7 +32,7 @@ namespace
 #endif
   static auto compute_result(i32 in, bool fail_this_call) -> Result<i32>
   {
-    if (fail_this_call)
+    if AU_UNLIKELY (fail_this_call)
     {
       return fail(String{"compute_failed"});
     }

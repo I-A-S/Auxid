@@ -16,8 +16,8 @@
 
 #pragma once
 
-#if !defined(__clang__) && !defined(_MSC_VER)
-#  error "Auxid requires Clang/Clang-CL or native MSVC."
+#if !defined(__clang__) && !defined(_MSC_VER) && !defined(__GNUC__)
+#  error "Auxid requires Clang/Clang-CL, native MSVC, or GCC."
 #endif
 
 #if defined(_MSC_VER)
@@ -78,12 +78,18 @@
 #undef pure_fn
 #undef const_fn
 
-// IANOTE: Intentionally swapped, this naming convention makes more sense.
+// IANOTE: Intentionally swapped (as it is more intuitive, considering what the attributes actually does).
 #define pure_fn AUXID_ATTR_CONST [[nodiscard]]
 #define const_fn AUXID_ATTR_PURE [[nodiscard]]
 
-#define AU_LIKELY(v) (v) [[likely]]
-#define AU_UNLIKELY(v) (v) [[unlikely]]
+#if defined(__clang__) || defined(__GNUC__)
+#  define AU_LIKELY(v) (__builtin_expect(!!(v), 1)) [[likely]]
+#  define AU_UNLIKELY(v) (__builtin_expect(!!(v), 0)) [[unlikely]]
+#else
+// IANOTE: MSVC does not respect these attributes.
+#  define AU_LIKELY(v) (v) [[likely]]
+#  define AU_UNLIKELY(v) (v) [[unlikely]]
+#endif
 
 #define AU_UNUSED(v) (void) (v)
 

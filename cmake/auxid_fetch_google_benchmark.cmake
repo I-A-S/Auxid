@@ -35,11 +35,37 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(google_benchmark)
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+foreach(_bm_target benchmark benchmark_main)
+    if(TARGET ${_bm_target})
+        target_compile_definitions(${_bm_target} PRIVATE
+            $<$<CONFIG:Release>:NDEBUG>
+            $<$<CONFIG:RelWithDebInfo>:NDEBUG>
+            $<$<CONFIG:MinSizeRel>:NDEBUG>
+        )
+        if(MSVC)
+            target_compile_options(${_bm_target} PRIVATE
+                $<$<CONFIG:Release>:/O2;/Ob2>
+                $<$<CONFIG:RelWithDebInfo>:/O2;/Ob1>
+                $<$<CONFIG:MinSizeRel>:/O1;/Ob1>
+            )
+        endif()
+    endif()
+endforeach()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     foreach(_bm_target benchmark benchmark_main)
         if(TARGET ${_bm_target})
             target_compile_options(${_bm_target} PRIVATE
                 -Wno-unknown-warning-option
+            )
+        endif()
+    endforeach()
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+    foreach(_bm_target benchmark benchmark_main)
+        if(TARGET ${_bm_target})
+            target_compile_options(${_bm_target} PRIVATE
                 -Wno-c2y-extensions
             )
         endif()

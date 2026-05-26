@@ -15,12 +15,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [x64-linux]
+        target: [x64-linux, x64-linux-gcc]
         
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Ninja
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
       - name: Install Clang 20
+        if: matrix.target == 'x64-linux'
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
@@ -29,6 +33,15 @@ jobs:
           sudo ln -sf /usr/bin/clang++-20 /usr/bin/clang++
           clang --version
           clang++ --version
+
+      - name: Install GCC 15
+        if: matrix.target == 'x64-linux-gcc'
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y gcc-15 g++-15
+          gcc-15 --version
+          g++-15 --version
 
       - name: Configure
         run: cmake --preset ${{ matrix.target }}
@@ -61,6 +74,35 @@ jobs:
 
       - name: Test
         run: ctest --preset ${{ matrix.target }} --output-on-failure
+
+  build-windows-mingw:
+    runs-on: windows-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+
+      - name: Configure
+        shell: msys2 {0}
+        run: cmake --preset x64-windows-mingw-gcc
+
+      - name: Build
+        shell: msys2 {0}
+        run: cmake --build --preset x64-windows-mingw-gcc --config Release
+
+      - name: Test
+        shell: msys2 {0}
+        run: ctest --preset x64-windows-mingw-gcc --output-on-failure
 
   build-wasm:
     runs-on: ubuntu-latest

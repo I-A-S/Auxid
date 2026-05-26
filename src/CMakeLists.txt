@@ -63,6 +63,10 @@ target_link_options(libauxid    PRIVATE ${AUXID_LINK_FLAGS_INTERNAL})
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(libauxid PRIVATE -Wno-TU-local-entity-exposure)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(libauxid PRIVATE
+        -Wno-subobject-linkage
+    )
 endif()
 
 if(MSVC AND NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
