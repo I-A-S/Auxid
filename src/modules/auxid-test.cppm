@@ -18,10 +18,12 @@ module;
 
 #include <cmath>
 #include <concepts>
+#include <cstdio>
 #include <cstdlib>
 #include <functional>
 #include <new>
 #include <print>
+#include <string>
 #include <string_view>
 #include <type_traits>
 
@@ -64,12 +66,22 @@ export namespace au::test
       {
         if (value == nullptr)
           return String("nullptr");
-        return String::format("ptr({})", static_cast<const void *>(value));
+        char buf[32];
+        std::snprintf(buf, sizeof(buf), "ptr(%p)", static_cast<const void *>(value));
+        return String(buf);
       }
     }
     else if constexpr (std::is_arithmetic_v<T>)
     {
-      return String::format("{}", value);
+      if constexpr (std::is_same_v<Decayed, bool>)
+        return Decayed{value} ? String("true") : String("false");
+      else if constexpr (std::is_integral_v<Decayed>)
+      {
+        using Wide = std::conditional_t<std::is_signed_v<Decayed>, long long, unsigned long long>;
+        return String(std::to_string(static_cast<Wide>(value)).c_str());
+      }
+      else
+        return String(std::to_string(static_cast<long double>(value)).c_str());
     }
     else if constexpr (std::is_convertible_v<T, String>)
     {
