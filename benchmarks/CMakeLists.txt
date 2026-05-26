@@ -19,7 +19,6 @@ set(AUXID_BENCH_NOEXC_SRC
 
     "cpp/containers/hash_map_vs_unordered_map.cpp"
     "cpp/core/result_vs_exceptions.cpp"
-    "cpp/layout/soa_vs_aos.cpp"
 )
 
 add_executable(AuxidBench ${AUXID_BENCH_NOEXC_SRC})
@@ -45,6 +44,9 @@ target_link_libraries(AuxidBench
         benchmark::benchmark
         auxid_bench_throw_baseline
 )
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
+    target_link_libraries(AuxidBench PRIVATE stdc++exp)
+endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     target_compile_options(AuxidBench PRIVATE

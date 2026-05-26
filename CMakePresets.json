@@ -169,6 +169,15 @@
       "cacheVariables": {
         "Auxid_BUILD_BENCHMARKS": "ON"
       }
+    },
+    {
+      "name": "x64-windows-mingw-gcc-bench",
+      "displayName": "Auxid Windows x64 (MinGW GCC, Benchmarks)",
+      "inherits": "x64-windows-mingw-gcc",
+      "cacheVariables": {
+        "Auxid_BUILD_BENCHMARKS": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/x64-windows-mingw-gcc.cmake"
+      }
     }
   ],
   "buildPresets": [
@@ -247,6 +256,12 @@
     {
       "name": "x64-windows-clang-bench",
       "configurePreset": "x64-windows-clang-bench",
+      "configuration": "Release",
+      "targets": ["AuxidBench"]
+    },
+    {
+      "name": "x64-windows-mingw-gcc-bench",
+      "configurePreset": "x64-windows-mingw-gcc-bench",
       "configuration": "Release",
       "targets": ["AuxidBench"]
     }

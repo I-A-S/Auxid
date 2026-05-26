@@ -104,12 +104,11 @@ auto main() -> int
 }
 ```
 
-A few things worth pointing out:
+Notes:
 
 - `auxid::MainThreadGuard` initializes per-thread state (rpmalloc, logger). `Thread::create` / `JThread::create` install a `WorkerThreadGuard` automatically.
 - `AU_TRY_VAR(name, expr)` (defined in [include/auxid/macros.hpp](include/auxid/macros.hpp)) propagates errors from any `Result<T>` and binds the success value to `name`. `AU_TRY` / `AU_TRY_DISCARD` exist for assignment to an existing variable and for discarding the value.
 - `filesystem::current_path()` is the non-throwing wrapper from `auxid.fs`; the underlying `std::filesystem::path` is exposed as `filesystem::Path`.
-- Conversions to `std::expected<T, E>` and `std::optional<T>` are implicit, so plugging Auxid types into std-shaped APIs is zero cost.
 
 ## Repository layout
 
@@ -176,10 +175,10 @@ Explore the Auxid Ecosystem!
 | Name | Description | Repository |
 |------|-------------|------------|
 | **LibAuxid** | Custom template library and core platform | [Auxid (This Repo)](https://github.com/I-A-S/Auxid) |
-| **StarterKit** | Scaffold for new Auxid projects (CMake Presets Included) | [Auxid-Project-Template](https://github.com/I-A-S/Auxid-Project-Template) |
+| **Project Template** | Scaffold for new Auxid projects (CMake Presets Included) | [Auxid-Project-Template](https://github.com/I-A-S/Auxid-Project-Template) |
 | **IAUSB** | Cross-Platform USB Library for C++ | [IAUSB](https://github.com/IASoft-PVT-LTD/IAUSB) |
 | **IANet** | Cross-Platform Networking Library for C++ | [IANet](https://github.com/IASoft-PVT-LTD/IANet) |
-| **LaVista** | Modern Platform for C++ Desktop Apps | [LaVista](https://github.com/IASoft-PVT-LTD/LaVista) |
+| **LaVista** | UI Platform for Modern C++ Desktop Apps | [LaVista](https://github.com/IASoft-PVT-LTD/LaVista) |
 | **IAVis** | Real-Time Visualization Library | [IAVis](https://github.com/IASoft-PVT-LTD/IAVis) |
 | **IAGHI** | IA Graphics Hardware Interface | [IAGHI](https://github.com/IASoft-PVT-LTD/IAGHI) |
 
