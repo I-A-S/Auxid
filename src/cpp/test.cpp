@@ -24,6 +24,30 @@ module auxid.test;
 
 namespace au::test
 {
+namespace
+{
+  Vec<TestRegistry::TestEntry> g_test_entries;
+}
+
+  auto TestRegistry::get_entries() -> Vec<TestEntry> &
+  {
+    return g_test_entries;
+  }
+
+  auto TestRegistry::run_all() -> i32
+  {
+    DefaultRunner r;
+    Vec<TestEntry> &entries = get_entries();
+    impl::print_discovered(entries.size());
+
+    for (usize i = 0; i < entries.size(); ++i)
+    {
+      entries[i](r);
+    }
+
+    return r.fail_count() == 0 ? 0 : 1;
+  }
+
   auto register_test_block(TestRegistry::TestEntry entry) -> void
   {
     TestRegistry::get_entries().push_back(entry);

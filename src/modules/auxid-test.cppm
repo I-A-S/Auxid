@@ -293,25 +293,8 @@ private:
 public:
     using TestEntry = void (*)(DefaultRunner &);
 
-    static auto get_entries() -> Vec<TestEntry> &
-    {
-      static Vec<TestEntry> entries;
-      return entries;
-    }
-
-    static auto run_all() -> i32
-    {
-      DefaultRunner r;
-      Vec<TestEntry> &entries = get_entries();
-      impl::print_discovered(entries.size());
-
-      for (usize i = 0; i < entries.size(); ++i)
-      {
-        entries[i](r);
-      }
-
-      return r.fail_count() == 0 ? 0 : 1;
-    }
+    static auto get_entries() -> Vec<TestEntry> &;
+    static auto run_all() -> i32;
   };
 
   auto register_test_block(TestRegistry::TestEntry entry) -> void;
