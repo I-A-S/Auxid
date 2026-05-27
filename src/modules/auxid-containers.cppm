@@ -3513,3 +3513,15 @@ export namespace au::containers
 {
   template<typename T> using Result = ::au::ResultT<T, String>;
 }
+
+template<>
+struct std::formatter<au::containers::BasicString<au::memory::HeapAllocator>> : std::formatter<std::string_view>
+{
+  using std::formatter<std::string_view>::parse;
+
+  [[nodiscard]] auto format(const au::containers::BasicString<au::memory::HeapAllocator> &s,
+                            std::format_context &ctx) const
+  {
+    return std::formatter<std::string_view>::format(std::string_view(s.data(), s.size()), ctx);
+  }
+};
