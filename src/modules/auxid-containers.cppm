@@ -286,6 +286,27 @@ public:
   }
 } // namespace au
 
+namespace au::detail
+{
+  template<typename T>
+  [[nodiscard]] constexpr auto format_forward(T &&value) -> decltype(auto)
+  {
+    using Decay = std::decay_t<T>;
+    if constexpr (requires(const Decay &v) {
+                     { v.data() } -> std::convertible_to<const char *>;
+                     { v.size() } -> std::same_as<usize>;
+                   } && !std::is_same_v<Decay, std::string_view> && !std::is_same_v<Decay, std::string> &&
+                   !std::is_pointer_v<Decay>)
+    {
+      return std::string_view(value.data(), value.size());
+    }
+    else
+    {
+      return std::forward<T>(value);
+    }
+  }
+} // namespace au::detail
+
 export namespace au::containers
 {
   template<memory::AllocatorType A = memory::HeapAllocator> struct BasicString
@@ -814,9 +835,11 @@ public:
       return BasicString(tmp.data(), tmp.size());
     }
 
-    template<typename... Args> static BasicString format(std::format_string<Args...> fmt, Args &&...args)
+    template<typename... Args> static BasicString format(std::string_view fmt, Args &&...args)
     {
-      return vformat(fmt.get(), std::make_format_args(args...));
+      auto converted = std::make_tuple(::au::detail::format_forward(args)...);
+      return std::apply(
+          [&](auto &...conv) { return vformat(fmt, std::make_format_args(conv...)); }, converted);
     }
   };
 
@@ -3480,7 +3503,7 @@ export namespace au
 {
   template<typename T> using Result = ResultT<T, String>;
 
-  template<typename... Args> [[nodiscard]] inline auto fail(std::format_string<Args...> fmt, Args &&...args)
+  template<typename... Args> [[nodiscard]] inline auto fail(std::string_view fmt, Args &&...args)
   {
     return fail(String::format(fmt, std::forward<Args>(args)...));
   }
@@ -3490,11 +3513,3 @@ export namespace au::containers
 {
   template<typename T> using Result = ::au::ResultT<T, String>;
 }
-
-template<class A> struct std::formatter<au::containers::BasicString<A>> : std::formatter<std::string_view>
-{
-  auto format(const au::containers::BasicString<A> &s, auto &ctx) const
-  {
-    return std::formatter<std::string_view>::format(std::string_view(s.data(), s.size()), ctx);
-  }
-};
