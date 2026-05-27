@@ -24,14 +24,10 @@ module auxid.test;
 
 namespace au::test
 {
-namespace
-{
-  Vec<TestRegistry::TestEntry> g_test_entries;
-}
-
   auto TestRegistry::get_entries() -> Vec<TestEntry> &
   {
-    return g_test_entries;
+    static Vec<TestEntry> entries;
+    return entries;
   }
 
   auto TestRegistry::run_all() -> i32
