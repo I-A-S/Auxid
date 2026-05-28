@@ -82,11 +82,18 @@ auxid_msvc_pgo_target(AuxidBench)
 auxid_msvc_pgo_target(auxid_bench_throw_baseline)
 
 if(AUXID_MSVC_PGO_PHASE STREQUAL "INSTRUMENT")
+    # Curated subset: every benchmark function runs once at the smallest size
+    # point(s). Skips /32768 and /65536 Range points (O(n^2) key generation
+    # under instrumentation is the dominant cost) and the /16384 Args
+    # workload. Branch/edge profile data is preserved for every code path.
+    set(_auxid_pgo_train_filter "/(512|4096|1024/[148])$")
+
     add_custom_target(auxid_bench_pgo_train
         COMMAND "$<TARGET_FILE:AuxidBench>"
-                --benchmark_min_time=0.05s
+                --benchmark_min_time=1x
+                --benchmark_filter=${_auxid_pgo_train_filter}
         DEPENDS AuxidBench
         VERBATIM
-        COMMENT "Collecting MSVC PGO training data (runs full AuxidBench suite)"
+        COMMENT "Collecting MSVC PGO training data (curated small-N subset)"
     )
 endif()
