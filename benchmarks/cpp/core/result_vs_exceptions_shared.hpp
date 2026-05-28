@@ -21,7 +21,11 @@
 
 namespace au_bench
 {
-  inline constexpr std::size_t WORKLOAD_SIZE = 1024;
+  inline constexpr const char *FAIL_MESSAGE = "compute_failed";
+  inline constexpr std::size_t FAIL_MESSAGE_LEN = sizeof("compute_failed") - 1;
+
+  static_assert(FAIL_MESSAGE_LEN == 14, "Result and exception payloads must stay identical length");
+
   inline constexpr std::uint64_t LCG_SEED = 0xDEC0DECULL;
 
   struct Lcg
@@ -40,6 +44,22 @@ namespace au_bench
   };
 
   inline constexpr std::uint32_t THRESHOLD_0_PCT = 0u;
-  inline constexpr std::uint32_t THRESHOLD_1_PCT = static_cast<std::uint32_t>(0.01 * static_cast<double>(UINT32_MAX));
-  inline constexpr std::uint32_t THRESHOLD_50_PCT = static_cast<std::uint32_t>(0.50 * static_cast<double>(UINT32_MAX));
+  inline constexpr std::uint32_t THRESHOLD_1_PCT =
+      static_cast<std::uint32_t>(0.01 * static_cast<double>(UINT32_MAX));
+  inline constexpr std::uint32_t THRESHOLD_5_PCT =
+      static_cast<std::uint32_t>(0.05 * static_cast<double>(UINT32_MAX));
+  inline constexpr std::uint32_t THRESHOLD_25_PCT =
+      static_cast<std::uint32_t>(0.25 * static_cast<double>(UINT32_MAX));
+  inline constexpr std::uint32_t THRESHOLD_50_PCT =
+      static_cast<std::uint32_t>(0.50 * static_cast<double>(UINT32_MAX));
+
+#define AU_BENCH_RESULT_ARGS(BM)                                                                                       \
+  BENCHMARK(BM)                                                                                                        \
+      ->Args({1024, 1})                                                                                                \
+      ->Args({1024, 4})                                                                                                \
+      ->Args({1024, 8})                                                                                                \
+      ->Args({16384, 1})                                                                                               \
+      ->Args({16384, 4})                                                                                               \
+      ->Args({16384, 8})
+
 } // namespace au_bench

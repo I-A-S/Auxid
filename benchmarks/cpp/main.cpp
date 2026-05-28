@@ -23,6 +23,9 @@ auto main(int argc, char *argv[]) -> int
   au::auxid::MainThreadGuard _main_thread_guard;
 
   ::benchmark::Initialize(&argc, argv);
+#ifdef AUXID_BENCH_COMMIT
+  ::benchmark::AddCustomContext("auxid_commit", AUXID_BENCH_COMMIT);
+#endif
   if (::benchmark::ReportUnrecognizedArguments(argc, argv))
   {
     return 1;
