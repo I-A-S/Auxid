@@ -3520,24 +3520,32 @@ export namespace au::containers
 }
 
 template<>
-struct std::formatter<au::containers::BasicString<au::memory::HeapAllocator>> : std::formatter<std::string_view>
+struct std::formatter<au::containers::BasicString<au::memory::HeapAllocator>>
 {
-  using std::formatter<std::string_view>::parse;
+  template<class ParseContext> constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
 
   [[nodiscard]] auto format(const au::containers::BasicString<au::memory::HeapAllocator> &s,
                             std::format_context &ctx) const
   {
-    return std::formatter<std::string_view>::format(std::string_view(s.data(), s.size()), ctx);
+    const std::string_view view{s.data(), s.size()};
+    return std::copy(view.begin(), view.end(), ctx.out());
   }
 };
 
 template<>
-struct std::formatter<au::StringView> : std::formatter<std::string_view>
+struct std::formatter<au::StringView>
 {
-  using std::formatter<std::string_view>::parse;
+  template<class ParseContext> constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
 
   [[nodiscard]] auto format(const au::StringView &sv, std::format_context &ctx) const
   {
-    return std::formatter<std::string_view>::format(std::string_view{sv.data(), sv.size()}, ctx);
+    const std::string_view view{sv.data(), sv.size()};
+    return std::copy(view.begin(), view.end(), ctx.out());
   }
 };

@@ -8,6 +8,7 @@ set(SRC_FILES
 
     "cpp/containers/vec.cpp"
     "cpp/containers/string.cpp"
+    "cpp/containers/format.cpp"
     "cpp/containers/option.cpp"
     "cpp/containers/hash_base.cpp"
     "cpp/containers/hash_map.cpp"
