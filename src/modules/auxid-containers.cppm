@@ -32,6 +32,7 @@ module;
 #include <source_location>
 #include <span>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -151,6 +152,10 @@ public:
     }
 
     constexpr StringView(containers::Span<const char> span) : m_ptr(span.data()), m_len(span.size())
+    {
+    }
+
+    constexpr StringView(std::string_view sv) : m_ptr(sv.data()), m_len(sv.size())
     {
     }
 
@@ -295,10 +300,10 @@ namespace au::detail
     if constexpr (requires(const Decay &v) {
                      { v.data() } -> std::convertible_to<const char *>;
                      { v.size() } -> std::same_as<usize>;
-                   } && !std::is_same_v<Decay, std::string_view> && !std::is_same_v<Decay, std::string> &&
+                   } && !std::is_same_v<Decay, ::au::StringView> && !std::is_same_v<Decay, std::string> &&
                    !std::is_pointer_v<Decay>)
     {
-      return std::string_view(value.data(), value.size());
+      return ::au::StringView(value.data(), value.size());
     }
     else
     {
@@ -829,13 +834,13 @@ public:
     }
 
 public:
-    static BasicString vformat(std::string_view fmt, std::format_args args)
+    static BasicString vformat(StringView fmt, std::format_args args)
     {
-      std::string tmp = std::vformat(fmt, args);
+      std::string tmp = std::vformat(std::string_view{fmt.data(), fmt.size()}, args);
       return BasicString(tmp.data(), tmp.size());
     }
 
-    template<typename... Args> static BasicString format(std::string_view fmt, Args &&...args)
+    template<typename... Args> static BasicString format(StringView fmt, Args &&...args)
     {
       auto converted = std::make_tuple(::au::detail::format_forward(args)...);
       return std::apply(
@@ -3503,7 +3508,7 @@ export namespace au
 {
   template<typename T> using Result = ResultT<T, String>;
 
-  template<typename... Args> [[nodiscard]] inline auto fail(std::string_view fmt, Args &&...args)
+  template<typename... Args> [[nodiscard]] inline auto fail(StringView fmt, Args &&...args)
   {
     return fail(String::format(fmt, std::forward<Args>(args)...));
   }
@@ -3523,5 +3528,16 @@ struct std::formatter<au::containers::BasicString<au::memory::HeapAllocator>> : 
                             std::format_context &ctx) const
   {
     return std::formatter<std::string_view>::format(std::string_view(s.data(), s.size()), ctx);
+  }
+};
+
+template<>
+struct std::formatter<au::StringView> : std::formatter<std::string_view>
+{
+  using std::formatter<std::string_view>::parse;
+
+  [[nodiscard]] auto format(const au::StringView &sv, std::format_context &ctx) const
+  {
+    return std::formatter<std::string_view>::format(std::string_view{sv.data(), sv.size()}, ctx);
   }
 };
