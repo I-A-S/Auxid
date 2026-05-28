@@ -16,16 +16,16 @@
 
 #pragma once
 
-#include <algorithm>
 #include <cstdint>
-#include <random>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include <benchmark/benchmark.h>
+
+// Include after `import auxid;` in the translation unit.
+// Avoid <random> here: MinGW GCC + C++ modules re-imports std headers and breaks.
 
 namespace au_bench_hash
 {
@@ -34,6 +34,31 @@ namespace au_bench_hash
   inline constexpr au::usize PROBE_ORDER_SIZE = 1u << 14;
   inline constexpr au::usize LOOKUP_BATCH = 64;
   inline constexpr float STD_MAX_LOAD_FACTOR = 0.875f;
+
+  struct Lcg
+  {
+    std::uint64_t state;
+
+    constexpr explicit Lcg(std::uint64_t seed) noexcept : state(seed)
+    {
+    }
+
+    constexpr auto next_u32() noexcept -> std::uint32_t
+    {
+      state = state * 6364136223846793005ULL + 1442695040888963407ULL;
+      return static_cast<std::uint32_t>(state >> 32);
+    }
+
+    auto next_u64() noexcept -> std::uint64_t
+    {
+      return static_cast<std::uint64_t>(next_u32()) | (static_cast<std::uint64_t>(next_u32()) << 32);
+    }
+
+    auto next_bounded(std::uint32_t bound) noexcept -> std::uint32_t
+    {
+      return bound == 0 ? 0 : next_u32() % bound;
+    }
+  };
 
   struct AuI32Hash
   {
@@ -95,11 +120,13 @@ namespace au_bench_hash
 
   inline auto fisher_yates_shuffle(std::vector<au::usize> &indices, std::uint64_t seed) -> void
   {
-    std::mt19937_64 rng{seed};
+    Lcg rng{seed};
     for (au::usize i = indices.size(); i > 1; --i)
     {
-      const au::usize j = static_cast<au::usize>(rng() % i);
-      std::swap(indices[i - 1], indices[j]);
+      const au::usize j = static_cast<au::usize>(rng.next_bounded(static_cast<std::uint32_t>(i)));
+      au::usize tmp = indices[i - 1];
+      indices[i - 1] = indices[j];
+      indices[j] = tmp;
     }
   }
 
@@ -114,18 +141,28 @@ namespace au_bench_hash
     return indices;
   }
 
+  template<typename T>
+  inline auto vector_contains(const std::vector<T> &values, const T &value) -> bool
+  {
+    for (const auto &v : values)
+    {
+      if (v == value)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   inline auto make_keys_i32_unique(au::usize n) -> std::vector<au::i32>
   {
-    std::mt19937_64 rng{0xA0C1D54Eu};
-    std::uniform_int_distribution<au::i32> dist(1, 1'000'000'000);
-    std::unordered_set<au::i32> seen;
-    seen.reserve(n);
+    Lcg rng{0xA0C1D54Eu};
     std::vector<au::i32> keys;
     keys.reserve(n);
     while (keys.size() < n)
     {
-      const au::i32 k = dist(rng);
-      if (seen.insert(k).second)
+      const au::i32 k = static_cast<au::i32>(rng.next_bounded(1'000'000'000u) + 1u);
+      if (!vector_contains(keys, k))
       {
         keys.push_back(k);
       }
@@ -135,16 +172,13 @@ namespace au_bench_hash
 
   inline auto make_miss_keys_i32(au::usize n) -> std::vector<au::i32>
   {
-    std::mt19937_64 rng{0xBADC0FFEu};
-    std::uniform_int_distribution<au::i32> dist(1'000'000'001, 2'000'000'000);
-    std::unordered_set<au::i32> seen;
-    seen.reserve(n);
+    Lcg rng{0xBADC0FFEu};
     std::vector<au::i32> keys;
     keys.reserve(n);
     while (keys.size() < n)
     {
-      const au::i32 k = dist(rng);
-      if (seen.insert(k).second)
+      const au::i32 k = static_cast<au::i32>(rng.next_bounded(1'000'000'000u) + 1'000'000'001);
+      if (!vector_contains(keys, k))
       {
         keys.push_back(k);
       }
@@ -154,16 +188,13 @@ namespace au_bench_hash
 
   inline auto make_keys_u64_unique(au::usize n) -> std::vector<au::u64>
   {
-    std::mt19937_64 rng{0xC0FFEE42u};
-    std::uniform_int_distribution<au::u64> dist(1, 1'000'000'000ULL);
-    std::unordered_set<au::u64> seen;
-    seen.reserve(n);
+    Lcg rng{0xC0FFEE42u};
     std::vector<au::u64> keys;
     keys.reserve(n);
     while (keys.size() < n)
     {
-      const au::u64 k = dist(rng);
-      if (seen.insert(k).second)
+      const au::u64 k = (rng.next_u64() % 1'000'000'000ULL) + 1ULL;
+      if (!vector_contains(keys, k))
       {
         keys.push_back(k);
       }
@@ -173,23 +204,19 @@ namespace au_bench_hash
 
   inline auto make_keys_string_unique(au::usize n) -> std::vector<std::string>
   {
-    std::mt19937_64 rng{0x5EEDB055u};
-    std::uniform_int_distribution<int> len_dist(3, 24);
-    std::uniform_int_distribution<int> chr_dist('a', 'z');
-    std::unordered_set<std::string> seen;
-    seen.reserve(n);
+    Lcg rng{0x5EEDB055u};
     std::vector<std::string> keys;
     keys.reserve(n);
     while (keys.size() < n)
     {
-      const auto len = static_cast<au::usize>(len_dist(rng));
+      const auto len = static_cast<au::usize>(rng.next_bounded(22u) + 3u);
       std::string s;
       s.resize(len);
       for (au::usize k = 0; k < len; ++k)
       {
-        s[k] = static_cast<char>(chr_dist(rng));
+        s[k] = static_cast<char>('a' + static_cast<int>(rng.next_bounded(26u)));
       }
-      if (seen.insert(s).second)
+      if (!vector_contains(keys, s))
       {
         keys.push_back(std::move(s));
       }
@@ -199,24 +226,20 @@ namespace au_bench_hash
 
   inline auto make_miss_keys_string_unique(au::usize n) -> std::vector<std::string>
   {
-    std::mt19937_64 rng{0xDEADBEEFu};
-    std::uniform_int_distribution<int> len_dist(3, 24);
-    std::uniform_int_distribution<int> chr_dist('A', 'Z');
-    std::unordered_set<std::string> seen;
-    seen.reserve(n);
+    Lcg rng{0xDEADBEEFu};
     std::vector<std::string> keys;
     keys.reserve(n);
     while (keys.size() < n)
     {
-      const auto len = static_cast<au::usize>(len_dist(rng));
+      const auto len = static_cast<au::usize>(rng.next_bounded(22u) + 3u);
       std::string s;
       s.push_back('!');
       s.resize(len);
       for (au::usize k = 1; k < len; ++k)
       {
-        s[k] = static_cast<char>(chr_dist(rng));
+        s[k] = static_cast<char>('A' + static_cast<int>(rng.next_bounded(26u)));
       }
-      if (seen.insert(s).second)
+      if (!vector_contains(keys, s))
       {
         keys.push_back(std::move(s));
       }
