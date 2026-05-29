@@ -20,9 +20,7 @@ project(Auxid C CXX)
 
 enable_testing()
 
-include(cmake/auxid_setup_project.cmake)
-
-auxid_setup_project()
+set(AUXID_ROOT "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "")
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     set(AUXID_IS_TOP_LEVEL ON)
@@ -30,7 +28,9 @@ else()
     set(AUXID_IS_TOP_LEVEL OFF)
 endif()
 
-set(AUXID_ROOT "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "")
+include(cmake/auxid_setup_project.cmake)
+
+auxid_setup_project()
 
 option(Auxid_BUILD_TESTS "Build unit tests" ${AUXID_IS_TOP_LEVEL})
 option(Auxid_BUILD_BENCHMARKS "Build microbenchmarks (requires Google Benchmark via FetchContent)" OFF)
