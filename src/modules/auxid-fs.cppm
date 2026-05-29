@@ -69,36 +69,12 @@ namespace au::filesystem::_internal
     return ret;
   }
 
-  template<typename It>
-  auto directory_iterator_advance_impl(It &it, std::error_code &ec, int) -> decltype(void(it.operator++(ec)))
-  {
-    it.operator++(ec);
-  }
-
-  template<typename It> void directory_iterator_advance_impl(It &it, std::error_code &ec, long)
-  {
-#if defined(__EXCEPTIONS) && __EXCEPTIONS
-    ec.clear();
-    try
-    {
-      ++it;
-    }
-    catch (const fs::filesystem_error &e)
-    {
-      ec = e.code();
-    }
-#else
-    ++it;
-    ec.clear();
-#endif
-  }
-
   inline void directory_iterator_advance(DirectoryIterator &it, std::error_code &ec)
   {
 #if defined(_MSC_VER)
     it.increment(ec);
 #else
-    directory_iterator_advance_impl(it, ec, 0);
+    it.operator++(ec);
 #endif
   }
 
@@ -107,7 +83,7 @@ namespace au::filesystem::_internal
 #if defined(_MSC_VER)
     it.increment(ec);
 #else
-    directory_iterator_advance_impl(it, ec, 0);
+    it.operator++(ec);
 #endif
   }
 } // namespace au::filesystem::_internal

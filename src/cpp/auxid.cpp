@@ -26,12 +26,14 @@ module;
 
 module auxid.thread;
 
+import auxid.memory;
+
 namespace au::auxid
 {
   struct ThreadData
   {
     i32 init_counter{};
-    Logger *logger;
+    memory::Box<Logger> logger;
   };
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
@@ -78,7 +80,7 @@ namespace au::auxid
       return;
 
     state.main_thread_id = thread_id;
-    state.thread_data[thread_id].logger = new Logger(state.logger_mutex);
+    state.thread_data[thread_id].logger = memory::make_box<Logger>(state.logger_mutex);
   }
 
   auto terminate_main_thread() -> void
@@ -90,8 +92,7 @@ namespace au::auxid
     if (state.thread_data[thread_id].init_counter > 0)
       return;
 
-    delete state.thread_data[thread_id].logger;
-    state.thread_data[thread_id].logger = nullptr;
+    state.thread_data[thread_id].logger.reset();
   }
 
   auto initialize_worker_thread() -> void
@@ -103,7 +104,7 @@ namespace au::auxid
     if (state.thread_data[thread_id].init_counter > 1)
       return;
 
-    state.thread_data[thread_id].logger = new Logger(state.logger_mutex);
+    state.thread_data[thread_id].logger = memory::make_box<Logger>(state.logger_mutex);
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
     rpmalloc_thread_initialize();
@@ -119,8 +120,7 @@ namespace au::auxid
     if (state.thread_data[thread_id].init_counter > 0)
       return;
 
-    delete state.thread_data[thread_id].logger;
-    state.thread_data[thread_id].logger = nullptr;
+    state.thread_data[thread_id].logger.reset();
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
     rpmalloc_thread_finalize();

@@ -24,11 +24,15 @@ if(NOT IS_DIRECTORY "${AUXID_SRC_DIR}")
     message(FATAL_ERROR "auxid_lint_ban_list: AUXID_SRC_DIR='${AUXID_SRC_DIR}' is not a directory.")
 endif()
 
+get_filename_component(_auxid_root "${AUXID_SRC_DIR}" DIRECTORY)
+
 file(GLOB_RECURSE _scan_files
     LIST_DIRECTORIES false
     "${AUXID_SRC_DIR}/cpp/*.cpp"
     "${AUXID_SRC_DIR}/cpp/*.hpp"
     "${AUXID_SRC_DIR}/modules/*.cppm"
+    "${_auxid_root}/tests/cpp/*.cpp"
+    "${_auxid_root}/tests/cpp/**/*.cpp"
 )
 
 set(_banned_tokens
@@ -43,6 +47,7 @@ set(_banned_tokens
     "std::make_shared"
     "std::allocate_shared"
     "std::weak_ptr"
+    "std::function"
     "<iostream>"
     "std::cout"
     "std::cerr"
@@ -70,8 +75,16 @@ foreach(_file ${_scan_files})
             endif()
         endforeach()
 
-        if(_line MATCHES "(^|[^a-zA-Z0-9_])throw[ \t]+[a-zA-Z_]")
+        if(_line MATCHES "(^|[^a-zA-Z0-9_])throw[ \t]*[a-zA-Z_(;{]")
             list(APPEND _violations "${_file}:${_lineno}: banned token 'throw'")
+        endif()
+
+        if(_line MATCHES "(^|[^a-zA-Z0-9_])try([^a-zA-Z0-9_]|$)")
+            list(APPEND _violations "${_file}:${_lineno}: banned token 'try'")
+        endif()
+
+        if(_line MATCHES "(^|[^a-zA-Z0-9_])catch([^a-zA-Z0-9_]|$)")
+            list(APPEND _violations "${_file}:${_lineno}: banned token 'catch'")
         endif()
     endforeach()
 endforeach()

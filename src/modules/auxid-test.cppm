@@ -20,7 +20,7 @@ module;
 #include <concepts>
 #include <cstdio>
 #include <cstdlib>
-#include <functional>
+#include <cstring>
 #include <new>
 #include <print>
 #include <string>
@@ -97,7 +97,73 @@ export namespace au::test
     }
   }
 
-  using TestFunctor = std::function<bool()>;
+  class TestFunctor
+  {
+    static constexpr usize kBufSize = sizeof(void *) * 2;
+    using InvokeFn = bool (*)(const void *);
+
+    InvokeFn m_invoke = nullptr;
+    alignas(void *) std::byte m_buf[kBufSize]{};
+
+public:
+    TestFunctor() = default;
+
+    template<class F>
+      requires std::invocable<F> && std::same_as<std::invoke_result_t<F>, bool> && std::is_trivially_copyable_v<F> &&
+               (sizeof(F) <= kBufSize) && (alignof(F) <= alignof(void *))
+    TestFunctor(F f) noexcept : m_invoke(&invoke_impl<F>)
+    {
+      au::construct_at(reinterpret_cast<F *>(&m_buf), std::move(f));
+    }
+
+    TestFunctor(const TestFunctor &other) noexcept : m_invoke(other.m_invoke)
+    {
+      if (m_invoke != nullptr)
+        std::memcpy(m_buf, other.m_buf, kBufSize);
+    }
+
+    TestFunctor(TestFunctor &&other) noexcept : m_invoke(other.m_invoke)
+    {
+      if (m_invoke != nullptr)
+        std::memcpy(m_buf, other.m_buf, kBufSize);
+      other.m_invoke = nullptr;
+    }
+
+    auto operator=(const TestFunctor &other) noexcept -> TestFunctor &
+    {
+      if (this != &other)
+      {
+        m_invoke = other.m_invoke;
+        if (m_invoke != nullptr)
+          std::memcpy(m_buf, other.m_buf, kBufSize);
+      }
+      return *this;
+    }
+
+    auto operator=(TestFunctor &&other) noexcept -> TestFunctor &
+    {
+      if (this != &other)
+      {
+        m_invoke = other.m_invoke;
+        if (m_invoke != nullptr)
+          std::memcpy(m_buf, other.m_buf, kBufSize);
+        other.m_invoke = nullptr;
+      }
+      return *this;
+    }
+
+    [[nodiscard]] bool operator()() const
+    {
+      return m_invoke(&m_buf);
+    }
+
+private:
+    template<class F>
+    static bool invoke_impl(const void *p) noexcept(noexcept((*static_cast<const F *>(p))()))
+    {
+      return (*static_cast<const F *>(p))();
+    }
+  };
 
   struct TestUnit
   {

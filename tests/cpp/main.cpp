@@ -14,9 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <iostream>
-
 #include <auxid/macros.hpp>
+
+#include <print>
 
 import auxid;
 import auxid.test;
@@ -41,9 +41,9 @@ int main(int argc, char *argv[])
     }
   } _thread_init_guard;
 
-  std::cout << console::GREEN << "\n================================\n";
-  std::cout << "   LibAuxid - Unit Test Suite\n";
-  std::cout << "================================\n" << console::RESET << "\n";
+  std::println("{}\n================================", console::GREEN);
+  std::println("   LibAuxid - Unit Test Suite");
+  std::println("================================{}\n", console::RESET);
 
   return test::TestRegistry::run_all();
 }
