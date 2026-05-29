@@ -89,3 +89,8 @@ elseif(UNIX)
             COMPILE_DEFINITIONS "_DEFAULT_SOURCE;_GNU_SOURCE"
     )
 endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    find_package(Threads REQUIRED)
+    target_link_libraries(libauxid PUBLIC Threads::Threads)
+endif()

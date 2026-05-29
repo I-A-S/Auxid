@@ -18,7 +18,6 @@ module;
 
 #include <format>
 #include <print>
-#include <string_view>
 
 module auxid.thread;
 
@@ -36,7 +35,7 @@ namespace au
   {
   }
 
-  auto Logger::log_impl(ELevel level, std::string_view fmt, std::format_args args) -> void
+  auto Logger::log_impl(ELevel level, StringView fmt, std::format_args args) -> void
   {
     const auto msg = String::vformat(fmt, args);
     m_logger_mutex_ref.lock();

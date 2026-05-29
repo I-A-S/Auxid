@@ -22,7 +22,6 @@ module;
 #include <format>
 #include <functional>
 #include <mutex>
-#include <string_view>
 #include <thread>
 #include <tuple>
 #include <utility>
@@ -135,7 +134,7 @@ public:
     }
 
 private:
-    auto log_impl(ELevel level, std::string_view fmt, std::format_args args) -> void;
+    auto log_impl(ELevel level, StringView fmt, std::format_args args) -> void;
     static auto default_handler(const char *msg, ELevel level) -> void;
 
     Mutex &m_logger_mutex_ref;
