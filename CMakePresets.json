@@ -178,6 +178,39 @@
         "Auxid_BUILD_BENCHMARKS": "ON",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/x64-windows-mingw-gcc.cmake"
       }
+    },
+    {
+      "name": "x64-linux-sanitizer-base",
+      "hidden": true,
+      "inherits": "x64-linux",
+      "cacheVariables": {
+        "AUXID_USE_SYSTEM_MALLOC": "TRUE",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/x64-linux-clang.cmake"
+      }
+    },
+    {
+      "name": "x64-linux-asan",
+      "displayName": "Auxid Linux x64 (Clang, AddressSanitizer)",
+      "inherits": "x64-linux-sanitizer-base",
+      "cacheVariables": {
+        "AUXID_SANITIZER": "ASAN"
+      }
+    },
+    {
+      "name": "x64-linux-ubsan",
+      "displayName": "Auxid Linux x64 (Clang, UBSan)",
+      "inherits": "x64-linux-sanitizer-base",
+      "cacheVariables": {
+        "AUXID_SANITIZER": "UBSAN"
+      }
+    },
+    {
+      "name": "x64-linux-tsan",
+      "displayName": "Auxid Linux x64 (Clang, ThreadSanitizer)",
+      "inherits": "x64-linux-sanitizer-base",
+      "cacheVariables": {
+        "AUXID_SANITIZER": "TSAN"
+      }
     }
   ],
   "buildPresets": [
@@ -264,6 +297,21 @@
       "configurePreset": "x64-windows-mingw-gcc-bench",
       "configuration": "Release",
       "targets": ["AuxidBench"]
+    },
+    {
+      "name": "x64-linux-asan",
+      "configurePreset": "x64-linux-asan",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "x64-linux-ubsan",
+      "configurePreset": "x64-linux-ubsan",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "x64-linux-tsan",
+      "configurePreset": "x64-linux-tsan",
+      "configuration": "RelWithDebInfo"
     }
   ],
   "testPresets": [
@@ -319,6 +367,30 @@
       "name": "wasm32-emscripten",
       "configurePreset": "wasm32-emscripten",
       "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "x64-linux-asan",
+      "configurePreset": "x64-linux-asan",
+      "configuration": "RelWithDebInfo",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "x64-linux-ubsan",
+      "configurePreset": "x64-linux-ubsan",
+      "configuration": "RelWithDebInfo",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "x64-linux-tsan",
+      "configurePreset": "x64-linux-tsan",
+      "configuration": "RelWithDebInfo",
       "output": {
         "outputOnFailure": true
       }

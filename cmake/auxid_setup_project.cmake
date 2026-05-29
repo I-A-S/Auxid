@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set(INT_AUXID_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}")
+
 macro(auxid_setup_project)
 
     if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|AppleClang|MSVC|GNU)$")
@@ -77,5 +79,8 @@ macro(auxid_setup_project)
         add_compile_options(-pthread)
         add_link_options(-pthread)
     endif()
+
+    include(${INT_AUXID_ROOT_DIR}/auxid_sanitizers.cmake)
+    auxid_apply_sanitizers()
 
 endmacro()

@@ -1,0 +1,64 @@
+# Auxid: The Rigid C++ Platform.
+#
+# Copyright (C) 2026 I-A-S (ias@iasoft.dev)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+include_guard(GLOBAL)
+
+set(AUXID_SANITIZER "OFF" CACHE STRING
+    "Enable sanitizer instrumentation: OFF, ASAN, UBSAN, or TSAN")
+set_property(CACHE AUXID_SANITIZER PROPERTY STRINGS OFF ASAN UBSAN TSAN)
+
+function(auxid_apply_sanitizers)
+    if(NOT AUXID_SANITIZER OR AUXID_SANITIZER STREQUAL "OFF")
+        return()
+    endif()
+
+    if(MSVC)
+        message(FATAL_ERROR "AUXID_SANITIZER is not supported with MSVC")
+    endif()
+
+    if(EMSCRIPTEN)
+        message(FATAL_ERROR "AUXID_SANITIZER is not supported on Emscripten")
+    endif()
+
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|AppleClang|GNU)$")
+        message(FATAL_ERROR
+            "AUXID_SANITIZER requires Clang or GCC (got '${CMAKE_CXX_COMPILER_ID}')")
+    endif()
+
+    if(AUXID_SANITIZER STREQUAL "ASAN")
+        set(_auxid_sanitize_flags "-fsanitize=address" "-fno-omit-frame-pointer" "-g")
+        if(NOT AUXID_USE_SYSTEM_MALLOC)
+            set(AUXID_USE_SYSTEM_MALLOC TRUE CACHE BOOL "Use system malloc instead of rpmalloc" FORCE)
+            message(STATUS "Auxid: AddressSanitizer enabled - using system malloc instead of rpmalloc.")
+        endif()
+    elseif(AUXID_SANITIZER STREQUAL "UBSAN")
+        set(_auxid_sanitize_flags "-fsanitize=undefined" "-fno-sanitize-recover=all" "-g")
+    elseif(AUXID_SANITIZER STREQUAL "TSAN")
+        set(_auxid_sanitize_flags "-fsanitize=thread" "-fno-omit-frame-pointer" "-g")
+        if(NOT AUXID_USE_SYSTEM_MALLOC)
+            set(AUXID_USE_SYSTEM_MALLOC TRUE CACHE BOOL "Use system malloc instead of rpmalloc" FORCE)
+            message(STATUS "Auxid: ThreadSanitizer enabled - using system malloc instead of rpmalloc.")
+        endif()
+    else()
+        message(FATAL_ERROR
+            "AUXID_SANITIZER must be OFF, ASAN, UBSAN, or TSAN (got '${AUXID_SANITIZER}')")
+    endif()
+
+    add_compile_options(${_auxid_sanitize_flags})
+    add_link_options(${_auxid_sanitize_flags})
+
+    message(STATUS "Auxid: Sanitizer ${AUXID_SANITIZER} enabled")
+endfunction()
