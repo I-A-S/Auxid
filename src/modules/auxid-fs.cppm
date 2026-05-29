@@ -71,19 +71,19 @@ namespace au::filesystem::_internal
 
   inline void directory_iterator_advance(DirectoryIterator &it, std::error_code &ec)
   {
-#if defined(_MSC_VER)
-    it.increment(ec);
-#else
+#if defined(_LIBCPP_VERSION)
     it.operator++(ec);
+#else
+    it.increment(ec);
 #endif
   }
 
   inline void recursive_directory_iterator_advance(RecursiveDirectoryIterator &it, std::error_code &ec)
   {
-#if defined(_MSC_VER)
-    it.increment(ec);
-#else
+#if defined(_LIBCPP_VERSION)
     it.operator++(ec);
+#else
+    it.increment(ec);
 #endif
   }
 } // namespace au::filesystem::_internal
