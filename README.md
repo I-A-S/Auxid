@@ -158,6 +158,10 @@ Notes:
 
 ## Building & testing locally
 
+By default, `libauxid` is built as a **static** library. Pass `-DAuxid_BUILD_SHARED=ON` (or set `Auxid_BUILD_SHARED` in a preset's `cacheVariables`) to build a shared library instead. `Auxid_BUILD_SHARED` is not supported on Emscripten/WASM (configure fails if enabled). FetchContent consumers set the cache variable before `FetchContent_MakeAvailable(auxid)`.
+
+Shared builds define `AUXID_SHARED_BUILD` for consumers (import) and `AUXID_BUILDING_LIBRARY` when compiling `libauxid` itself (export). Out-of-line public symbols use the `AUXID_API` macro from [include/auxid/api.h](include/auxid/api.h) (`__declspec(dllexport/dllimport)` on Windows, default visibility on ELF when building the shared object). On Windows, `libauxid` also enables `WINDOWS_EXPORT_ALL_SYMBOLS` so C++ module interface symbols (templates, inline methods) remain linkable from the import library; ELF shared builds use hidden visibility with explicit `AUXID_API` exports instead.
+
 Pick a preset that matches your toolchain, then:
 
 On macOS (Apple Silicon), install LLVM and Ninja first:
@@ -173,6 +177,14 @@ Other platforms:
 
 ```bash
 cmake --preset x64-windows-clang
+cmake --build --preset x64-windows-clang --config Release
+ctest --preset x64-windows-clang --output-on-failure
+```
+
+Shared library example:
+
+```bash
+cmake --preset x64-windows-clang -DAuxid_BUILD_SHARED=ON
 cmake --build --preset x64-windows-clang --config Release
 ctest --preset x64-windows-clang --output-on-failure
 ```

@@ -24,6 +24,14 @@ target_precompile_headers(TestSuite PRIVATE
     <vector>
 )
 target_link_libraries(TestSuite PRIVATE libauxid)
+if(Auxid_BUILD_SHARED AND WIN32)
+    add_custom_command(TARGET TestSuite POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:TestSuite>
+            $<TARGET_FILE_DIR:TestSuite>
+        COMMAND_EXPAND_LISTS
+    )
+endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
     target_link_libraries(TestSuite PRIVATE stdc++exp)
 endif()

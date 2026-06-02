@@ -152,11 +152,11 @@ export namespace au
     return Unexpected<std::decay_t<E>>(std::forward<E>(error));
   }
 
-  [[noreturn]] extern auto panic_handler(const char *msg, const char *file, u32 line) -> void;
+  [[noreturn]] extern AUXID_API auto panic_handler(const char *msg, const char *file, u32 line) -> void;
 
-  [[noreturn]] auto panic_at(const char *msg, const char *file, u32 line) -> void;
+  [[noreturn]] AUXID_API auto panic_at(const char *msg, const char *file, u32 line) -> void;
 
-  [[noreturn]] auto panic(const char *msg, std::source_location loc = std::source_location::current()) -> void;
+  [[noreturn]] AUXID_API auto panic(const char *msg, std::source_location loc = std::source_location::current()) -> void;
 } // namespace au
 
 export namespace au

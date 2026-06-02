@@ -16,6 +16,8 @@
 
 module;
 
+#include <auxid/macros.hpp>
+
 #include <cstdio>
 #include <cstdlib>
 #include <format>
@@ -71,7 +73,7 @@ namespace au::auxid
     return s_state;
   }
 
-  auto initialize_main_thread() -> void
+  AUXID_API auto initialize_main_thread() -> void
   {
     auto &state = get_state();
 
@@ -84,7 +86,7 @@ namespace au::auxid
     state.thread_data[thread_id].logger = memory::make_box<Logger>(state.logger_mutex);
   }
 
-  auto terminate_main_thread() -> void
+  AUXID_API auto terminate_main_thread() -> void
   {
     auto &state = get_state();
 
@@ -96,7 +98,7 @@ namespace au::auxid
     state.thread_data[thread_id].logger.reset();
   }
 
-  auto initialize_worker_thread() -> void
+  AUXID_API auto initialize_worker_thread() -> void
   {
     auto &state = get_state();
 
@@ -112,7 +114,7 @@ namespace au::auxid
 #endif
   }
 
-  auto terminate_worker_thread() -> void
+  AUXID_API auto terminate_worker_thread() -> void
   {
     auto &state = get_state();
 
@@ -128,17 +130,17 @@ namespace au::auxid
 #endif
   }
 
-  auto is_main_thread() -> bool
+  AUXID_API auto is_main_thread() -> bool
   {
     return get_state().main_thread_id == Thread::get_calling_thread_id();
   }
 
-  auto is_thread_initialized() -> bool
+  AUXID_API auto is_thread_initialized() -> bool
   {
     return get_state().thread_data[Thread::get_calling_thread_id()].init_counter > 0;
   }
 
-  auto get_thread_logger() -> Logger &
+  AUXID_API auto get_thread_logger() -> Logger &
   {
     return *get_state().thread_data[Thread::get_calling_thread_id()].logger;
   }
@@ -154,11 +156,11 @@ namespace au
 #define CC_MAGENTA "\033[35m"
 #define CC_CYAN "\033[36m"
 
-  Logger::Logger(Mutex &logger_mutex) : m_logger_mutex_ref(logger_mutex)
+  AUXID_API Logger::Logger(Mutex &logger_mutex) : m_logger_mutex_ref(logger_mutex)
   {
   }
 
-  auto Logger::log_impl(ELevel level, StringView fmt, std::format_args args) -> void
+  AUXID_API auto Logger::log_impl(ELevel level, StringView fmt, std::format_args args) -> void
   {
     const auto msg = String::vformat(fmt, args);
     m_logger_mutex_ref.lock();
@@ -166,7 +168,7 @@ namespace au
     m_logger_mutex_ref.unlock();
   }
 
-  auto Logger::default_handler(const char *msg, ELevel level) -> void
+  AUXID_API auto Logger::default_handler(const char *msg, ELevel level) -> void
   {
     switch (level)
     {

@@ -34,6 +34,12 @@ auxid_setup_project()
 
 option(Auxid_BUILD_TESTS "Build unit tests" ${AUXID_IS_TOP_LEVEL})
 option(Auxid_BUILD_BENCHMARKS "Build microbenchmarks (requires Google Benchmark via FetchContent)" OFF)
+option(Auxid_BUILD_SHARED "Build libauxid as a shared library" OFF)
+
+if(Auxid_BUILD_SHARED AND EMSCRIPTEN)
+    message(FATAL_ERROR
+        "Auxid_BUILD_SHARED is not supported for Emscripten/WASM targets.")
+endif()
 
 if(EMSCRIPTEN)
     add_compile_options(

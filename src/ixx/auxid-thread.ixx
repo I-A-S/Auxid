@@ -85,7 +85,7 @@ private:
     std::condition_variable_any m_cv{};
   };
 
-  class Logger
+  class AUXID_API Logger
   {
 public:
     enum ELevel
@@ -144,10 +144,10 @@ private:
 
 export namespace au::auxid
 {
-  auto initialize_main_thread() -> void;
-  auto terminate_main_thread() -> void;
-  auto initialize_worker_thread() -> void;
-  auto terminate_worker_thread() -> void;
+  AUXID_API auto initialize_main_thread() -> void;
+  AUXID_API auto terminate_main_thread() -> void;
+  AUXID_API auto initialize_worker_thread() -> void;
+  AUXID_API auto terminate_worker_thread() -> void;
 
   struct MainThreadGuard
   {
@@ -175,9 +175,9 @@ export namespace au::auxid
     }
   };
 
-  auto is_main_thread() -> bool;
-  auto is_thread_initialized() -> bool;
-  auto get_thread_logger() -> Logger &;
+  AUXID_API auto is_main_thread() -> bool;
+  AUXID_API auto is_thread_initialized() -> bool;
+  AUXID_API auto get_thread_logger() -> Logger &;
 } // namespace au::auxid
 
 export namespace au

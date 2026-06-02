@@ -16,6 +16,8 @@
 
 module;
 
+#include <auxid/macros.hpp>
+
 #include <print>
 #include <string_view>
 #include <vector>
@@ -24,13 +26,13 @@ module auxid.test;
 
 namespace au::test
 {
-  auto TestRegistry::get_entries() -> Vec<TestEntry> &
+  AUXID_API auto TestRegistry::get_entries() -> Vec<TestEntry> &
   {
     static Vec<TestEntry> entries;
     return entries;
   }
 
-  auto TestRegistry::run_all() -> i32
+  AUXID_API auto TestRegistry::run_all() -> i32
   {
     DefaultRunner r;
     Vec<TestEntry> &entries = get_entries();
@@ -44,7 +46,7 @@ namespace au::test
     return r.fail_count() == 0 ? 0 : 1;
   }
 
-  auto register_test_block(TestRegistry::TestEntry entry) -> void
+  AUXID_API auto register_test_block(TestRegistry::TestEntry entry) -> void
   {
     TestRegistry::get_entries().push_back(entry);
   }
@@ -52,27 +54,27 @@ namespace au::test
 
 namespace au::test::impl
 {
-  auto print_block_header(std::string_view name) -> void
+  AUXID_API auto print_block_header(std::string_view name) -> void
   {
     std::println("{}Testing [{}]...{}", console::MAGENTA, name, console::RESET);
   }
 
-  auto print_test_progress(std::string_view name) -> void
+  AUXID_API auto print_test_progress(std::string_view name) -> void
   {
     std::print("{}  Testing {}...\n{}", console::YELLOW, name, console::RESET);
   }
 
-  auto print_blank_line() -> void
+  AUXID_API auto print_blank_line() -> void
   {
     std::println();
   }
 
-  auto print_discovered(usize count) -> void
+  AUXID_API auto print_discovered(usize count) -> void
   {
     std::print("{}[AUTest] Discovered {} Test Blocks\n\n{}", console::CYAN, count, console::RESET);
   }
 
-  auto print_summary(usize fail_count, usize test_count, usize block_count) -> void
+  AUXID_API auto print_summary(usize fail_count, usize test_count, usize block_count) -> void
   {
     std::println("{}\n-----------------------------------\n\t      SUMMARY\n-----------------------------------",
                  console::GREEN);

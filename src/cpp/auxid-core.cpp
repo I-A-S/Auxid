@@ -16,6 +16,8 @@
 
 module;
 
+#include <auxid/macros.hpp>
+
 #include <cstdio>
 #include <cstdlib>
 #include <print>
@@ -26,20 +28,20 @@ module auxid.core;
 namespace au
 {
 #if !defined(AUXID_DISABLE_DEFAULT_PANIC_HANDLER)
-  [[noreturn]] auto panic_handler(const char *msg, const char *file, u32 line) -> void
+  [[noreturn]] AUXID_API auto panic_handler(const char *msg, const char *file, u32 line) -> void
   {
     std::println(stderr, "[PANIC]: ({}:{}): {}", file, line, msg);
     std::abort();
   }
 #endif
 
-  [[noreturn]] auto panic_at(const char *msg, const char *file, u32 line) -> void
+  [[noreturn]] AUXID_API auto panic_at(const char *msg, const char *file, u32 line) -> void
   {
     panic_handler(msg, file, line);
     compiler::trap();
   }
 
-  [[noreturn]] auto panic(const char *msg, std::source_location loc) -> void
+  [[noreturn]] AUXID_API auto panic(const char *msg, std::source_location loc) -> void
   {
     panic_at(msg, loc.file_name(), loc.line());
   }

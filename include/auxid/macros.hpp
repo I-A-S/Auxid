@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <auxid/api.hpp>
+
 #if !defined(__clang__) && !defined(_MSC_VER) && !defined(__GNUC__)
 #  error "Auxid requires Clang/Clang-CL, native MSVC, or GCC."
 #endif

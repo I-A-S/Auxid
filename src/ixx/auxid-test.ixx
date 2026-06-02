@@ -16,6 +16,8 @@
 
 module;
 
+#include <auxid/macros.hpp>
+
 #include <cmath>
 #include <concepts>
 #include <cstdio>
@@ -272,11 +274,11 @@ private:
 
   namespace impl
   {
-    auto print_block_header(std::string_view name) -> void;
-    auto print_test_progress(std::string_view name) -> void;
-    auto print_blank_line() -> void;
-    auto print_discovered(usize count) -> void;
-    auto print_summary(usize fail_count, usize test_count, usize block_count) -> void;
+    AUXID_API auto print_block_header(std::string_view name) -> void;
+    AUXID_API auto print_test_progress(std::string_view name) -> void;
+    AUXID_API auto print_blank_line() -> void;
+    AUXID_API auto print_discovered(usize count) -> void;
+    AUXID_API auto print_summary(usize fail_count, usize test_count, usize block_count) -> void;
   } // namespace impl
 
   template<bool StopOnFail = false, bool IsVerbose = false> class Runner
@@ -354,7 +356,7 @@ private:
 
   using DefaultRunner = Runner<false, true>;
 
-  class TestRegistry
+  class AUXID_API TestRegistry
   {
 public:
     using TestEntry = void (*)(DefaultRunner &);
@@ -363,7 +365,7 @@ public:
     static auto run_all() -> i32;
   };
 
-  auto register_test_block(TestRegistry::TestEntry entry) -> void;
+  AUXID_API auto register_test_block(TestRegistry::TestEntry entry) -> void;
 
   template<typename BlockType> void invoke_test_block(DefaultRunner &r)
   {

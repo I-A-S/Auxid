@@ -8,6 +8,8 @@
  * This library is put in the public domain; you can redistribute it and/or
  * modify it without any restrictions.
  *
+ * -------------------------------------------------------
+ * Modified to integrate AUXID_API - 2026/06/03
  */
 
 #pragma once
@@ -20,7 +22,40 @@ extern "C"
 #endif
 
 #define RPMALLOC_CACHE_LINE_SIZE 64
-#if defined(__clang__) || defined(__GNUC__)
+#if defined(AUXID_SHARED_BUILD)
+#  include <auxid/api.hpp>
+#  define RPMALLOC_EXPORT AUXID_API
+#  if defined(__clang__) || defined(__GNUC__)
+#    define RPMALLOC_RESTRICT __restrict
+#    define RPMALLOC_ALLOCATOR
+#    define RPMALLOC_CACHE_ALIGNED __attribute__((aligned(RPMALLOC_CACHE_LINE_SIZE)))
+#    if (defined(__clang_major__) && (__clang_major__ < 4)) || (!defined(__clang_major__) && defined(__GNUC__))
+#      define RPMALLOC_ATTRIB_MALLOC
+#      define RPMALLOC_ATTRIB_ALLOC_SIZE(size)
+#      define RPMALLOC_ATTRIB_ALLOC_SIZE2(count, size)
+#    else
+#      define RPMALLOC_ATTRIB_MALLOC __attribute__((__malloc__))
+#      define RPMALLOC_ATTRIB_ALLOC_SIZE(size) __attribute__((alloc_size(size)))
+#      define RPMALLOC_ATTRIB_ALLOC_SIZE2(count, size) __attribute__((alloc_size(count, size)))
+#    endif
+#    define RPMALLOC_CDECL
+#  elif defined(_MSC_VER)
+#    define RPMALLOC_RESTRICT __declspec(restrict)
+#    define RPMALLOC_ALLOCATOR __declspec(allocator) __declspec(restrict)
+#    define RPMALLOC_CACHE_ALIGNED __declspec(align(RPMALLOC_CACHE_LINE_SIZE))
+#    define RPMALLOC_ATTRIB_MALLOC
+#    define RPMALLOC_ATTRIB_ALLOC_SIZE(size)
+#    define RPMALLOC_ATTRIB_ALLOC_SIZE2(count, size)
+#    define RPMALLOC_CDECL __cdecl
+#  else
+#    define RPMALLOC_RESTRICT
+#    define RPMALLOC_ALLOCATOR
+#    define RPMALLOC_ATTRIB_MALLOC
+#    define RPMALLOC_ATTRIB_ALLOC_SIZE(size)
+#    define RPMALLOC_ATTRIB_ALLOC_SIZE2(count, size)
+#    define RPMALLOC_CDECL
+#  endif
+#elif defined(__clang__) || defined(__GNUC__)
 #  define RPMALLOC_EXPORT __attribute__((visibility("default")))
 #  define RPMALLOC_RESTRICT __restrict
 #  define RPMALLOC_ALLOCATOR

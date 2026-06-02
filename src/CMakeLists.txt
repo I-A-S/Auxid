@@ -23,7 +23,30 @@ set(AUXID_IMPL_MODULES
     cpp/auxid-test.cpp
 )
 
-add_library(libauxid STATIC ${SRC_FILES} ${AUXID_IMPL_MODULES})
+if(Auxid_BUILD_SHARED)
+    set(_AUXID_LIB_TYPE SHARED)
+else()
+    set(_AUXID_LIB_TYPE STATIC)
+endif()
+
+add_library(libauxid ${_AUXID_LIB_TYPE} ${SRC_FILES} ${AUXID_IMPL_MODULES})
+message(STATUS "Auxid: libauxid library type = ${_AUXID_LIB_TYPE}")
+
+if(Auxid_BUILD_SHARED)
+    target_compile_definitions(libauxid
+        PUBLIC  AUXID_SHARED_BUILD=1
+        PRIVATE AUXID_BUILDING_LIBRARY=1
+    )
+    if(WIN32)
+        set_target_properties(libauxid PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    else()
+        set_target_properties(libauxid PROPERTIES
+            CXX_VISIBILITY_PRESET hidden
+            C_VISIBILITY_PRESET hidden
+            VISIBILITY_INLINES_HIDDEN ON
+        )
+    endif()
+endif()
 
 if(AUXID_USE_SYSTEM_MALLOC)
     target_compile_definitions(libauxid PUBLIC AUXID_USE_SYSTEM_MALLOC=1)
