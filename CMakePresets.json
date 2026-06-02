@@ -42,7 +42,8 @@
       "displayName": "Auxid Linux x64 (Clang, Shared lib)",
       "inherits": "x64-linux",
       "cacheVariables": {
-        "Auxid_BUILD_SHARED": "ON"
+        "Auxid_BUILD_SHARED": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/x64-linux-clang.cmake"
       }
     },
     {
@@ -50,7 +51,8 @@
       "displayName": "Auxid Linux ARM64 (Clang Cross, Shared lib)",
       "inherits": "arm64-linux",
       "cacheVariables": {
-        "Auxid_BUILD_SHARED": "ON"
+        "Auxid_BUILD_SHARED": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/arm64-linux-clang.cmake"
       }
     },
     {
@@ -81,7 +83,8 @@
       "displayName": "Auxid macOS ARM64 (LLVM Clang, Shared lib)",
       "inherits": "arm64-darwin",
       "cacheVariables": {
-        "Auxid_BUILD_SHARED": "ON"
+        "Auxid_BUILD_SHARED": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/arm64-darwin-clang.cmake"
       }
     },
     {
@@ -363,37 +366,49 @@
       "name": "x64-windows-msvc-bench",
       "configurePreset": "x64-windows-msvc-bench",
       "configuration": "Release",
-      "targets": ["AuxidBench"]
+      "targets": [
+        "AuxidBench"
+      ]
     },
     {
       "name": "x64-windows-msvc-bench-pgo-gen",
       "configurePreset": "x64-windows-msvc-bench-pgo-gen",
       "configuration": "Release",
-      "targets": ["AuxidBench"]
+      "targets": [
+        "AuxidBench"
+      ]
     },
     {
       "name": "x64-windows-msvc-bench-pgo-train",
       "configurePreset": "x64-windows-msvc-bench-pgo-gen",
       "configuration": "Release",
-      "targets": ["auxid_bench_pgo_train"]
+      "targets": [
+        "auxid_bench_pgo_train"
+      ]
     },
     {
       "name": "x64-windows-msvc-bench-pgo",
       "configurePreset": "x64-windows-msvc-bench-pgo",
       "configuration": "Release",
-      "targets": ["AuxidBench"]
+      "targets": [
+        "AuxidBench"
+      ]
     },
     {
       "name": "x64-windows-clang-bench",
       "configurePreset": "x64-windows-clang-bench",
       "configuration": "Release",
-      "targets": ["AuxidBench"]
+      "targets": [
+        "AuxidBench"
+      ]
     },
     {
       "name": "x64-windows-mingw-gcc-bench",
       "configurePreset": "x64-windows-mingw-gcc-bench",
       "configuration": "Release",
-      "targets": ["AuxidBench"]
+      "targets": [
+        "AuxidBench"
+      ]
     },
     {
       "name": "x64-linux-asan",
