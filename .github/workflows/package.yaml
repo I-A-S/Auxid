@@ -135,7 +135,7 @@ jobs:
           if-no-files-found: error
 
   build-arm64-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
     steps:
@@ -154,23 +154,14 @@ jobs:
           clang --version
           clang++ --version
 
-      - name: Install ARM64 cross toolchain
-        run: |
-          sudo apt-get install -y \
-            gcc-aarch64-linux-gnu \
-            g++-aarch64-linux-gnu \
-            libc6-dev-arm64-cross
-          sudo apt-get install -y libstdc++-14-dev-arm64-cross || \
-            sudo apt-get install -y libstdc++-13-dev-arm64-cross
-
       - name: Configure
-        run: cmake --preset arm64-linux-shared -DAuxid_BUILD_TESTS=OFF
+        run: cmake --preset arm64-linux-native-shared -DAuxid_BUILD_TESTS=OFF
 
       - name: Build
-        run: cmake --build --preset arm64-linux-shared --config Release
+        run: cmake --build --preset arm64-linux-native-shared --config Release
 
       - name: Install
-        run: cmake --install out/build/arm64-linux-shared --config Release --prefix "${{ github.workspace }}/staging/linux"
+        run: cmake --install out/build/arm64-linux-native-shared --config Release --prefix "${{ github.workspace }}/staging/linux"
 
       - name: Verify install tree
         run: test -f staging/linux/lib/libauxid.so
@@ -183,7 +174,7 @@ jobs:
           if-no-files-found: error
 
   build-arm64-windows:
-    runs-on: windows-latest
+    runs-on: windows-11-arm
     permissions:
       contents: read
     steps:
@@ -191,7 +182,7 @@ jobs:
 
       - uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: amd64_arm
+          arch: arm64
 
       - name: Install LLVM and Ninja
         run: choco install llvm ninja -y
@@ -249,22 +240,25 @@ jobs:
           path: bundle
           merge-multiple: true
 
-      - name: Create x64 package zip
+      - name: Verify bundle layout
         run: |
-          VERSION="${{ env.PACKAGE_VERSION }}"
-          SHORT="${VERSION:0:7}"
-          ZIP="auxid-x64-${SHORT}.zip"
-          cd bundle
-          zip -r "../${ZIP}" linux win
-          cd ..
-          echo "PACKAGE_ZIP=${ZIP}" >> "$GITHUB_ENV"
-          unzip -l "${ZIP}"
+          test -d bundle/linux
+          test -d bundle/win/MSVC
+          test -d bundle/win/Clang
+          find bundle/linux bundle/win -type f | head -20
+
+      - name: Set package label
+        run: echo "PACKAGE_LABEL=${PACKAGE_VERSION:0:7}" >> "$GITHUB_ENV"
+        env:
+          PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
 
       - name: Upload x64 package
         uses: actions/upload-artifact@v4
         with:
-          name: auxid-x64-package
-          path: ${{ env.PACKAGE_ZIP }}
+          name: auxid-x64-${{ env.PACKAGE_LABEL }}
+          path: |
+            bundle/linux
+            bundle/win
           if-no-files-found: error
 
   package-arm64:
@@ -283,20 +277,25 @@ jobs:
           path: bundle
           merge-multiple: true
 
-      - name: Create arm64 package zip
+      - name: Verify bundle layout
         run: |
-          VERSION="${{ env.PACKAGE_VERSION }}"
-          SHORT="${VERSION:0:7}"
-          ZIP="auxid-arm64-${SHORT}.zip"
-          cd bundle
-          zip -r "../${ZIP}" darwin linux win
-          cd ..
-          echo "PACKAGE_ZIP=${ZIP}" >> "$GITHUB_ENV"
-          unzip -l "${ZIP}"
+          test -d bundle/darwin
+          test -d bundle/linux
+          test -d bundle/win/MSVC
+          test -d bundle/win/Clang
+          find bundle/darwin bundle/linux bundle/win -type f | head -20
+
+      - name: Set package label
+        run: echo "PACKAGE_LABEL=${PACKAGE_VERSION:0:7}" >> "$GITHUB_ENV"
+        env:
+          PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
 
       - name: Upload arm64 package
         uses: actions/upload-artifact@v4
         with:
-          name: auxid-arm64-package
-          path: ${{ env.PACKAGE_ZIP }}
+          name: auxid-arm64-${{ env.PACKAGE_LABEL }}
+          path: |
+            bundle/darwin
+            bundle/linux
+            bundle/win
           if-no-files-found: error

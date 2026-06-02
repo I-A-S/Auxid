@@ -56,6 +56,22 @@
       }
     },
     {
+      "name": "arm64-linux-native",
+      "displayName": "Auxid Linux ARM64 native (Clang)",
+      "inherits": "auxid-base",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/arm64-linux-native-clang.cmake"
+      }
+    },
+    {
+      "name": "arm64-linux-native-shared",
+      "displayName": "Auxid Linux ARM64 native (Clang, Shared lib)",
+      "inherits": "arm64-linux-native",
+      "cacheVariables": {
+        "Auxid_BUILD_SHARED": "ON"
+      }
+    },
+    {
       "name": "x64-linux-gcc",
       "displayName": "Auxid Linux x64 (GCC 15.2)",
       "inherits": "auxid-gcc-base"
@@ -297,6 +313,14 @@
     {
       "name": "arm64-linux-shared",
       "configurePreset": "arm64-linux-shared"
+    },
+    {
+      "name": "arm64-linux-native",
+      "configurePreset": "arm64-linux-native"
+    },
+    {
+      "name": "arm64-linux-native-shared",
+      "configurePreset": "arm64-linux-native-shared"
     },
     {
       "name": "x64-linux-gcc",
