@@ -115,12 +115,13 @@ Notes:
 ```
 .
 ├── include/auxid/
+│   ├── api.hpp                       # Public: AUXID_API
 │   ├── macros.hpp                    # Public: AU_TRY*, platform/arch detection
-│   └── *.ixx                         # Public module interfaces (export module)
 ├── src/
-│   ├── cppm/*.cpp                    # Private module implementation units (module auxid.*;)
+│   ├── cpp/*.cpp                     # Private module implementation units (module auxid.*;)
 │   ├── c/vendor/rpmalloc/            # Vendored rpmalloc C source
-│   └── h/vendor/                     # Internal header-only vendors (rpmalloc, wyhash)
+│   ├── h/vendor/                     # Internal header-only vendors (rpmalloc, wyhash)
+│   └── ixx/*.ixx                     # Public module interfaces (export module)
 ├── tests/
 │   ├── CMakeLists.txt                # Builds the TestSuite executable
 │   └── cpp/                          # Unit tests grouped by feature
