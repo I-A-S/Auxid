@@ -9,6 +9,8 @@
  * This library is put in the public domain; you can redistribute it and/or
  * modify it without any restrictions.
  *
+ * -------------------------------------------------------
+ * Modified to replace __lzcnt with _CountLeadingZeros - 2026/06/03
  */
 
 #include <rpmalloc/rpmalloc.h>
@@ -62,6 +64,9 @@
 #  endif
 #  include <windows.h>
 #  include <fibersapi.h>
+#  if defined(_MSC_VER)
+#    include <intrin.h>
+#  endif
 static DWORD fls_key;
 #endif
 #if PLATFORM_POSIX
@@ -270,14 +275,18 @@ static rpmalloc_statistics_t global_statistics;
 static inline size_t rpmalloc_clz(uintptr_t x)
 {
 #if ARCH_64BIT
-#  if defined(_MSC_VER) && !defined(__clang__)
+#  if defined(_MSC_VER) && !defined(__clang__) && (defined(_M_X64) || defined(_M_IX86))
   return (size_t) __lzcnt64(x);
+#  elif defined(_MSC_VER) && !defined(__clang__)
+  return (size_t) _CountLeadingZeros64((unsigned __int64) x);
 #  else
   return (size_t) __builtin_clzll(x);
 #  endif
 #else
-#  if defined(_MSC_VER) && !defined(__clang__)
+#  if defined(_MSC_VER) && !defined(__clang__) && (defined(_M_X64) || defined(_M_IX86))
   return (size_t) __lzcnt32(x);
+#  elif defined(_MSC_VER) && !defined(__clang__)
+  return (size_t) _CountLeadingZeros((unsigned long) x);
 #  else
   return (size_t) __builtin_clzl(x);
 #  endif
