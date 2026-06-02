@@ -1,0 +1,32 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    find_dependency(Threads)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/AuxidTargets.cmake")
+
+set(_Auxid_module_dir "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_DATADIR@/auxid/ixx")
+set(_Auxid_public_modules
+    "${_Auxid_module_dir}/auxid.cppm"
+    "${_Auxid_module_dir}/auxid-core.cppm"
+    "${_Auxid_module_dir}/auxid-memory.cppm"
+    "${_Auxid_module_dir}/auxid-containers.cppm"
+    "${_Auxid_module_dir}/auxid-thread.cppm"
+    "${_Auxid_module_dir}/auxid-fs.cppm"
+)
+
+if(TARGET Auxid::libauxid)
+    set_target_properties(Auxid::libauxid PROPERTIES
+        INTERFACE_CXX_MODULES "${_Auxid_public_modules}"
+    )
+endif()
+
+set(AUXID_ROOT "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_DATADIR@/auxid" CACHE INTERNAL "")
+
+include("${AUXID_ROOT}/cmake/auxid_setup_project.cmake")
+
+set(Auxid_INCLUDE_DIRS "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@")
+set_and_check(Auxid_CMAKE_DIR "${PACKAGE_PREFIX_DIR}/@AUXID_INSTALL_CMAKEDIR@")

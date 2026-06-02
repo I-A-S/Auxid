@@ -16,7 +16,7 @@
 
 cmake_minimum_required(VERSION 3.28)
 
-project(Auxid C CXX)
+project(Auxid VERSION 0.1.0 LANGUAGES C CXX)
 
 enable_testing()
 
@@ -58,6 +58,10 @@ if(EMSCRIPTEN)
 endif()
 
 add_subdirectory(src)
+
+if(AUXID_IS_TOP_LEVEL)
+    include(cmake/auxid_install.cmake)
+endif()
 
 if(Auxid_BUILD_TESTS)
   add_subdirectory(tests)

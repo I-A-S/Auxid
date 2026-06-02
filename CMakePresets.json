@@ -38,6 +38,22 @@
       "inherits": "auxid-base"
     },
     {
+      "name": "x64-linux-shared",
+      "displayName": "Auxid Linux x64 (Clang, Shared lib)",
+      "inherits": "x64-linux",
+      "cacheVariables": {
+        "Auxid_BUILD_SHARED": "ON"
+      }
+    },
+    {
+      "name": "arm64-linux-shared",
+      "displayName": "Auxid Linux ARM64 (Clang Cross, Shared lib)",
+      "inherits": "arm64-linux",
+      "cacheVariables": {
+        "Auxid_BUILD_SHARED": "ON"
+      }
+    },
+    {
       "name": "x64-linux-gcc",
       "displayName": "Auxid Linux x64 (GCC 15.2)",
       "inherits": "auxid-gcc-base"
@@ -61,6 +77,14 @@
       }
     },
     {
+      "name": "arm64-darwin-shared",
+      "displayName": "Auxid macOS ARM64 (LLVM Clang, Shared lib)",
+      "inherits": "arm64-darwin",
+      "cacheVariables": {
+        "Auxid_BUILD_SHARED": "ON"
+      }
+    },
+    {
       "name": "x64-windows-mingw-gcc",
       "displayName": "Auxid Windows x64 (MinGW GCC 15.2)",
       "inherits": "auxid-gcc-base",
@@ -78,6 +102,14 @@
         "CMAKE_C_COMPILER": "cl",
         "CMAKE_CXX_COMPILER": "cl",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/x64-windows-msvc.cmake"
+      }
+    },
+    {
+      "name": "x64-windows-msvc-shared",
+      "displayName": "Auxid Windows x64 (MSVC, Shared lib)",
+      "inherits": "x64-windows-msvc",
+      "cacheVariables": {
+        "Auxid_BUILD_SHARED": "ON"
       }
     },
     {
@@ -117,6 +149,22 @@
         "CMAKE_C_COMPILER": "cl",
         "CMAKE_CXX_COMPILER": "cl",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/arm64-windows-msvc.cmake"
+      }
+    },
+    {
+      "name": "arm64-windows-msvc-shared",
+      "displayName": "Auxid Windows ARM64 (MSVC, Shared lib)",
+      "inherits": "arm64-windows-msvc",
+      "cacheVariables": {
+        "Auxid_BUILD_SHARED": "ON"
+      }
+    },
+    {
+      "name": "arm64-windows-clang-shared",
+      "displayName": "Auxid Windows ARM64 (Clang Cross, Shared lib)",
+      "inherits": "arm64-windows-clang",
+      "cacheVariables": {
+        "Auxid_BUILD_SHARED": "ON"
       }
     },
     {
@@ -236,8 +284,16 @@
       "configurePreset": "x64-linux"
     },
     {
+      "name": "x64-linux-shared",
+      "configurePreset": "x64-linux-shared"
+    },
+    {
       "name": "arm64-linux",
       "configurePreset": "arm64-linux"
+    },
+    {
+      "name": "arm64-linux-shared",
+      "configurePreset": "arm64-linux-shared"
     },
     {
       "name": "x64-linux-gcc",
@@ -252,12 +308,20 @@
       "configurePreset": "arm64-darwin"
     },
     {
+      "name": "arm64-darwin-shared",
+      "configurePreset": "arm64-darwin-shared"
+    },
+    {
       "name": "x64-windows-mingw-gcc",
       "configurePreset": "x64-windows-mingw-gcc"
     },
     {
       "name": "x64-windows-msvc",
       "configurePreset": "x64-windows-msvc"
+    },
+    {
+      "name": "x64-windows-msvc-shared",
+      "configurePreset": "x64-windows-msvc-shared"
     },
     {
       "name": "x64-windows-clang",
@@ -272,8 +336,16 @@
       "configurePreset": "arm64-windows-clang"
     },
     {
+      "name": "arm64-windows-clang-shared",
+      "configurePreset": "arm64-windows-clang-shared"
+    },
+    {
       "name": "arm64-windows-msvc",
       "configurePreset": "arm64-windows-msvc"
+    },
+    {
+      "name": "arm64-windows-msvc-shared",
+      "configurePreset": "arm64-windows-msvc-shared"
     },
     {
       "name": "x64-windows",

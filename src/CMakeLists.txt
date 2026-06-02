@@ -62,6 +62,9 @@ target_sources(libauxid
             "${AUXID_ROOT}/src/ixx/auxid-containers.ixx"
             "${AUXID_ROOT}/src/ixx/auxid-thread.ixx"
             "${AUXID_ROOT}/src/ixx/auxid-fs.ixx"
+    PRIVATE FILE_SET auxid_test_interface TYPE CXX_MODULES
+        BASE_DIRS "${AUXID_ROOT}/src/ixx"
+        FILES
             "${AUXID_ROOT}/src/ixx/auxid-test.ixx"
 )
 set_target_properties(libauxid PROPERTIES CXX_SCAN_FOR_MODULES ON)
@@ -75,8 +78,11 @@ if(MSVC)
     endforeach()
 endif()
 
+include(GNUInstallDirs)
+
 target_include_directories(libauxid PUBLIC
-        "${AUXID_ROOT}/include"
+    "$<BUILD_INTERFACE:${AUXID_ROOT}/include>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
 target_include_directories(libauxid PRIVATE

@@ -1,0 +1,285 @@
+name: Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version suffix for zip filenames (defaults to short commit SHA)
+        required: false
+        type: string
+        default: ""
+
+env:
+  PACKAGE_VERSION: ${{ inputs.version != '' && inputs.version || github.sha }}
+
+jobs:
+  build-x64-linux:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ninja
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
+      - name: Install Clang 20
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 20
+          sudo ln -sf /usr/bin/clang-20   /usr/bin/clang
+          sudo ln -sf /usr/bin/clang++-20 /usr/bin/clang++
+          clang --version
+          clang++ --version
+
+      - name: Configure
+        run: cmake --preset x64-linux-shared -DAuxid_BUILD_TESTS=OFF
+
+      - name: Build
+        run: cmake --build --preset x64-linux-shared --config Release
+
+      - name: Install
+        run: cmake --install out/build/x64-linux-shared --config Release --prefix "${{ github.workspace }}/staging/linux"
+
+      - name: Verify install tree
+        run: test -f staging/linux/lib/libauxid.so
+
+      - name: Upload staging
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-staging-x64-linux
+          path: staging/
+          if-no-files-found: error
+
+  build-x64-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install LLVM and Ninja
+        run: choco install llvm ninja -y
+
+      - name: Ensure Chocolatey LLVM on PATH
+        run: |
+          echo "PATH=C:\Program Files\LLVM\bin;$env:PATH" >> $env:GITHUB_ENV
+          & "C:\Program Files\LLVM\bin\clang.exe" --version
+          & "C:\Program Files\LLVM\bin\clang++.exe" --version
+
+      - name: Configure MSVC shared
+        run: cmake --preset x64-windows-msvc-shared -DAuxid_BUILD_TESTS=OFF
+
+      - name: Build MSVC shared
+        run: cmake --build --preset x64-windows-msvc-shared --config Release
+
+      - name: Install MSVC shared
+        run: cmake --install out/build/x64-windows-msvc-shared --config Release --prefix "${{ github.workspace }}/staging/win/MSVC"
+
+      - name: Configure Clang shared
+        run: cmake --preset x64-windows-clang-shared -DAuxid_BUILD_TESTS=OFF
+
+      - name: Build Clang shared
+        run: cmake --build --preset x64-windows-clang-shared --config Release
+
+      - name: Install Clang shared
+        run: cmake --install out/build/x64-windows-clang-shared --config Release --prefix "${{ github.workspace }}/staging/win/Clang"
+
+      - name: Verify install tree
+        run: |
+          if (-not (Test-Path "staging/win/MSVC/bin/libauxid.dll")) { throw "Missing MSVC DLL" }
+          if (-not (Test-Path "staging/win/MSVC/lib/libauxid.lib")) { throw "Missing MSVC import lib" }
+          if (-not (Test-Path "staging/win/Clang/bin/libauxid.dll")) { throw "Missing Clang DLL" }
+          if (-not (Test-Path "staging/win/Clang/lib/libauxid.lib")) { throw "Missing Clang import lib" }
+
+      - name: Upload staging
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-staging-x64-windows
+          path: staging/
+          if-no-files-found: error
+
+  build-arm64-darwin:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install LLVM and Ninja
+        run: |
+          brew install llvm ninja
+          $(brew --prefix llvm)/bin/clang --version
+          $(brew --prefix llvm)/bin/clang++ --version
+
+      - name: Configure
+        run: cmake --preset arm64-darwin-shared -DAuxid_BUILD_TESTS=OFF
+
+      - name: Build
+        run: cmake --build --preset arm64-darwin-shared --config Release
+
+      - name: Install
+        run: cmake --install out/build/arm64-darwin-shared --config Release --prefix "${{ github.workspace }}/staging/darwin"
+
+      - name: Verify install tree
+        run: test -f staging/darwin/lib/libauxid.dylib
+
+      - name: Upload staging
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-staging-arm64-darwin
+          path: staging/
+          if-no-files-found: error
+
+  build-arm64-linux:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build clang lld gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+      - name: Configure
+        run: cmake --preset arm64-linux-shared -DAuxid_BUILD_TESTS=OFF
+
+      - name: Build
+        run: cmake --build --preset arm64-linux-shared --config Release
+
+      - name: Install
+        run: cmake --install out/build/arm64-linux-shared --config Release --prefix "${{ github.workspace }}/staging/linux"
+
+      - name: Verify install tree
+        run: test -f staging/linux/lib/libauxid.so
+
+      - name: Upload staging
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-staging-arm64-linux
+          path: staging/
+          if-no-files-found: error
+
+  build-arm64-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: arm64
+
+      - name: Install LLVM and Ninja
+        run: choco install llvm ninja -y
+
+      - name: Ensure Chocolatey LLVM on PATH
+        run: |
+          echo "PATH=C:\Program Files\LLVM\bin;$env:PATH" >> $env:GITHUB_ENV
+          & "C:\Program Files\LLVM\bin\clang.exe" --version
+          & "C:\Program Files\LLVM\bin\clang++.exe" --version
+
+      - name: Configure MSVC shared
+        run: cmake --preset arm64-windows-msvc-shared -DAuxid_BUILD_TESTS=OFF
+
+      - name: Build MSVC shared
+        run: cmake --build --preset arm64-windows-msvc-shared --config Release
+
+      - name: Install MSVC shared
+        run: cmake --install out/build/arm64-windows-msvc-shared --config Release --prefix "${{ github.workspace }}/staging/win/MSVC"
+
+      - name: Configure Clang shared
+        run: cmake --preset arm64-windows-clang-shared -DAuxid_BUILD_TESTS=OFF
+
+      - name: Build Clang shared
+        run: cmake --build --preset arm64-windows-clang-shared --config Release
+
+      - name: Install Clang shared
+        run: cmake --install out/build/arm64-windows-clang-shared --config Release --prefix "${{ github.workspace }}/staging/win/Clang"
+
+      - name: Verify install tree
+        run: |
+          if (-not (Test-Path "staging/win/MSVC/bin/libauxid.dll")) { throw "Missing MSVC DLL" }
+          if (-not (Test-Path "staging/win/MSVC/lib/libauxid.lib")) { throw "Missing MSVC import lib" }
+          if (-not (Test-Path "staging/win/Clang/bin/libauxid.dll")) { throw "Missing Clang DLL" }
+          if (-not (Test-Path "staging/win/Clang/lib/libauxid.lib")) { throw "Missing Clang import lib" }
+
+      - name: Upload staging
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-staging-arm64-windows
+          path: staging/
+          if-no-files-found: error
+
+  package-x64:
+    runs-on: ubuntu-latest
+    needs:
+      - build-x64-linux
+      - build-x64-windows
+    permissions:
+      contents: read
+    steps:
+      - name: Download staging artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: package-staging-x64-*
+          path: bundle
+          merge-multiple: true
+
+      - name: Create x64 package zip
+        run: |
+          VERSION="${{ env.PACKAGE_VERSION }}"
+          SHORT="${VERSION:0:7}"
+          ZIP="auxid-x64-${SHORT}.zip"
+          cd bundle
+          zip -r "../${ZIP}" linux win
+          cd ..
+          echo "PACKAGE_ZIP=${ZIP}" >> "$GITHUB_ENV"
+          unzip -l "${ZIP}"
+
+      - name: Upload x64 package
+        uses: actions/upload-artifact@v4
+        with:
+          name: auxid-x64-package
+          path: ${{ env.PACKAGE_ZIP }}
+          if-no-files-found: error
+
+  package-arm64:
+    runs-on: ubuntu-latest
+    needs:
+      - build-arm64-darwin
+      - build-arm64-linux
+      - build-arm64-windows
+    permissions:
+      contents: read
+    steps:
+      - name: Download staging artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: package-staging-arm64-*
+          path: bundle
+          merge-multiple: true
+
+      - name: Create arm64 package zip
+        run: |
+          VERSION="${{ env.PACKAGE_VERSION }}"
+          SHORT="${VERSION:0:7}"
+          ZIP="auxid-arm64-${SHORT}.zip"
+          cd bundle
+          zip -r "../${ZIP}" darwin linux win
+          cd ..
+          echo "PACKAGE_ZIP=${ZIP}" >> "$GITHUB_ENV"
+          unzip -l "${ZIP}"
+
+      - name: Upload arm64 package
+        uses: actions/upload-artifact@v4
+        with:
+          name: auxid-arm64-package
+          path: ${{ env.PACKAGE_ZIP }}
+          if-no-files-found: error

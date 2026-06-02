@@ -52,6 +52,13 @@ jobs:
       - name: Test
         run: ctest --preset ${{ matrix.target }} --output-on-failure
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.target }}-Release
+          path: out/build/${{ matrix.target }}/Release/
+          if-no-files-found: error
+
   build-macos:
     runs-on: macos-latest
     permissions:
@@ -78,6 +85,13 @@ jobs:
 
       - name: Test
         run: ctest --preset ${{ matrix.target }} --output-on-failure
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.target }}-Release
+          path: out/build/${{ matrix.target }}/Release/
+          if-no-files-found: error
 
   sanitizers-linux:
     runs-on: ubuntu-latest
@@ -140,6 +154,13 @@ jobs:
       - name: Test
         run: ctest --preset ${{ matrix.target }} --output-on-failure
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-${{ matrix.target }}-Release
+          path: out/build/${{ matrix.target }}/Release/
+          if-no-files-found: error
+
   build-windows-clang-shared:
     runs-on: windows-latest
     permissions:
@@ -167,6 +188,13 @@ jobs:
 
       - name: Test
         run: ctest --preset x64-windows-clang-shared --output-on-failure
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-clang-shared-Release
+          path: out/build/x64-windows-clang-shared/Release/
+          if-no-files-found: error
 
   build-windows-mingw:
     runs-on: windows-latest
@@ -197,6 +225,13 @@ jobs:
         shell: msys2 {0}
         run: ctest --preset x64-windows-mingw-gcc --output-on-failure
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-mingw-Release
+          path: out/build/x64-windows-mingw-gcc/Release/
+          if-no-files-found: error
+
   build-wasm:
     runs-on: ubuntu-latest
     permissions:
@@ -224,3 +259,10 @@ jobs:
 
       - name: Test
         run: ctest --preset wasm32-emscripten --output-on-failure
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-Release
+          path: out/build/wasm32-emscripten/Release/
+          if-no-files-found: error
