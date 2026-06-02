@@ -22,14 +22,12 @@
 #  error "Auxid requires Clang/Clang-CL, native MSVC, or GCC."
 #endif
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
 #  if !defined(_MSVC_LANG) || _MSVC_LANG < 202302L
 #    error "Auxid requires C++23 or newer."
 #  endif
-#else
-#  if __cplusplus < 202302L
-#    error "Auxid requires C++23 or newer."
-#  endif
+#elif __cplusplus < 202302L
+#  error "Auxid requires C++23 or newer."
 #endif
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)

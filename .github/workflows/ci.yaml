@@ -153,6 +153,12 @@ jobs:
       - name: Install LLVM and Ninja
         run: choco install llvm ninja -y
 
+      - name: Ensure Chocolatey LLVM on PATH
+        run: |
+          echo "PATH=C:\Program Files\LLVM\bin;$env:PATH" >> $env:GITHUB_ENV
+          & "C:\Program Files\LLVM\bin\clang.exe" --version
+          & "C:\Program Files\LLVM\bin\clang++.exe" --version
+
       - name: Configure
         run: cmake --preset x64-windows-clang-shared
 

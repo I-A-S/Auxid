@@ -12,11 +12,11 @@
   </p>
 </div>
 
-## The vision
+## Overview
 
 Auxid is a platform for building modern, high-performance C++ applications using [**Rigid C++**](https://github.com/I-A-S/Rigid-Cpp) principles, delivered as a **C++23 named module**.
 
-Mainstream "modern C++" often pays for heavy template metaprogramming, slow builds, and an STL whose node-based containers and allocator model work against CPU caches and DOD-friendly layouts. Auxid keeps the language close to fast, predictable, systems-style C++ - but it doesn't reject the STL. Where the standard library is already the right tool (contiguous storage, `std::filesystem`, `std::expected`, `std::optional`, ranges/iterator concepts), **LibAuxid composes with it**; where it isn't (small-string optimization, sparse-dense hashing, scoped arenas, strict allocator control), Auxid ships its own.
+[**Rigid C++**](https://github.com/I-A-S/Rigid-Cpp) keeps runtime strict and predictable; no exceptions, no RTTI, explicit allocators, and a two-tier error model (`Result<T>` for recoverable failures, `panic()` for bugs); while using C++23's compile-time toolkit (modules, concepts) instead of deep template metaprogramming. Under **the Pragmatic STL Pact**, LibAuxid composes with the standard library when layout and error handling already fit (`std::vector` via `StdAllocatorAdapter`, non-throwing `std::filesystem`, vocabulary types and ranges); where they don't; node-based maps, global heap ownership, throwing I/O; it ships DOD-native replacements.
 
 ## Highlights
 
