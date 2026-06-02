@@ -56,7 +56,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-${{ matrix.target }}-Release
-          path: out/build/${{ matrix.target }}/Release/
+          path: |
+            out/build/${{ matrix.target }}/bin/Release/
+            out/build/${{ matrix.target }}/lib/Release/
           if-no-files-found: error
 
   build-macos:
@@ -90,7 +92,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-${{ matrix.target }}-Release
-          path: out/build/${{ matrix.target }}/Release/
+          path: |
+            out/build/${{ matrix.target }}/bin/Release/
+            out/build/${{ matrix.target }}/lib/Release/
           if-no-files-found: error
 
   sanitizers-linux:
@@ -158,7 +162,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-${{ matrix.target }}-Release
-          path: out/build/${{ matrix.target }}/Release/
+          path: |
+            out/build/${{ matrix.target }}/bin/Release/
+            out/build/${{ matrix.target }}/lib/Release/
           if-no-files-found: error
 
   build-windows-clang-shared:
@@ -193,7 +199,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-clang-shared-Release
-          path: out/build/x64-windows-clang-shared/Release/
+          path: |
+            out/build/x64-windows-clang-shared/bin/Release/
+            out/build/x64-windows-clang-shared/lib/Release/
           if-no-files-found: error
 
   build-windows-mingw:
@@ -229,7 +237,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-mingw-Release
-          path: out/build/x64-windows-mingw-gcc/Release/
+          path: |
+            out/build/x64-windows-mingw-gcc/bin/Release/
+            out/build/x64-windows-mingw-gcc/lib/Release/
           if-no-files-found: error
 
   build-wasm:
@@ -264,5 +274,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wasm-Release
-          path: out/build/wasm32-emscripten/Release/
+          path: |
+            out/build/wasm32-emscripten/bin/Release/
+            out/build/wasm32-emscripten/lib/Release/
           if-no-files-found: error
