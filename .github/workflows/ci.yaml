@@ -52,6 +52,30 @@ jobs:
       - name: Test
         run: ctest --preset ${{ matrix.target }} --output-on-failure
 
+  build-macos:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [arm64-darwin]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ninja
+        run: brew install ninja
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.target }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.target }} --config Release
+
+      - name: Test
+        run: ctest --preset ${{ matrix.target }} --output-on-failure
+
   sanitizers-linux:
     runs-on: ubuntu-latest
     permissions:

@@ -71,7 +71,7 @@ macro(auxid_setup_project)
         message(STATUS "Auxid: WASM/Emscripten target detected - using system malloc instead of rpmalloc.")
     endif()
 
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         set(THREADS_PREFER_PTHREAD_FLAG ON)
         find_package(Threads REQUIRED)
         add_compile_options(-pthread)

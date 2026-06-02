@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/license-Apache_v2-darkblue.svg" alt="License"/>
   <img src="https://img.shields.io/badge/standard-C%2B%2B23-darkred.svg" alt="C++ Standard"/>
   <img src="https://img.shields.io/badge/compiler-MSVC | Clang | GCC-darkgreen.svg" alt="Compiler"/>
-  <img src="https://img.shields.io/badge/platforms-Linux | Windows | WASM-darkslateblue.svg" alt="Platforms"/>
+  <img src="https://img.shields.io/badge/platforms-Linux | Windows | macOS | WASM-darkslateblue.svg" alt="Platforms"/>
 
   <p style="padding-top: 0.2rem;">
     <b>Auxid: The Rigid C++ Platform.</b>
@@ -27,7 +27,7 @@ Mainstream "modern C++" often pays for heavy template metaprogramming, slow buil
 - **Cache-friendly custom containers.** SwissTable-style `HashMap` / `HashSet` (SIMD 16-slot group probing with SSE2/NEON/WASM SIMD128, triangular probing, per-instance random seed) over a dense entry array, `String` with little-endian SSO, `CompactVec<T>` (u32 index) and `TinyVec<T>` (u16 index), lock-free `SpscQueue<T, N>`.
 - **Standard-algorithm friendly iterators.** `Vec`, `String`, `StringView`, and `Span` model `std::contiguous_iterator` and `std::ranges::contiguous_range`; `StringView` is a `std::ranges::borrowed_range`. `std::ranges::sort` on a `Vec<i32>` or a `String` Just Works!
 - **Lightweight smart pointers.** `Box<T>` (allocator-aware `unique_ptr`), `Arc<T>` (atomic shared), `IntrusiveArc<T>` over a `RefCounted` base.
-- **Cross-platform.** x64 / ARM64 on Linux & Windows, plus WebAssembly via Emscripten.
+- **Cross-platform.** x64 / ARM64 on Linux, Windows, and macOS (Apple Silicon), plus WebAssembly via Emscripten.
 
 ## Module map
 
@@ -130,7 +130,7 @@ Notes:
 │   └── toolchains/                   # Per-target toolchain files
 ├── CMakeLists.txt                    # Top-level; calls auxid_setup_project()
 ├── CMakePresets.json                 # Configure / build / test presets
-└── .github/workflows/ci.yaml         # Linux x64 (Clang/GCC), Windows x64, WASM CI
+└── .github/workflows/ci.yaml         # Linux x64, macOS ARM64, Windows x64, WASM CI
 ```
 
 ## Supported compilers & platforms
@@ -145,6 +145,7 @@ Notes:
   | `x64-linux-gcc`         | Ninja Multi-Config      | Linux x64 (GCC 15.2)            |
   | `arm64-linux`           | Ninja Multi-Config      | Linux ARM64 (Clang cross)       |
   | `arm64-linux-gcc`       | Ninja Multi-Config      | Linux ARM64 (GCC 15.2 cross)    |
+  | `arm64-darwin`          | Ninja Multi-Config      | macOS ARM64 (Apple Clang)       |
   | `x64-windows-clang`     | Ninja Multi-Config      | Windows x64 (Clang)             |
   | `arm64-windows-clang`   | Ninja Multi-Config      | Windows ARM64 (Clang cross)     |
   | `x64-windows-msvc`      | Ninja Multi-Config      | Windows x64 (MSVC)              |
@@ -154,7 +155,7 @@ Notes:
   | `arm64-windows`         | Visual Studio 18 2026   | Windows ARM64 (VS / MSVC)       |
   | `wasm32-emscripten`     | Ninja Multi-Config      | WebAssembly (Emscripten)        |
 
-- **CI** ([.github/workflows/ci.yaml](.github/workflows/ci.yaml)) currently covers `x64-linux`, `x64-linux-gcc`, `x64-windows`, `x64-windows-mingw-gcc` (experimental), and `wasm32-emscripten` on every push and PR to `main`.
+- **CI** ([.github/workflows/ci.yaml](.github/workflows/ci.yaml)) currently covers `x64-linux`, `arm64-darwin`, `x64-windows`, `x64-windows-mingw-gcc` (experimental), and `wasm32-emscripten` on every push and PR to `main`.
 
 ## Building & testing locally
 

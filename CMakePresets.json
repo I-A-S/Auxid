@@ -52,6 +52,11 @@
       }
     },
     {
+      "name": "arm64-darwin",
+      "displayName": "Auxid macOS ARM64 (Apple Clang)",
+      "inherits": "auxid-base"
+    },
+    {
       "name": "x64-windows-mingw-gcc",
       "displayName": "Auxid Windows x64 (MinGW GCC 15.2)",
       "inherits": "auxid-gcc-base",
@@ -231,6 +236,10 @@
       "configurePreset": "arm64-linux-gcc"
     },
     {
+      "name": "arm64-darwin",
+      "configurePreset": "arm64-darwin"
+    },
+    {
       "name": "x64-windows-mingw-gcc",
       "configurePreset": "x64-windows-mingw-gcc"
     },
@@ -326,6 +335,14 @@
     {
       "name": "x64-linux-gcc",
       "configurePreset": "x64-linux-gcc",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "arm64-darwin",
+      "configurePreset": "arm64-darwin",
       "configuration": "Release",
       "output": {
         "outputOnFailure": true

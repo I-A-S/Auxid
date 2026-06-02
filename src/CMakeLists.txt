@@ -84,13 +84,13 @@ if(MSVC AND NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
     set_source_files_properties(c/vendor/rpmalloc/rpmalloc.c PROPERTIES
             COMPILE_OPTIONS "/experimental:c11atomics"
     )
-elseif(UNIX)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set_source_files_properties(c/vendor/rpmalloc/rpmalloc.c PROPERTIES
             COMPILE_DEFINITIONS "_DEFAULT_SOURCE;_GNU_SOURCE"
     )
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_package(Threads REQUIRED)
     target_link_libraries(libauxid PUBLIC Threads::Threads)
 endif()
