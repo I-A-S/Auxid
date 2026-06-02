@@ -11,7 +11,7 @@
  *
  */
 
-#include <auxid/vendor/rpmalloc/rpmalloc.h>
+#include <rpmalloc/rpmalloc.h>
 
 #include <errno.h>
 #include <string.h>

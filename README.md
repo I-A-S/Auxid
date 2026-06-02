@@ -31,15 +31,15 @@ Mainstream "modern C++" often pays for heavy template metaprogramming, slow buil
 
 ## Module map
 
-| Module             | Source                                                                 | Contents                                                                                                       |
-| ------------------ | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `auxid`            | [src/modules/auxid.cppm](src/modules/auxid.cppm)                       | Umbrella; re-exports `core`, `memory`, `containers`, `thread`, `fs`.                                           |
-| `auxid.core`       | [src/modules/auxid-core.cppm](src/modules/auxid-core.cppm)             | Primitive aliases (`u8`..`u64`, `f32`/`f64`, `usize`), `Result<T, E>`, `panic`, `Mutex`, `Logger`, thread init. |
-| `auxid.memory`     | [src/modules/auxid-memory.cppm](src/modules/auxid-memory.cppm)         | `HeapAllocator` (rpmalloc), `ArenaAllocator`, `StdAllocatorAdapter`, `Box`, `Arc`, `IntrusiveArc`.             |
-| `auxid.containers` | [src/modules/auxid-containers.cppm](src/modules/auxid-containers.cppm) | `String`/`StringView`, `Vec`/`CompactVec`/`TinyVec`, `HashMap`/`HashSet`, `Option`, `Pair`, `Span`, `SpscQueue`, hashing.|
-| `auxid.thread`     | [src/modules/auxid-thread.cppm](src/modules/auxid-thread.cppm)         | `Thread`, `JThread`, `LockGuard`, `ConditionVariable`.                                                         |
-| `auxid.fs`         | [src/modules/auxid-fs.cppm](src/modules/auxid-fs.cppm)                 | Non-throwing `std::filesystem` wrappers returning `Result<T>`.                                                 |
-| `auxid.test`       | [src/modules/auxid-test.cppm](src/modules/auxid-test.cppm)             | `Block`, `Runner`, `AutoRegister<T>` - tiny self-registering test framework.                                   |
+| Module             | Interface                                                              | Implementation                                                                                                 | Contents                                                                                                       |
+| ------------------ | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `auxid`            | [include/auxid/auxid.ixx](include/auxid/auxid.ixx)                       | —                                                                                                              | Umbrella; re-exports `core`, `memory`, `containers`, `thread`, `fs`.                                           |
+| `auxid.core`       | [include/auxid/auxid-core.ixx](include/auxid/auxid-core.ixx)             | [src/cppm/auxid-core.cpp](src/cppm/auxid-core.cpp)                                                             | Primitive aliases (`u8`..`u64`, `f32`/`f64`, `usize`), `Result<T, E>`, `panic`, `Mutex`.                       |
+| `auxid.memory`     | [include/auxid/auxid-memory.ixx](include/auxid/auxid-memory.ixx)         | —                                                                                                              | `HeapAllocator` (rpmalloc), `ArenaAllocator`, `StdAllocatorAdapter`, `Box`, `Arc`, `IntrusiveArc`.             |
+| `auxid.containers` | [include/auxid/auxid-containers.ixx](include/auxid/auxid-containers.ixx) | [src/cppm/auxid-containers.cpp](src/cppm/auxid-containers.cpp)                                                 | `String`/`StringView`, `Vec`/`CompactVec`/`TinyVec`, `HashMap`/`HashSet`, `Option`, `Pair`, `Span`, `SpscQueue`, hashing.|
+| `auxid.thread`     | [include/auxid/auxid-thread.ixx](include/auxid/auxid-thread.ixx)         | [src/cppm/auxid-thread.cpp](src/cppm/auxid-thread.cpp)                                                         | `Thread`, `JThread`, `LockGuard`, `ConditionVariable`, thread init, `Logger`.                                |
+| `auxid.fs`         | [include/auxid/auxid-fs.ixx](include/auxid/auxid-fs.ixx)                 | —                                                                                                              | Non-throwing `std::filesystem` wrappers returning `Result<T>`.                                                 |
+| `auxid.test`       | [include/auxid/auxid-test.ixx](include/auxid/auxid-test.ixx)             | [src/cppm/auxid-test.cpp](src/cppm/auxid-test.cpp)                                                             | `Block`, `Runner`, `AutoRegister<T>` - tiny self-registering test framework.                                   |
 
 ## Quick start (CMake)
 
@@ -116,12 +116,11 @@ Notes:
 .
 ├── include/auxid/
 │   ├── macros.hpp                    # Public: AU_TRY*, platform/arch detection
-│   └── vendor/rpmalloc/              # rpmalloc headers (consumed via module impl)
+│   └── *.ixx                         # Public module interfaces (export module)
 ├── src/
-│   ├── modules/*.cppm                # Module interface units
-│   ├── cpp/                          # Module implementation units (auxid.cpp, logger.cpp)
+│   ├── cppm/*.cpp                    # Private module implementation units (module auxid.*;)
 │   ├── c/vendor/rpmalloc/            # Vendored rpmalloc C source
-│   └── h/vendor/wyhash/              # Vendored wyhash header
+│   └── h/vendor/                     # Internal header-only vendors (rpmalloc, wyhash)
 ├── tests/
 │   ├── CMakeLists.txt                # Builds the TestSuite executable
 │   └── cpp/                          # Unit tests grouped by feature

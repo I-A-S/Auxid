@@ -30,7 +30,7 @@ module;
 #    include <malloc.h>
 #  endif
 #else
-#  include <auxid/vendor/rpmalloc/rpmalloc.h>
+#  include <rpmalloc/rpmalloc.h>
 #endif
 
 export module auxid.memory;

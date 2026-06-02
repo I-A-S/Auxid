@@ -18,10 +18,11 @@ module;
 
 #include <cstdio>
 #include <cstdlib>
+#include <format>
 #include <print>
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
-#  include <auxid/vendor/rpmalloc/rpmalloc.h>
+#  include <rpmalloc/rpmalloc.h>
 #endif
 
 module auxid.thread;
@@ -142,3 +143,48 @@ namespace au::auxid
     return *get_state().thread_data[Thread::get_calling_thread_id()].logger;
   }
 } // namespace au::auxid
+
+namespace au
+{
+#define CC_RESET "\033[0m"
+#define CC_RED "\033[31m"
+#define CC_GREEN "\033[32m"
+#define CC_YELLOW "\033[33m"
+#define CC_BLUE "\033[34m"
+#define CC_MAGENTA "\033[35m"
+#define CC_CYAN "\033[36m"
+
+  Logger::Logger(Mutex &logger_mutex) : m_logger_mutex_ref(logger_mutex)
+  {
+  }
+
+  auto Logger::log_impl(ELevel level, StringView fmt, std::format_args args) -> void
+  {
+    const auto msg = String::vformat(fmt, args);
+    m_logger_mutex_ref.lock();
+    m_handler(msg.c_str(), level);
+    m_logger_mutex_ref.unlock();
+  }
+
+  auto Logger::default_handler(const char *msg, ELevel level) -> void
+  {
+    switch (level)
+    {
+    case LEVEL_TRACE:
+      std::println(stdout, CC_RESET "[TRCE]: {}" CC_RESET, msg);
+      break;
+    case LEVEL_DEBUG:
+      std::println(stdout, CC_CYAN "[DBUG]: {}" CC_RESET, msg);
+      break;
+    case LEVEL_INFO:
+      std::println(stdout, CC_GREEN "[INFO]: {}" CC_RESET, msg);
+      break;
+    case LEVEL_WARN:
+      std::println(stdout, CC_YELLOW "[WARN]: {}" CC_RESET, msg);
+      break;
+    case LEVEL_ERROR:
+      std::println(stdout, CC_RED "[EROR]: {}" CC_RESET, msg);
+      break;
+    }
+  }
+} // namespace au

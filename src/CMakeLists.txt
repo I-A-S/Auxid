@@ -10,35 +10,36 @@ endif()
 set(AUXID_CXX_FLAGS_INTERNAL "${AUXID_CXX_FLAGS_NO_EXCEPTIONS};${AUXID_CXX_FLAGS_NO_RTTI}" CACHE INTERNAL "Auxid compiler flags")
 set(AUXID_LINK_FLAGS_INTERNAL "" CACHE INTERNAL "Auxid linker flags")
 
-set(SRC_FILES
-        "cpp/auxid.cpp"
-        "cpp/containers.cpp"
-        "cpp/logger.cpp"
-        "cpp/panic.cpp"
-        "cpp/test.cpp"
-)
+set(SRC_FILES)
 
 if(NOT AUXID_USE_SYSTEM_MALLOC)
     list(APPEND SRC_FILES "c/vendor/rpmalloc/rpmalloc.c")
 endif()
 
-add_library(libauxid STATIC ${SRC_FILES})
+set(AUXID_IMPL_MODULES
+    cpp/auxid-core.cpp
+    cpp/auxid-containers.cpp
+    cpp/auxid-thread.cpp
+    cpp/auxid-test.cpp
+)
+
+add_library(libauxid STATIC ${SRC_FILES} ${AUXID_IMPL_MODULES})
 
 if(AUXID_USE_SYSTEM_MALLOC)
     target_compile_definitions(libauxid PUBLIC AUXID_USE_SYSTEM_MALLOC=1)
 endif()
 
 target_sources(libauxid
-    PUBLIC FILE_SET auxid_modules TYPE CXX_MODULES
-        BASE_DIRS "${CMAKE_CURRENT_LIST_DIR}/modules"
+    PUBLIC FILE_SET auxid_interfaces TYPE CXX_MODULES
+        BASE_DIRS "${AUXID_ROOT}/src/ixx"
         FILES
-            "${CMAKE_CURRENT_LIST_DIR}/modules/auxid.cppm"
-            "${CMAKE_CURRENT_LIST_DIR}/modules/auxid-core.cppm"
-            "${CMAKE_CURRENT_LIST_DIR}/modules/auxid-memory.cppm"
-            "${CMAKE_CURRENT_LIST_DIR}/modules/auxid-containers.cppm"
-            "${CMAKE_CURRENT_LIST_DIR}/modules/auxid-thread.cppm"
-            "${CMAKE_CURRENT_LIST_DIR}/modules/auxid-fs.cppm"
-            "${CMAKE_CURRENT_LIST_DIR}/modules/auxid-test.cppm"
+            "${AUXID_ROOT}/src/ixx/auxid.ixx"
+            "${AUXID_ROOT}/src/ixx/auxid-core.ixx"
+            "${AUXID_ROOT}/src/ixx/auxid-memory.ixx"
+            "${AUXID_ROOT}/src/ixx/auxid-containers.ixx"
+            "${AUXID_ROOT}/src/ixx/auxid-thread.ixx"
+            "${AUXID_ROOT}/src/ixx/auxid-fs.ixx"
+            "${AUXID_ROOT}/src/ixx/auxid-test.ixx"
 )
 set_target_properties(libauxid PROPERTIES CXX_SCAN_FOR_MODULES ON)
 
@@ -69,11 +70,9 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(libauxid PRIVATE
         -Wno-subobject-linkage
     )
-    # GCC 15: -O3 causes an internal compiler error with GCC 15.2 on auxid-test.cppm (alias/nonnull on memcpy).
-    # Override -O2 with -O3 on this TU only.
     set_source_files_properties(
-        FILE_SET auxid_modules
-        FILES "${CMAKE_CURRENT_LIST_DIR}/modules/auxid-test.cppm"
+        cpp/auxid-test.cpp
+        
         TARGET libauxid
         PROPERTIES
             COMPILE_OPTIONS "-O2"

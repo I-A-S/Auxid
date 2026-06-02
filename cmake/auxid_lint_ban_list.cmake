@@ -29,8 +29,8 @@ get_filename_component(_auxid_root "${AUXID_SRC_DIR}" DIRECTORY)
 file(GLOB_RECURSE _scan_files
     LIST_DIRECTORIES false
     "${AUXID_SRC_DIR}/cpp/*.cpp"
-    "${AUXID_SRC_DIR}/cpp/*.hpp"
-    "${AUXID_SRC_DIR}/modules/*.cppm"
+    "${AUXID_SRC_DIR}/ixx/*.ixx"
+    "${_auxid_root}/include/auxid/*.hpp"
     "${_auxid_root}/tests/cpp/*.cpp"
     "${_auxid_root}/tests/cpp/**/*.cpp"
 )
