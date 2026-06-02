@@ -141,10 +141,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install build dependencies
+      - name: Install Ninja
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
+      - name: Install Clang 20
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ninja-build clang lld gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 20
+          sudo ln -sf /usr/bin/clang-20   /usr/bin/clang
+          sudo ln -sf /usr/bin/clang++-20 /usr/bin/clang++
+          clang --version
+          clang++ --version
+
+      - name: Install ARM64 cross toolchain
+        run: |
+          sudo apt-get install -y \
+            gcc-aarch64-linux-gnu \
+            g++-aarch64-linux-gnu \
+            libc6-dev-arm64-cross
+          sudo apt-get install -y libstdc++-14-dev-arm64-cross || \
+            sudo apt-get install -y libstdc++-13-dev-arm64-cross
 
       - name: Configure
         run: cmake --preset arm64-linux-shared -DAuxid_BUILD_TESTS=OFF
@@ -174,7 +191,7 @@ jobs:
 
       - uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: arm64
+          arch: amd64_arm
 
       - name: Install LLVM and Ninja
         run: choco install llvm ninja -y

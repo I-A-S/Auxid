@@ -32,6 +32,10 @@ endif()
 add_library(libauxid ${_AUXID_LIB_TYPE} ${SRC_FILES} ${AUXID_IMPL_MODULES})
 message(STATUS "Auxid: libauxid library type = ${_AUXID_LIB_TYPE}")
 
+if(NOT WIN32)
+    set_target_properties(libauxid PROPERTIES OUTPUT_NAME auxid)
+endif()
+
 if(Auxid_BUILD_SHARED)
     target_compile_definitions(libauxid
         PUBLIC  AUXID_SHARED_BUILD=1
