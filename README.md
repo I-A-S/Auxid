@@ -146,6 +146,7 @@ Notes:
   | `arm64-linux-gcc`       | Ninja Multi-Config      | Linux ARM64 (GCC 15.2 cross)    |
   | `arm64-darwin`          | Ninja Multi-Config      | macOS ARM64 (Homebrew LLVM Clang) |
   | `x64-windows-clang`     | Ninja Multi-Config      | Windows x64 (Clang)             |
+  | `x64-windows-clang-shared` | Ninja Multi-Config   | Windows x64 (Clang, shared `libauxid`) |
   | `arm64-windows-clang`   | Ninja Multi-Config      | Windows ARM64 (Clang cross)     |
   | `x64-windows-msvc`      | Ninja Multi-Config      | Windows x64 (MSVC)              |
   | `arm64-windows-msvc`    | Ninja Multi-Config      | Windows ARM64 (MSVC)            |
@@ -154,15 +155,18 @@ Notes:
   | `arm64-windows`         | Visual Studio 18 2026   | Windows ARM64 (VS / MSVC)       |
   | `wasm32-emscripten`     | Ninja Multi-Config      | WebAssembly (Emscripten)        |
 
-- **CI** ([.github/workflows/ci.yaml](.github/workflows/ci.yaml)) currently covers `x64-linux`, `arm64-darwin`, `x64-windows`, `x64-windows-mingw-gcc` (experimental), and `wasm32-emscripten` on every push and PR to `main`.
+- **CI** ([.github/workflows/ci.yaml](.github/workflows/ci.yaml)) currently covers `x64-linux`, `arm64-darwin`, `x64-windows`, `x64-windows-clang-shared`, `x64-windows-mingw-gcc`, and `wasm32-emscripten` on every push and PR to `main`.
 
 ## Building & testing locally
 
-By default, `libauxid` is built as a **static** library. Pass `-DAuxid_BUILD_SHARED=ON` (or set `Auxid_BUILD_SHARED` in a preset's `cacheVariables`) to build a shared library instead. `Auxid_BUILD_SHARED` is not supported on Emscripten/WASM (configure fails if enabled). FetchContent consumers set the cache variable before `FetchContent_MakeAvailable(auxid)`.
+By default, `libauxid` is built as a static library. 
 
-Shared builds define `AUXID_SHARED_BUILD` for consumers (import) and `AUXID_BUILDING_LIBRARY` when compiling `libauxid` itself (export). Out-of-line public symbols use the `AUXID_API` macro from [include/auxid/api.h](include/auxid/api.h) (`__declspec(dllexport/dllimport)` on Windows, default visibility on ELF when building the shared object). On Windows, `libauxid` also enables `WINDOWS_EXPORT_ALL_SYMBOLS` so C++ module interface symbols (templates, inline methods) remain linkable from the import library; ELF shared builds use hidden visibility with explicit `AUXID_API` exports instead.
-
-Pick a preset that matches your toolchain, then:
+- Pass `-DAuxid_BUILD_SHARED=ON` to build a shared library instead. 
+- `Auxid_BUILD_SHARED` is not supported on Emscripten/WASM. 
+- FetchContent consumers set the cache variable before `FetchContent_MakeAvailable(auxid)`.
+- Shared builds define `AUXID_SHARED_BUILD` for consumers (import) and `AUXID_BUILDING_LIBRARY` when compiling `libauxid` itself (export). 
+- Out-of-line public symbols use the `AUXID_API` macro from [include/auxid/api.hpp](include/auxid/api.hpp).
+- On Windows, `libauxid` also enables `WINDOWS_EXPORT_ALL_SYMBOLS` so C++ module interface symbols (templates, inline methods) remain linkable from the import library; ELF shared builds use hidden visibility with explicit `AUXID_API` exports instead.
 
 On macOS (Apple Silicon), install LLVM and Ninja first:
 
@@ -184,9 +188,9 @@ ctest --preset x64-windows-clang --output-on-failure
 Shared library example:
 
 ```bash
-cmake --preset x64-windows-clang -DAuxid_BUILD_SHARED=ON
-cmake --build --preset x64-windows-clang --config Release
-ctest --preset x64-windows-clang --output-on-failure
+cmake --preset x64-windows-clang-shared
+cmake --build --preset x64-windows-clang-shared --config Release
+ctest --preset x64-windows-clang-shared --output-on-failure
 ```
 
 Tests are wired into a single `TestSuite` executable (see [tests/CMakeLists.txt](tests/CMakeLists.txt)); every translation unit under [tests/cpp/](tests/cpp/) self-registers via `test::AutoRegister<BlockType>`.

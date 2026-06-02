@@ -140,6 +140,28 @@ jobs:
       - name: Test
         run: ctest --preset ${{ matrix.target }} --output-on-failure
 
+  build-windows-clang-shared:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install LLVM and Ninja
+        run: choco install llvm ninja -y
+
+      - name: Configure
+        run: cmake --preset x64-windows-clang-shared
+
+      - name: Build
+        run: cmake --build --preset x64-windows-clang-shared --config Release
+
+      - name: Test
+        run: ctest --preset x64-windows-clang-shared --output-on-failure
+
   build-windows-mingw:
     runs-on: windows-latest
     continue-on-error: true
