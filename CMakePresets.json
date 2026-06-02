@@ -53,8 +53,12 @@
     },
     {
       "name": "arm64-darwin",
-      "displayName": "Auxid macOS ARM64 (Apple Clang)",
-      "inherits": "auxid-base"
+      "displayName": "Auxid macOS ARM64 (LLVM Clang)",
+      "inherits": "auxid-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
+        "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm/bin/clang++"
+      }
     },
     {
       "name": "x64-windows-mingw-gcc",

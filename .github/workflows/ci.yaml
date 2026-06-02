@@ -64,8 +64,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Ninja
-        run: brew install ninja
+      - name: Install LLVM and Ninja
+        run: |
+          brew install llvm ninja
+          $(brew --prefix llvm)/bin/clang --version
+          $(brew --prefix llvm)/bin/clang++ --version
 
       - name: Configure
         run: cmake --preset ${{ matrix.target }}

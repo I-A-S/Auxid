@@ -135,7 +135,7 @@ Notes:
 
 ## Supported compilers & platforms
 
-- **Compilers** (configure-time enforced): Clang, Clang-CL, native MSVC, GCC 15.2+.
+- **Compilers** (configure-time enforced): Clang, Clang-CL, native MSVC, GCC 15.2+. macOS requires **Homebrew LLVM Clang** (`brew install llvm`); AppleClang is not supported (C++ modules).
 - **Architectures** (auto-detected, exposes `AUXID_ARCH_X64` / `AUXID_ARCH_ARM64` / `AUXID_ARCH_WASM`): x86_64, ARM64, WebAssembly (Emscripten forces `AUXID_USE_SYSTEM_MALLOC`).
 - **Configure presets** from [CMakePresets.json](CMakePresets.json):
 
@@ -145,7 +145,7 @@ Notes:
   | `x64-linux-gcc`         | Ninja Multi-Config      | Linux x64 (GCC 15.2)            |
   | `arm64-linux`           | Ninja Multi-Config      | Linux ARM64 (Clang cross)       |
   | `arm64-linux-gcc`       | Ninja Multi-Config      | Linux ARM64 (GCC 15.2 cross)    |
-  | `arm64-darwin`          | Ninja Multi-Config      | macOS ARM64 (Apple Clang)       |
+  | `arm64-darwin`          | Ninja Multi-Config      | macOS ARM64 (Homebrew LLVM Clang) |
   | `x64-windows-clang`     | Ninja Multi-Config      | Windows x64 (Clang)             |
   | `arm64-windows-clang`   | Ninja Multi-Config      | Windows ARM64 (Clang cross)     |
   | `x64-windows-msvc`      | Ninja Multi-Config      | Windows x64 (MSVC)              |
@@ -160,6 +160,17 @@ Notes:
 ## Building & testing locally
 
 Pick a preset that matches your toolchain, then:
+
+On macOS (Apple Silicon), install LLVM and Ninja first:
+
+```bash
+brew install llvm ninja
+cmake --preset arm64-darwin
+cmake --build --preset arm64-darwin --config Release
+ctest --preset arm64-darwin --output-on-failure
+```
+
+Other platforms:
 
 ```bash
 cmake --preset x64-windows-clang

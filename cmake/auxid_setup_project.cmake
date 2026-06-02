@@ -16,8 +16,14 @@
 
 macro(auxid_setup_project)
 
-    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|AppleClang|MSVC|GNU)$")
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|MSVC|GNU)$")
         message(FATAL_ERROR "Auxid requires Clang, Clang-CL, native MSVC, or GCC 15.2+. Current compiler detected: ${CMAKE_CXX_COMPILER_ID}")
+    endif()
+
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+        message(FATAL_ERROR
+            "Auxid does not support AppleClang (insufficient C++ module support). "
+            "On macOS, install LLVM Clang via Homebrew (brew install llvm) and use the arm64-darwin preset.")
     endif()
 
     set(CMAKE_CXX_STANDARD 23)

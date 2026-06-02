@@ -33,7 +33,7 @@ function(auxid_apply_sanitizers)
         message(FATAL_ERROR "AUXID_SANITIZER is not supported on Emscripten")
     endif()
 
-    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|AppleClang|GNU)$")
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|GNU)$")
         message(FATAL_ERROR
             "AUXID_SANITIZER requires Clang or GCC (got '${CMAKE_CXX_COMPILER_ID}')")
     endif()

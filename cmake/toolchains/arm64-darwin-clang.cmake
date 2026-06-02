@@ -16,3 +16,10 @@
 
 set(CMAKE_SYSTEM_NAME Darwin)
 set(CMAKE_SYSTEM_PROCESSOR arm64)
+
+set(_auxid_llvm_root "/opt/homebrew/opt/llvm")
+if(NOT EXISTS "${_auxid_llvm_root}/bin/clang++")
+    message(FATAL_ERROR
+        "Auxid on macOS requires Homebrew LLVM Clang (brew install llvm). "
+        "Expected compiler at: ${_auxid_llvm_root}/bin/clang++")
+endif()
