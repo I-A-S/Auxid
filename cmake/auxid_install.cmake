@@ -48,6 +48,9 @@ foreach(_auxid_ixx IN LISTS _auxid_ixx_files)
     get_filename_component(_auxid_name \"\${_auxid_ixx}\" NAME_WE)
     file(RENAME \"\${_auxid_ixx}\" \"\${_auxid_module_dir}/\${_auxid_name}.cppm\")
 endforeach()
+if(EXISTS \"\${_auxid_module_dir}/auxid-test.cppm\")
+    file(REMOVE \"\${_auxid_module_dir}/auxid-test.cppm\")
+endif()
 ")
 
 install(EXPORT AuxidTargets

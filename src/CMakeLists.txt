@@ -62,9 +62,6 @@ target_sources(libauxid
             "${AUXID_ROOT}/src/ixx/auxid-containers.ixx"
             "${AUXID_ROOT}/src/ixx/auxid-thread.ixx"
             "${AUXID_ROOT}/src/ixx/auxid-fs.ixx"
-    PRIVATE FILE_SET auxid_test_interface TYPE CXX_MODULES
-        BASE_DIRS "${AUXID_ROOT}/src/ixx"
-        FILES
             "${AUXID_ROOT}/src/ixx/auxid-test.ixx"
 )
 set_target_properties(libauxid PROPERTIES CXX_SCAN_FOR_MODULES ON)
