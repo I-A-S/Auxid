@@ -46,7 +46,7 @@ Auxid is a platform for building modern, high-performance C++ applications using
 LibAuxid is meant to drop into an existing CMake project via `FetchContent`. **CMake 3.28+** is required (for `target_sources` `FILE_SET CXX_MODULES`).
 
 ```cmake
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.29)
 project(MyRigidEngine CXX)
 
 include(FetchContent)
