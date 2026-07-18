@@ -136,7 +136,11 @@ jobs:
           TSAN_OPTIONS: halt_on_error=1
 
   build-windows:
-    runs-on: windows-latest
+    # VS 2026's MSVC 14.51 crashes while importing auxid.core from the
+    # auxid.thread implementation unit (C1116 in <stop_token>). Keep the
+    # native MSVC lane on the stable v143 toolset until that compiler ICE is
+    # fixed; the separate LLVM/Clang Windows lane remains on windows-latest.
+    runs-on: windows-2022
     permissions:
       contents: read
     strategy:
