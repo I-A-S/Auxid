@@ -69,8 +69,8 @@ if(Auxid_BUILD_TESTS)
   add_test(
     NAME RigidCppBanList
     COMMAND ${CMAKE_COMMAND}
-            -DAUXID_SRC_DIR=${CMAKE_SOURCE_DIR}/src
-            -P ${CMAKE_SOURCE_DIR}/cmake/auxid_lint_ban_list.cmake
+            -DAUXID_SRC_DIR=${AUXID_ROOT}/src
+            -P ${AUXID_ROOT}/cmake/auxid_lint_ban_list.cmake
   )
 endif()
 

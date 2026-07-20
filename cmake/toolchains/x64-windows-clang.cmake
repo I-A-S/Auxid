@@ -31,3 +31,44 @@ set(CMAKE_LINKER lld-link)
 
 string(APPEND CMAKE_C_FLAGS   " -mavx2 -mfma")
 string(APPEND CMAKE_CXX_FLAGS " -mavx2 -mfma")
+
+# Clang otherwise selects the numerically newest Windows Kit even when that
+# installation is partial (for example, kernel-mode headers without UCRT).
+# Select the newest complete SDK explicitly so standard C headers and link
+# libraries always come from the same version.
+file(GLOB _auxid_windows_sdk_candidates LIST_DIRECTORIES TRUE
+    "$ENV{ProgramFiles\(x86\)}/Windows Kits/10/Include/*")
+list(SORT _auxid_windows_sdk_candidates COMPARE NATURAL ORDER DESCENDING)
+foreach(_auxid_windows_sdk_include IN LISTS _auxid_windows_sdk_candidates)
+    if(IS_DIRECTORY "${_auxid_windows_sdk_include}/ucrt"
+       AND IS_DIRECTORY "${_auxid_windows_sdk_include}/shared"
+       AND IS_DIRECTORY "${_auxid_windows_sdk_include}/um")
+        get_filename_component(_auxid_windows_sdk_version "${_auxid_windows_sdk_include}" NAME)
+        set(_auxid_windows_sdk_lib "$ENV{ProgramFiles\(x86\)}/Windows Kits/10/Lib/${_auxid_windows_sdk_version}")
+        if(NOT IS_DIRECTORY "${_auxid_windows_sdk_lib}/ucrt/x64"
+           OR NOT IS_DIRECTORY "${_auxid_windows_sdk_lib}/um/x64")
+            continue()
+        endif()
+
+        set(CMAKE_SYSTEM_VERSION "${_auxid_windows_sdk_version}")
+        foreach(_auxid_windows_sdk_component ucrt shared um winrt cppwinrt)
+            if(IS_DIRECTORY "${_auxid_windows_sdk_include}/${_auxid_windows_sdk_component}")
+                string(APPEND CMAKE_C_FLAGS
+                    " -isystem \"${_auxid_windows_sdk_include}/${_auxid_windows_sdk_component}\"")
+                string(APPEND CMAKE_CXX_FLAGS
+                    " -isystem \"${_auxid_windows_sdk_include}/${_auxid_windows_sdk_component}\"")
+            endif()
+        endforeach()
+        set(_auxid_windows_sdk_link_flags
+            " -Xlinker \"/libpath:${_auxid_windows_sdk_lib}/ucrt/x64\" -Xlinker \"/libpath:${_auxid_windows_sdk_lib}/um/x64\"")
+        string(APPEND CMAKE_EXE_LINKER_FLAGS "${_auxid_windows_sdk_link_flags}")
+        string(APPEND CMAKE_SHARED_LINKER_FLAGS "${_auxid_windows_sdk_link_flags}")
+        string(APPEND CMAKE_MODULE_LINKER_FLAGS "${_auxid_windows_sdk_link_flags}")
+        message(STATUS "Auxid: Clang using complete Windows SDK ${_auxid_windows_sdk_version}")
+        break()
+    endif()
+endforeach()
+
+if(NOT _auxid_windows_sdk_version)
+    message(FATAL_ERROR "Auxid: no complete Windows 10 SDK with UCRT and x64 libraries was found")
+endif()
