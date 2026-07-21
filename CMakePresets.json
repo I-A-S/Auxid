@@ -104,6 +104,24 @@
       }
     },
     {
+      "name": "x64-darwin",
+      "displayName": "Auxid macOS Intel (LLVM Clang)",
+      "inherits": "auxid-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/local/opt/llvm/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/local/opt/llvm/bin/clang++",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/x64-darwin-clang.cmake"
+      }
+    },
+    {
+      "name": "x64-darwin-shared",
+      "displayName": "Auxid macOS Intel (LLVM Clang, Shared lib)",
+      "inherits": "x64-darwin",
+      "cacheVariables": {
+        "Auxid_BUILD_SHARED": "ON"
+      }
+    },
+    {
       "name": "x64-windows-mingw-gcc",
       "displayName": "Auxid Windows x64 (MinGW GCC 15.2)",
       "inherits": "auxid-gcc-base",
