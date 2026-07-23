@@ -57,6 +57,11 @@ foreach(_auxid_windows_sdk_include IN LISTS _auxid_windows_sdk_candidates)
                     " -isystem \"${_auxid_windows_sdk_include}/${_auxid_windows_sdk_component}\"")
                 string(APPEND CMAKE_CXX_FLAGS
                     " -isystem \"${_auxid_windows_sdk_include}/${_auxid_windows_sdk_component}\"")
+                # CMake preprocesses .rc files in a separate clang -> llvm-rc
+                # pipeline, so C/C++ flags do not supply the Windows SDK headers
+                # needed by resources such as axiom.rc.
+                string(APPEND CMAKE_RC_FLAGS
+                    " -I \"${_auxid_windows_sdk_include}/${_auxid_windows_sdk_component}\"")
             endif()
         endforeach()
         set(_auxid_windows_sdk_link_flags
