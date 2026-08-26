@@ -21,6 +21,10 @@ module;
 
 #include <cerrno>
 #include <cstdlib>
+// Textual <filesystem>: this TU does Path codegen; relying only on the
+// module-imported declarations ICEs Homebrew LLVM 22.1.8 on macOS
+// (crash emitting std::__libcpp_allocate for module-reachable decls).
+#include <filesystem>
 #include <string_view>
 #include <utility>
 
@@ -229,7 +233,17 @@ namespace au::env
       return std::move(*found);
     }
 
-    [[nodiscard]] auto temp_base() -> Result<filesystem::Path>
+    // Paths are assembled as au::String and converted to Path exactly once
+    // at the return: keeps libc++ path instantiations (operator/, copies)
+    // out of this TU — Homebrew LLVM 22.1.8 ICEs on heavy path codegen here.
+    [[nodiscard]] auto joined(String base, StringView leaf) -> String
+    {
+      base.append("/");
+      base.append(leaf);
+      return base;
+    }
+
+    [[nodiscard]] auto temp_base() -> Result<String>
     {
 #if AU_PLATFORM_WINDOWS
       auto temp = find("TEMP");
@@ -237,111 +251,128 @@ namespace au::env
         temp = find("TMP");
       if (!temp.has_value())
         return fail("standard_dir: neither TEMP nor TMP is set");
-      return path_from_utf8(StringView(temp->data(), temp->size()));
+      return std::move(*temp);
 #else
       auto temp = find("TMPDIR");
       if (temp.has_value())
-        return path_from_utf8(StringView(temp->data(), temp->size()));
-      return filesystem::Path("/tmp");
+        return std::move(*temp);
+      return String("/tmp");
 #endif
     }
 
-    [[nodiscard]] auto var_or_home_suffix(const char *var, const char *home_suffix)
-        -> Result<filesystem::Path>
+    [[nodiscard]] auto var_or_home_suffix(const char *var, const char *home_suffix) -> Result<String>
     {
       auto explicit_dir = find(var);
       if (explicit_dir.has_value())
-        return path_from_utf8(StringView(explicit_dir->data(), explicit_dir->size()));
+        return std::move(*explicit_dir);
       AU_TRY_VAR(home, required_var("HOME"));
-      return path_from_utf8(StringView(home.data(), home.size())) / home_suffix;
+      return joined(std::move(home), home_suffix);
     }
   } // namespace
 
   // The per-OS mapping table is normative in docs/OS-CONTRACT.md; this is it.
   AUXID_API auto standard_dir(StandardDir dir, StringView app_name) -> Result<filesystem::Path>
   {
-    const filesystem::Path app = path_from_utf8(app_name);
+    auto build_dir = [&](Result<String> base_res) -> Result<String> {
+      AU_TRY_VAR(base, std::move(base_res));
+      return joined(std::move(base), app_name);
+    };
+
+    Result<String> resolved = fail("standard_dir: unknown StandardDir value");
 
 #if AU_PLATFORM_WINDOWS
     switch (dir)
     {
-    case StandardDir::Home: {
-      AU_TRY_VAR(home, required_var("USERPROFILE"));
-      return path_from_utf8(StringView(home.data(), home.size()));
-    }
+    case StandardDir::Home:
+      resolved = required_var("USERPROFILE");
+      break;
     case StandardDir::Temp:
-      return temp_base();
-    case StandardDir::Config: {
-      AU_TRY_VAR(base, required_var("APPDATA"));
-      return path_from_utf8(StringView(base.data(), base.size())) / app;
-    }
-    case StandardDir::Data: {
-      AU_TRY_VAR(base, required_var("LOCALAPPDATA"));
-      return path_from_utf8(StringView(base.data(), base.size())) / app;
-    }
+      resolved = temp_base();
+      break;
+    case StandardDir::Config:
+      resolved = build_dir(required_var("APPDATA"));
+      break;
+    case StandardDir::Data:
+      resolved = build_dir(required_var("LOCALAPPDATA"));
+      break;
     case StandardDir::Cache: {
-      AU_TRY_VAR(base, required_var("LOCALAPPDATA"));
-      return path_from_utf8(StringView(base.data(), base.size())) / app / "cache";
+      auto base = build_dir(required_var("LOCALAPPDATA"));
+      if (base.is_ok())
+        resolved = joined(std::move(base.unwrap()), "cache");
+      else
+        resolved = std::move(base);
+      break;
     }
     case StandardDir::Runtime: {
-      AU_TRY_VAR(base, required_var("LOCALAPPDATA"));
-      return path_from_utf8(StringView(base.data(), base.size())) / app / "runtime";
+      auto base = build_dir(required_var("LOCALAPPDATA"));
+      if (base.is_ok())
+        resolved = joined(std::move(base.unwrap()), "runtime");
+      else
+        resolved = std::move(base);
+      break;
     }
     }
 #elif defined(AU_PLATFORM_APPLE)
     switch (dir)
     {
-    case StandardDir::Home: {
-      AU_TRY_VAR(home, required_var("HOME"));
-      return path_from_utf8(StringView(home.data(), home.size()));
-    }
+    case StandardDir::Home:
+      resolved = required_var("HOME");
+      break;
     case StandardDir::Temp:
-      return temp_base();
+      resolved = temp_base();
+      break;
     case StandardDir::Config:
     case StandardDir::Data: {
-      AU_TRY_VAR(home, required_var("HOME"));
-      return path_from_utf8(StringView(home.data(), home.size())) / "Library/Application Support" / app;
+      auto home = required_var("HOME");
+      if (home.is_ok())
+        resolved = joined(joined(std::move(home.unwrap()), "Library/Application Support"),
+                          app_name);
+      else
+        resolved = std::move(home);
+      break;
     }
     case StandardDir::Cache: {
-      AU_TRY_VAR(home, required_var("HOME"));
-      return path_from_utf8(StringView(home.data(), home.size())) / "Library/Caches" / app;
+      auto home = required_var("HOME");
+      if (home.is_ok())
+        resolved = joined(joined(std::move(home.unwrap()), "Library/Caches"), app_name);
+      else
+        resolved = std::move(home);
+      break;
     }
-    case StandardDir::Runtime: {
-      AU_TRY_VAR(temp, temp_base());
-      return temp / app;
-    }
+    case StandardDir::Runtime:
+      resolved = build_dir(temp_base());
+      break;
     }
 #else
     switch (dir)
     {
-    case StandardDir::Home: {
-      AU_TRY_VAR(home, required_var("HOME"));
-      return path_from_utf8(StringView(home.data(), home.size()));
-    }
+    case StandardDir::Home:
+      resolved = required_var("HOME");
+      break;
     case StandardDir::Temp:
-      return temp_base();
-    case StandardDir::Config: {
-      AU_TRY_VAR(base, var_or_home_suffix("XDG_CONFIG_HOME", ".config"));
-      return base / app;
-    }
-    case StandardDir::Data: {
-      AU_TRY_VAR(base, var_or_home_suffix("XDG_DATA_HOME", ".local/share"));
-      return base / app;
-    }
-    case StandardDir::Cache: {
-      AU_TRY_VAR(base, var_or_home_suffix("XDG_CACHE_HOME", ".cache"));
-      return base / app;
-    }
+      resolved = temp_base();
+      break;
+    case StandardDir::Config:
+      resolved = build_dir(var_or_home_suffix("XDG_CONFIG_HOME", ".config"));
+      break;
+    case StandardDir::Data:
+      resolved = build_dir(var_or_home_suffix("XDG_DATA_HOME", ".local/share"));
+      break;
+    case StandardDir::Cache:
+      resolved = build_dir(var_or_home_suffix("XDG_CACHE_HOME", ".cache"));
+      break;
     case StandardDir::Runtime: {
       auto runtime = find("XDG_RUNTIME_DIR");
       if (runtime.has_value())
-        return path_from_utf8(StringView(runtime->data(), runtime->size())) / app;
-      AU_TRY_VAR(temp, temp_base());
-      return temp / app; // honest fallback, documented in the contract
+        resolved = joined(std::move(*runtime), app_name);
+      else
+        resolved = build_dir(temp_base()); // honest fallback, documented in the contract
+      break;
     }
     }
 #endif
 
-    return fail("standard_dir: unknown StandardDir value");
+    AU_TRY_VAR(final_path, std::move(resolved));
+    return path_from_utf8(StringView(final_path.data(), final_path.size()));
   }
 } // namespace au::env
