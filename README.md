@@ -23,6 +23,7 @@ Auxid is a platform for building modern, high-performance C++ applications using
 - **Modules-first API.** A single `import auxid;` gives you everything; tests pull in `import auxid.test;` separately. No mega-headers, no precompiled-headers.
 - **No exceptions, ever.** `libauxid` propagates `-fno-exceptions` / `/EHs-c-` to every consumer via `PUBLIC` compile options. Errors flow through `Result<T>` and `AU_TRY`.
 - **Strong allocators.** Integrated [rpmalloc](https://github.com/mjansson/rpmalloc) thread-caching heap, plus an `ArenaAllocator` for scoped bump-allocation. Both satisfy a single `memory::AllocatorType` concept, and `StdAllocatorAdapter` plugs them into standard containers.
+- **Foreign-thread safe.** `HeapAllocator` works from threads Auxid never touched (embedded-engine callbacks, OS thread pools): rpmalloc lazily creates the thread heap on first allocation and finalizes it on thread exit; cross-thread frees route through atomic deferred lists. The thread guards remain the normal path — they also own the per-thread logger.
 - **STL interop built in.** `Vec<T>` is `std::vector<T, StdAllocatorAdapter<T, A>>`, `Pair` / `Span` are direct std aliases, `Result<T, E>` round-trips with `std::expected`, `Option<T>` round-trips with `std::optional`, and `auxid::filesystem` wraps `std::filesystem` with non-throwing `Result<T>` returns.
 - **Cache-friendly custom containers.** SwissTable-style `HashMap` / `HashSet` (SIMD 16-slot group probing with SSE2/NEON/WASM SIMD128, triangular probing, per-instance random seed) over a dense entry array, `String` with little-endian SSO, `CompactVec<T>` (u32 index) and `TinyVec<T>` (u16 index), lock-free `SpscQueue<T, N>`.
 - **Standard-algorithm friendly iterators.** `Vec`, `String`, `StringView`, and `Span` model `std::contiguous_iterator` and `std::ranges::contiguous_range`; `StringView` is a `std::ranges::borrowed_range`. `std::ranges::sort` on a `Vec<i32>` or a `String` Just Works!
@@ -33,13 +34,13 @@ Auxid is a platform for building modern, high-performance C++ applications using
 
 | Module             | Interface                                                              | Implementation                                                                                                 | Contents                                                                                                       |
 | ------------------ | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `auxid`            | [include/auxid/auxid.ixx](include/auxid/auxid.ixx)                       | —                                                                                                              | Umbrella; re-exports `core`, `memory`, `containers`, `thread`, `fs`.                                           |
-| `auxid.core`       | [include/auxid/auxid-core.ixx](include/auxid/auxid-core.ixx)             | [src/cppm/auxid-core.cpp](src/cppm/auxid-core.cpp)                                                             | Primitive aliases (`u8`..`u64`, `f32`/`f64`, `usize`), `Result<T, E>`, `panic`, `Mutex`.                       |
-| `auxid.memory`     | [include/auxid/auxid-memory.ixx](include/auxid/auxid-memory.ixx)         | —                                                                                                              | `HeapAllocator` (rpmalloc), `ArenaAllocator`, `StdAllocatorAdapter`, `Box`, `Arc`, `IntrusiveArc`.             |
-| `auxid.containers` | [include/auxid/auxid-containers.ixx](include/auxid/auxid-containers.ixx) | [src/cppm/auxid-containers.cpp](src/cppm/auxid-containers.cpp)                                                 | `String`/`StringView`, `Vec`/`CompactVec`/`TinyVec`, `HashMap`/`HashSet`, `Option`, `Pair`, `Span`, `SpscQueue`, hashing.|
-| `auxid.thread`     | [include/auxid/auxid-thread.ixx](include/auxid/auxid-thread.ixx)         | [src/cppm/auxid-thread.cpp](src/cppm/auxid-thread.cpp)                                                         | `Thread`, `JThread`, `LockGuard`, `ConditionVariable`, thread init, `Logger`.                                |
-| `auxid.fs`         | [include/auxid/auxid-fs.ixx](include/auxid/auxid-fs.ixx)                 | —                                                                                                              | Non-throwing `std::filesystem` wrappers returning `Result<T>`.                                                 |
-| `auxid.test`       | [include/auxid/auxid-test.ixx](include/auxid/auxid-test.ixx)             | [src/cppm/auxid-test.cpp](src/cppm/auxid-test.cpp)                                                             | `Block`, `Runner`, `AutoRegister<T>` - tiny self-registering test framework.                                   |
+| `auxid`            | [src/ixx/auxid.ixx](src/ixx/auxid.ixx)                       | —                                                                                                              | Umbrella; re-exports `core`, `memory`, `containers`, `thread`, `fs`.                                           |
+| `auxid.core`       | [src/ixx/auxid-core.ixx](src/ixx/auxid-core.ixx)             | [src/cpp/auxid-core.cpp](src/cpp/auxid-core.cpp)                                                             | Primitive aliases (`u8`..`u64`, `f32`/`f64`, `usize`), `Result<T, E>`, `panic`, `Mutex`.                       |
+| `auxid.memory`     | [src/ixx/auxid-memory.ixx](src/ixx/auxid-memory.ixx)         | —                                                                                                              | `HeapAllocator` (rpmalloc), `ArenaAllocator`, `StdAllocatorAdapter`, `Box`, `Arc`, `IntrusiveArc`.             |
+| `auxid.containers` | [src/ixx/auxid-containers.ixx](src/ixx/auxid-containers.ixx) | [src/cpp/auxid-containers.cpp](src/cpp/auxid-containers.cpp)                                                 | `String`/`StringView`, `Vec`/`CompactVec`/`TinyVec`, `HashMap`/`HashSet`, `SlotMap`, `Option`, `Pair`, `Span`, `SpscQueue`, hashing.|
+| `auxid.thread`     | [src/ixx/auxid-thread.ixx](src/ixx/auxid-thread.ixx)         | [src/cpp/auxid-thread.cpp](src/cpp/auxid-thread.cpp)                                                         | `Thread`/`JThread` (native backend, spawn failure is a real `Err`), `LockGuard`, `ConditionVariable`, thread init, `Logger`. |
+| `auxid.fs`         | [src/ixx/auxid-fs.ixx](src/ixx/auxid-fs.ixx)                 | —                                                                                                              | Non-throwing `std::filesystem` wrappers returning `Result<T>`.                                                 |
+| `auxid.test`       | [src/ixx/auxid-test.ixx](src/ixx/auxid-test.ixx)             | [src/cpp/auxid-test.cpp](src/cpp/auxid-test.cpp)                                                             | `Block`, `Runner`, `AutoRegister<T>` - tiny self-registering test framework.                                   |
 
 ## Quick start (CMake)
 
@@ -54,7 +55,7 @@ include(FetchContent)
 FetchContent_Declare(
   auxid
   GIT_REPOSITORY https://github.com/I-A-S/Auxid.git
-  GIT_TAG        main  # Pin a release tag for stability in production
+  GIT_TAG        v0.x.y  # ALWAYS pin a release tag; never track main in a product
 )
 FetchContent_MakeAvailable(auxid)
 
