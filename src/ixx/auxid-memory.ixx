@@ -79,6 +79,8 @@ public:
 
     [[nodiscard]] auto allocate(size_type n) -> T *
     {
+      if (n > (static_cast<size_type>(-1) / sizeof(T)))
+        panic_at("StdAllocatorAdapter::allocate: byte count overflows", __FILE__, __LINE__);
       return static_cast<T *>(m_alloc.alloc(n * sizeof(T), alignof(T)));
     }
 
@@ -111,6 +113,15 @@ export namespace au::memory
   inline constexpr usize RPMALLOC_NATURAL_ALIGN = 16;
 #endif
 
+  // Foreign-thread guarantee (D-006): allocation is safe from ANY thread,
+  // including threads the Auxid thread guards never touched (web-engine
+  // callbacks, OS thread-pool completions, third-party library threads).
+  // rpmalloc lazily creates the calling thread's heap on first allocation and
+  // finalizes it via an FLS/pthread-key destructor on thread exit; frees of
+  // blocks owned by another thread's heap are routed through atomic deferred
+  // lists. The thread guards remain the normal path — they also own the
+  // per-thread logger — lazy init is the safety net, not the design.
+  // Precondition: rpmalloc_initialize has run (the MainThreadGuard's job).
   struct HeapAllocator
   {
 #if defined(AUXID_USE_SYSTEM_MALLOC)
@@ -532,6 +543,9 @@ private:
     return make_arc<T, HeapAllocator>(HeapAllocator{}, std::forward<Args>(args)...);
   }
 
+  // Known limitation: unlike make_box_protected (which placement-constructs the
+  // Enabler directly), this constructs T's ControlBlock storage FROM an Enabler
+  // temporary — so T additionally needs an accessible copy/move constructor.
   template<typename T, AllocatorType Allocator = HeapAllocator, typename... Args>
   [[nodiscard]] auto make_arc_protected(Allocator alloc, Args &&...args) -> Arc<T, Allocator>
   {

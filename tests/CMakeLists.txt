@@ -3,6 +3,7 @@ set(SRC_FILES
 
     "cpp/memory/arena.cpp"
     "cpp/memory/heap.cpp"
+    "cpp/memory/foreign_thread.cpp"
     "cpp/core/result.cpp"
     "cpp/thread/thread.cpp"
 
