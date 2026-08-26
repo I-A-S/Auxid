@@ -54,7 +54,7 @@ include(FetchContent)
 
 FetchContent_Declare(
   auxid
-  GIT_REPOSITORY https://github.com/I-A-S/Auxid.git
+  GIT_REPOSITORY https://github.com/IASoft-PVT-LTD/Auxid.git
   GIT_TAG        v0.x.y  # ALWAYS pin a release tag; never track main in a product
 )
 FetchContent_MakeAvailable(auxid)
@@ -203,7 +203,7 @@ Explore the Auxid Ecosystem!
 
 | Name | Description | Repository |
 |------|-------------|------------|
-| **LibAuxid** | Custom template library and core platform | [Auxid (This Repo)](https://github.com/I-A-S/Auxid) |
+| **LibAuxid** | Custom template library and core platform | [Auxid (This Repo)](https://github.com/IASoft-PVT-LTD/Auxid) |
 | **Project Template** | Scaffold for new Auxid projects (CMake Presets Included) | [Auxid-Project-Template](https://github.com/I-A-S/Auxid-Project-Template) |
 | **IAUSB** | Cross-Platform USB Library for C++ | [IAUSB](https://github.com/IASoft-PVT-LTD/IAUSB) |
 | **IANet** | Cross-Platform Networking Library for C++ | [IANet](https://github.com/IASoft-PVT-LTD/IANet) |

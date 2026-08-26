@@ -16,7 +16,7 @@
 
 cmake_minimum_required(VERSION 3.28)
 
-project(Auxid VERSION 0.1.0 LANGUAGES C CXX)
+project(Auxid VERSION 0.7.0 LANGUAGES C CXX)
 
 enable_testing()
 
