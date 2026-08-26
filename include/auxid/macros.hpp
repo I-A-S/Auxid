@@ -75,12 +75,18 @@
 #  define AUXID_ATTR_PURE
 #endif
 
-#undef pure_fn
-#undef const_fn
+#undef stateless_fn
+#undef readonly_fn
 
-// IANOTE: Intentionally swapped (as it is more intuitive, considering what the attributes actually does).
-#define pure_fn AUXID_ATTR_CONST [[nodiscard]]
-#define const_fn AUXID_ATTR_PURE [[nodiscard]]
+// stateless_fn: the function reads and writes nothing outside its arguments
+//   (GCC __attribute__((const)) — no memory reads, not even through pointers).
+// readonly_fn: the function may read program state but never writes it
+//   (GCC __attribute__((pure))).
+// Deliberately NOT named after the GCC attributes: their const/pure naming is
+// famously inverted, and a mis-annotation is silent miscompilation, so these
+// names must not reward or punish prior GCC knowledge.
+#define stateless_fn AUXID_ATTR_CONST [[nodiscard]]
+#define readonly_fn AUXID_ATTR_PURE [[nodiscard]]
 
 #if defined(__clang__) || defined(__GNUC__)
 #  define AU_LIKELY(v) (__builtin_expect(!!(v), 1)) [[likely]]
