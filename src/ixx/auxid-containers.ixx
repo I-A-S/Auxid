@@ -833,11 +833,51 @@ public:
       return StringView(get_data(), get_size()).substr(pos, count);
     }
 
+private:
+    // Output iterator appending straight into a BasicString, so vformat never
+    // routes through a std::string temporary on the global heap.
+    struct AppendIterator
+    {
+      using iterator_category = std::output_iterator_tag;
+      using value_type = void;
+      using difference_type = isize;
+      using pointer = void;
+      using reference = void;
+
+      BasicString *target = nullptr;
+
+      constexpr auto operator*() -> AppendIterator &
+      {
+        return *this;
+      }
+
+      constexpr auto operator++() -> AppendIterator &
+      {
+        return *this;
+      }
+
+      constexpr auto operator++(int) -> AppendIterator
+      {
+        return *this;
+      }
+
+      auto operator=(char c) -> AppendIterator &
+      {
+        target->append(StringView(&c, 1));
+        return *this;
+      }
+    };
+
 public:
+    // Rigid note: fmt is a RUNTIME format string. An invalid one raises
+    // std::format_error inside vformat_to, which under -fno-exceptions is a
+    // process abort — treat runtime format strings as trusted (format()
+    // validates at compile time; prefer it).
     static BasicString vformat(StringView fmt, std::format_args args)
     {
-      std::string tmp = std::vformat(std::string_view{fmt.data(), fmt.size()}, args);
-      return BasicString(tmp.data(), tmp.size());
+      BasicString out;
+      std::vformat_to(AppendIterator{&out}, std::string_view{fmt.data(), fmt.size()}, args);
+      return out;
     }
 
     template<typename... Args> static BasicString format(StringView fmt, Args &&...args)
