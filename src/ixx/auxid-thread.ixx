@@ -20,10 +20,9 @@ module;
 
 #include <condition_variable>
 #include <format>
-#include <functional>
 #include <mutex>
-#include <thread>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 export module auxid.thread;
@@ -180,25 +179,67 @@ export namespace au::auxid
   AUXID_API auto get_thread_logger() -> Logger &;
 } // namespace au::auxid
 
+export namespace au::detail
+{
+  using ThreadEntry_FuncT = void (*)(void *);
+
+  struct NativeThread
+  {
+    void *handle = nullptr; // Win32 HANDLE / pthread_t, opaque to callers
+    u64 id = 0;
+  };
+
+  // Spawn failure (resource exhaustion, thread limits) is a genuinely
+  // recoverable condition, so it surfaces as a real Err — std::thread cannot
+  // deliver that under -fno-exceptions (its constructor reports failure by
+  // exception only), which is why the backend is native.
+  AUXID_API auto spawn_native_thread(ThreadEntry_FuncT entry, void *arg) -> Result<NativeThread>;
+  AUXID_API auto join_native_thread(NativeThread &thread) -> void;
+  AUXID_API auto current_native_thread_id() noexcept -> u64;
+} // namespace au::detail
+
 export namespace au
 {
   template<bool JoinOnDestroy> class ThreadT
   {
 public:
-    using ThreadID = std::thread::id;
+    using ThreadID = u64;
 
     template<typename F, typename... Args> static auto create(F &&f, Args &&...args) -> Result<ThreadT>
     {
-      auto wrap = [func = std::forward<F>(f), tup = std::make_tuple(std::forward<Args>(args)...)]() mutable {
-        auxid::WorkerThreadGuard _g;
-        std::apply(std::move(func), std::move(tup));
+      struct Invoker
+      {
+        std::decay_t<F> func;
+        std::tuple<std::decay_t<Args>...> tup;
       };
-      return ThreadT(std::thread(std::move(wrap)));
+
+      memory::HeapAllocator heap{};
+      void *mem = heap.alloc(sizeof(Invoker), alignof(Invoker));
+      Invoker *invoker =
+          au::construct_at(static_cast<Invoker *>(mem),
+                           Invoker{std::forward<F>(f), std::make_tuple(std::forward<Args>(args)...)});
+
+      const auto entry = +[](void *raw) {
+        auxid::WorkerThreadGuard _guard;
+        auto *inv = static_cast<Invoker *>(raw);
+        std::apply(std::move(inv->func), std::move(inv->tup));
+        au::destroy_at(inv);
+        memory::HeapAllocator{}.free(inv, sizeof(Invoker), alignof(Invoker));
+      };
+
+      auto native = detail::spawn_native_thread(entry, invoker);
+      if (native.is_err())
+      {
+        au::destroy_at(invoker);
+        heap.free(invoker, sizeof(Invoker), alignof(Invoker));
+        return fail(std::move(native.unwrap_err()));
+      }
+      return ThreadT(native.unwrap());
     }
 
     static auto get_calling_thread_id() noexcept -> ThreadID
     {
-      return std::this_thread::get_id();
+      return detail::current_native_thread_id();
     }
 
     ThreadT() noexcept = default;
@@ -206,32 +247,34 @@ public:
     ThreadT(const ThreadT &) = delete;
     auto operator=(const ThreadT &) -> ThreadT & = delete;
 
-    ThreadT(ThreadT &&other) noexcept : m_thread(std::move(other.m_thread))
+    ThreadT(ThreadT &&other) noexcept : m_native(other.m_native)
     {
+      other.m_native = detail::NativeThread{};
     }
 
     auto operator=(ThreadT &&other) noexcept -> ThreadT &
     {
       if (this != &other)
       {
-        if (m_thread.joinable())
+        if (joinable())
         {
           if constexpr (JoinOnDestroy)
-            m_thread.join();
+            join();
           else
             panic("ThreadT move-assigned over a still-joinable thread");
         }
-        m_thread = std::move(other.m_thread);
+        m_native = other.m_native;
+        other.m_native = detail::NativeThread{};
       }
       return *this;
     }
 
     ~ThreadT()
     {
-      if (m_thread.joinable())
+      if (joinable())
       {
         if constexpr (JoinOnDestroy)
-          m_thread.join();
+          join();
         else
           panic("ThreadT destroyed while still joinable (use JThread or call join())");
       }
@@ -239,39 +282,28 @@ public:
 
     [[nodiscard]] auto joinable() const noexcept -> bool
     {
-      return m_thread.joinable();
+      return m_native.handle != nullptr;
     }
 
     auto join() -> void
     {
-      if (m_thread.joinable())
-        m_thread.join();
+      if (joinable())
+        detail::join_native_thread(m_native);
     }
 
     [[nodiscard]] auto get_id() const noexcept -> ThreadID
     {
-      return m_thread.get_id();
+      return m_native.id;
     }
 
 private:
-    explicit ThreadT(std::thread &&t) noexcept : m_thread(std::move(t))
+    explicit ThreadT(detail::NativeThread native) noexcept : m_native(native)
     {
     }
 
-    std::thread m_thread{};
+    detail::NativeThread m_native{};
   };
 
   using Thread = ThreadT<false>;
   using JThread = ThreadT<true>;
 } // namespace au
-
-export namespace au::containers
-{
-  template<> struct Hash<std::thread::id>
-  {
-    auto operator()(std::thread::id id) const noexcept -> u64
-    {
-      return static_cast<u64>(std::hash<std::thread::id>{}(id));
-    }
-  };
-} // namespace au::containers

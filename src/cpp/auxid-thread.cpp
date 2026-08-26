@@ -18,10 +18,21 @@ module;
 
 #include <auxid/macros.hpp>
 
+#include <cerrno>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <format>
 #include <print>
+
+#if AU_PLATFORM_WINDOWS
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
+
+#  include <process.h>
+#else
+#  include <pthread.h>
+#endif
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
 #  include <rpmalloc/rpmalloc.h>
@@ -30,6 +41,114 @@ module;
 module auxid.thread;
 
 import auxid.memory;
+
+namespace au::detail
+{
+  namespace
+  {
+    struct EntryBaton
+    {
+      ThreadEntry_FuncT entry;
+      void *arg;
+    };
+
+    auto alloc_baton(ThreadEntry_FuncT entry, void *arg) -> EntryBaton *
+    {
+      auto *baton =
+          static_cast<EntryBaton *>(memory::HeapAllocator{}.alloc(sizeof(EntryBaton), alignof(EntryBaton)));
+      baton->entry = entry;
+      baton->arg = arg;
+      return baton;
+    }
+
+    // Runs on the NEW thread, before any guard exists — safe because of the
+    // HeapAllocator foreign-thread guarantee (D-006).
+    auto consume_baton(void *raw) -> EntryBaton
+    {
+      auto *baton = static_cast<EntryBaton *>(raw);
+      const EntryBaton local = *baton;
+      memory::HeapAllocator{}.free(baton, sizeof(EntryBaton), alignof(EntryBaton));
+      return local;
+    }
+
+#if AU_PLATFORM_WINDOWS
+    unsigned __stdcall thread_entry_adapter(void *raw)
+    {
+      const EntryBaton baton = consume_baton(raw);
+      baton.entry(baton.arg);
+      return 0;
+    }
+#else
+    auto thread_entry_adapter(void *raw) -> void *
+    {
+      const EntryBaton baton = consume_baton(raw);
+      baton.entry(baton.arg);
+      return nullptr;
+    }
+#endif
+  } // namespace
+
+#if AU_PLATFORM_WINDOWS
+
+  AUXID_API auto spawn_native_thread(ThreadEntry_FuncT entry, void *arg) -> Result<NativeThread>
+  {
+    EntryBaton *baton = alloc_baton(entry, arg);
+
+    unsigned int thread_id = 0;
+    const uintptr_t handle = ::_beginthreadex(nullptr, 0, &thread_entry_adapter, baton, 0, &thread_id);
+    if (handle == 0)
+    {
+      const int spawn_errno = errno;
+      memory::HeapAllocator{}.free(baton, sizeof(EntryBaton), alignof(EntryBaton));
+      return fail(String::format("thread spawn failed (_beginthreadex, errno {})", spawn_errno));
+    }
+
+    return NativeThread{reinterpret_cast<void *>(handle), static_cast<u64>(thread_id)};
+  }
+
+  AUXID_API auto join_native_thread(NativeThread &thread) -> void
+  {
+    ::WaitForSingleObject(static_cast<HANDLE>(thread.handle), INFINITE);
+    ::CloseHandle(static_cast<HANDLE>(thread.handle));
+    thread = NativeThread{};
+  }
+
+  AUXID_API auto current_native_thread_id() noexcept -> u64
+  {
+    return static_cast<u64>(::GetCurrentThreadId());
+  }
+
+#else
+
+  AUXID_API auto spawn_native_thread(ThreadEntry_FuncT entry, void *arg) -> Result<NativeThread>
+  {
+    EntryBaton *baton = alloc_baton(entry, arg);
+
+    pthread_t handle{};
+    const int rc = ::pthread_create(&handle, nullptr, &thread_entry_adapter, baton);
+    if (rc != 0)
+    {
+      memory::HeapAllocator{}.free(baton, sizeof(EntryBaton), alignof(EntryBaton));
+      return fail(String::format("thread spawn failed (pthread_create, rc {})", rc));
+    }
+
+    return NativeThread{reinterpret_cast<void *>(handle), static_cast<u64>(reinterpret_cast<uintptr_t>(
+                                                              reinterpret_cast<void *>(handle)))};
+  }
+
+  AUXID_API auto join_native_thread(NativeThread &thread) -> void
+  {
+    ::pthread_join(reinterpret_cast<pthread_t>(thread.handle), nullptr);
+    thread = NativeThread{};
+  }
+
+  AUXID_API auto current_native_thread_id() noexcept -> u64
+  {
+    return static_cast<u64>(reinterpret_cast<uintptr_t>(reinterpret_cast<void *>(::pthread_self())));
+  }
+
+#endif
+} // namespace au::detail
 
 namespace au::auxid
 {
@@ -63,6 +182,9 @@ namespace au::auxid
     RpmallocLifetime rpmalloc_lifetime{};
 #endif
     Mutex logger_mutex{};
+    // Guards main_thread_id and thread_data: worker guards run on their own
+    // threads, so the registry is touched concurrently.
+    Mutex registry_mutex{};
     Thread::ThreadID main_thread_id{};
     HashMap<Thread::ThreadID, ThreadData> thread_data{};
   };
@@ -76,54 +198,66 @@ namespace au::auxid
   AUXID_API auto initialize_main_thread() -> void
   {
     auto &state = get_state();
-
     const auto thread_id = Thread::get_calling_thread_id();
-    state.thread_data[thread_id].init_counter++;
-    if (state.thread_data[thread_id].init_counter > 1)
+
+    LockGuard<Mutex> lock(state.registry_mutex);
+    auto &data = state.thread_data[thread_id];
+    data.init_counter++;
+    if (data.init_counter > 1)
       return;
 
     state.main_thread_id = thread_id;
-    state.thread_data[thread_id].logger = memory::make_box<Logger>(state.logger_mutex);
+    data.logger = memory::make_box<Logger>(state.logger_mutex);
   }
 
   AUXID_API auto terminate_main_thread() -> void
   {
     auto &state = get_state();
-
     const auto thread_id = Thread::get_calling_thread_id();
-    state.thread_data[thread_id].init_counter--;
-    if (state.thread_data[thread_id].init_counter > 0)
+
+    LockGuard<Mutex> lock(state.registry_mutex);
+    auto &data = state.thread_data[thread_id];
+    data.init_counter--;
+    if (data.init_counter > 0)
       return;
 
-    state.thread_data[thread_id].logger.reset();
+    data.logger.reset();
   }
 
   AUXID_API auto initialize_worker_thread() -> void
   {
-    auto &state = get_state();
-
-    const auto thread_id = Thread::get_calling_thread_id();
-    state.thread_data[thread_id].init_counter++;
-    if (state.thread_data[thread_id].init_counter > 1)
-      return;
-
-    state.thread_data[thread_id].logger = memory::make_box<Logger>(state.logger_mutex);
-
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
+    // Before any allocation on this thread — the registry work below
+    // allocates. (Lazy init would also cover it; explicit is the normal path.)
     rpmalloc_thread_initialize();
 #endif
+
+    auto &state = get_state();
+    const auto thread_id = Thread::get_calling_thread_id();
+
+    LockGuard<Mutex> lock(state.registry_mutex);
+    auto &data = state.thread_data[thread_id];
+    data.init_counter++;
+    if (data.init_counter > 1)
+      return;
+
+    data.logger = memory::make_box<Logger>(state.logger_mutex);
   }
 
   AUXID_API auto terminate_worker_thread() -> void
   {
     auto &state = get_state();
-
     const auto thread_id = Thread::get_calling_thread_id();
-    state.thread_data[thread_id].init_counter--;
-    if (state.thread_data[thread_id].init_counter > 0)
-      return;
 
-    state.thread_data[thread_id].logger.reset();
+    {
+      LockGuard<Mutex> lock(state.registry_mutex);
+      auto &data = state.thread_data[thread_id];
+      data.init_counter--;
+      if (data.init_counter > 0)
+        return;
+
+      data.logger.reset();
+    }
 
 #if !defined(AUXID_USE_SYSTEM_MALLOC)
     rpmalloc_thread_finalize();
@@ -132,17 +266,27 @@ namespace au::auxid
 
   AUXID_API auto is_main_thread() -> bool
   {
-    return get_state().main_thread_id == Thread::get_calling_thread_id();
+    auto &state = get_state();
+    LockGuard<Mutex> lock(state.registry_mutex);
+    return state.main_thread_id == Thread::get_calling_thread_id();
   }
 
   AUXID_API auto is_thread_initialized() -> bool
   {
-    return get_state().thread_data[Thread::get_calling_thread_id()].init_counter > 0;
+    auto &state = get_state();
+    LockGuard<Mutex> lock(state.registry_mutex);
+    const auto *data = state.thread_data.find(Thread::get_calling_thread_id());
+    return data != nullptr && data->init_counter > 0;
   }
 
   AUXID_API auto get_thread_logger() -> Logger &
   {
-    return *get_state().thread_data[Thread::get_calling_thread_id()].logger;
+    auto &state = get_state();
+    LockGuard<Mutex> lock(state.registry_mutex);
+    auto *data = state.thread_data.find(Thread::get_calling_thread_id());
+    if (data == nullptr || !data->logger)
+      panic("get_thread_logger() on a thread with no guard (foreign threads have no logger)");
+    return *data->logger;
   }
 } // namespace au::auxid
 
