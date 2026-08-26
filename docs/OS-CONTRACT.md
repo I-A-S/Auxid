@@ -32,7 +32,7 @@ Conventions (all modules):
   toolchain file). MSVC/Clang-CL are unaffected (native TLS).
 
 Module status: `auxid.time` SHIPPED · `auxid.env` SHIPPED · `auxid.ipc`
-PLANNED · `auxid.proc` PLANNED · `auxid.dl` PLANNED.
+SHIPPED · `auxid.proc` PLANNED · `auxid.dl` PLANNED.
 
 ---
 
@@ -78,22 +78,38 @@ Derived from environment variables by design (no shell32/KnownFolder
 dependency); a missing required base variable (e.g. no `HOME`) is a Generic
 error naming the variable.
 
-## Well-known error codes
+## Portable error classification
 
-Cross-platform conditions that products may dispatch on are exposed as
-constants (to be introduced with `auxid.ipc`/`auxid.proc`): `TIMED_OUT`,
-`ALREADY_HELD` (single-instance), `CHANNEL_CLOSED`. Raw platform codes remain
-the primary currency; well-known constants are additive, never a replacement.
+Cross-platform failure conditions that products dispatch on are exposed as
+**classifier functions over raw codes** — `ipc::is_closed(err)` (peer gone:
+`ERROR_BROKEN_PIPE`/`ERROR_NO_DATA` vs `EPIPE`/`ECONNRESET`),
+`ipc::is_already_held(err)` (`ERROR_ALREADY_EXISTS` vs
+`EWOULDBLOCK`/`EACCES`). This refines the earlier "well-known constants"
+plan: classifiers preserve the raw platform code in `Error::code` (which
+constants would have overwritten) while still giving portable dispatch. Raw
+codes remain the primary currency.
 
-## auxid.ipc (PLANNED)
+## auxid.ipc
 
-Byte-stream primitives: anonymous `pipe()` pairs, named `Channel`/
-`ChannelListener` (named pipe / unix domain socket; owner-only permissions),
-`InstanceLock` single-instance arbitration. Framing is the caller's business.
-Design references: Axiom 1.0's transports, legacy IACore's manager/node IPC
-(its SHM ring-buffer fast path is the planned v2 transport; the v1 API must
-not preclude it — connection-string bootstrap via argv and the readiness
-handshake convention come from there).
+Byte streams only — framing is the caller's business; product protocols
+(and the planned IACore-style shared-memory ring fast path, which this API
+deliberately does not preclude) layer on top. **WASM: honest absence** —
+every operation returns an Err. All handles owning/movable;
+`adopt_native`/`release_native` (Win32 HANDLE or fd, widened to i64) are the
+low-level seam `auxid.proc` will use for child stdio.
+
+| Op | Contract |
+|----|----------|
+| `pipe() -> Result<PipePair>` | Anonymous unidirectional pipe. `read` Ok(0) = all writers closed. |
+| `PipeReader::read` / `PipeWriter::write` | Blocking; short writes possible; `write_all` loops. |
+| `ChannelListener::bind(name)` | Realization: `\\.\pipe\auxid.<name>` (Windows) / `<XDG_RUNTIME_DIR else /tmp>/auxid.<name>.sock` chmod 0600 (POSIX). POSIX stale-socket recovery: a connect probe that is refused marks the node stale and it is unlinked; a live owner yields an Err (`EADDRINUSE`). Socket node is unlinked on listener close. |
+| `ChannelListener::accept()` | Blocking; one `Channel` per client. Windows stages the next pipe instance before handing out the connected one; clients seeing `ERROR_PIPE_BUSY` wait-and-retry inside `connect`. |
+| `Channel::connect(name)` / `read` / `write` | Bidirectional byte stream. `read` Ok(0) = peer closed; `write` to a gone peer is an Err with `is_closed()` true. POSIX writes are SIGPIPE-safe (`MSG_NOSIGNAL` / `SO_NOSIGPIPE`). Caution: writing to a closed **anonymous pipe** on POSIX still raises SIGPIPE (no per-write suppression exists for pipes) — supervise child exit before writing, or ignore SIGPIPE at the application level. |
+| `InstanceLock::acquire(app_key)` | Named mutex `Local\auxid.<key>` (Windows) / `flock(LOCK_EX\|LOCK_NB)` on `<runtime>/auxid.<key>.lock` (POSIX). Losing to a live primary is an Err with `is_already_held()` true. The POSIX lock file is deliberately never unlinked (unlink-vs-flock races); the lock dies with the descriptor — including on crash, which is the point. |
+
+Security note (v1): channel/lock nodes are created owner-only on POSIX;
+Windows named pipes currently use default OS ACLs — a hardening pass
+(explicit DACLs) is planned before any product ships multi-user.
 
 ## auxid.proc (PLANNED)
 

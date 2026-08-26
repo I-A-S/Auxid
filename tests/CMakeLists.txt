@@ -6,6 +6,7 @@ set(SRC_FILES
     "cpp/memory/foreign_thread.cpp"
     "cpp/os/time.cpp"
     "cpp/os/env.cpp"
+    "cpp/os/ipc.cpp"
     "cpp/core/result.cpp"
     "cpp/thread/thread.cpp"
 

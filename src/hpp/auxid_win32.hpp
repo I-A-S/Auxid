@@ -49,6 +49,32 @@ extern "C"
                                                   unsigned long buffer_size);
   int __stdcall SetEnvironmentVariableW(const wchar_t *name, const wchar_t *value);
   unsigned long __stdcall GetModuleFileNameW(void *module, wchar_t *filename, unsigned long size);
+
+  // kernel32 — anonymous pipes & file I/O (security attributes passed as
+  // void*; Auxid only ever passes nullptr)
+  int __stdcall CreatePipe(void **read_pipe, void **write_pipe, void *security_attributes,
+                           unsigned long size);
+  int __stdcall ReadFile(void *handle, void *buffer, unsigned long to_read, unsigned long *read,
+                         void *overlapped);
+  int __stdcall WriteFile(void *handle, const void *buffer, unsigned long to_write,
+                          unsigned long *written, void *overlapped);
+  int __stdcall FlushFileBuffers(void *handle);
+
+  // kernel32 — named pipes
+  void *__stdcall CreateNamedPipeW(const wchar_t *name, unsigned long open_mode,
+                                   unsigned long pipe_mode, unsigned long max_instances,
+                                   unsigned long out_buffer_size, unsigned long in_buffer_size,
+                                   unsigned long default_timeout, void *security_attributes);
+  int __stdcall ConnectNamedPipe(void *handle, void *overlapped);
+  int __stdcall DisconnectNamedPipe(void *handle);
+  void *__stdcall CreateFileW(const wchar_t *name, unsigned long desired_access,
+                              unsigned long share_mode, void *security_attributes,
+                              unsigned long creation_disposition, unsigned long flags,
+                              void *template_file);
+  int __stdcall WaitNamedPipeW(const wchar_t *name, unsigned long timeout_ms);
+
+  // kernel32 — named mutex (single-instance arbitration)
+  void *__stdcall CreateMutexW(void *security_attributes, int initial_owner, const wchar_t *name);
 }
 
 namespace au::win32
@@ -56,6 +82,22 @@ namespace au::win32
   inline constexpr unsigned int CP_UTF8_ = 65001;
   inline constexpr unsigned long ERROR_ENVVAR_NOT_FOUND_ = 203;
   inline constexpr unsigned long ERROR_INSUFFICIENT_BUFFER_ = 122;
+  inline constexpr unsigned long ERROR_ALREADY_EXISTS_ = 183;
+  inline constexpr unsigned long ERROR_BROKEN_PIPE_ = 109;
+  inline constexpr unsigned long ERROR_NO_DATA_ = 232;
+  inline constexpr unsigned long ERROR_PIPE_BUSY_ = 231;
+  inline constexpr unsigned long ERROR_PIPE_CONNECTED_ = 535;
+  inline constexpr unsigned long GENERIC_READ_ = 0x80000000ul;
+  inline constexpr unsigned long GENERIC_WRITE_ = 0x40000000ul;
+  inline constexpr unsigned long OPEN_EXISTING_ = 3;
+  inline constexpr unsigned long PIPE_ACCESS_DUPLEX_ = 0x00000003ul;
+  inline constexpr unsigned long PIPE_TYPE_BYTE_STREAM_ = 0x00000000ul; // TYPE_BYTE|READMODE_BYTE|WAIT
+  inline constexpr unsigned long PIPE_UNLIMITED_INSTANCES_ = 255;
+
+  inline void *invalid_handle() noexcept
+  {
+    return reinterpret_cast<void *>(-1ll);
+  }
 } // namespace au::win32
 
 #endif // AU_PLATFORM_WINDOWS
