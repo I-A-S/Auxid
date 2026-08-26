@@ -59,7 +59,9 @@ namespace au::test::impl
 
   AUXID_API auto print_blank_line() -> void
   {
-    std::println();
+    // Not std::println(): the zero-argument overload is a late C++23 addition
+    // (P3142) that libc++ 20 does not ship yet.
+    std::print("\n");
   }
 
   AUXID_API auto print_discovered(usize count) -> void

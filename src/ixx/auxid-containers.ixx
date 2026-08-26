@@ -3679,8 +3679,12 @@ struct std::formatter<au::containers::BasicString<au::memory::HeapAllocator>>
     return ctx.begin();
   }
 
+  // Generic over the context type: std::println/format_to instantiate
+  // contexts other than std::format_context (observed: libc++ 20), and a
+  // formatter pinned to one context type is invisible to them.
+  template<class FormatContext>
   [[nodiscard]] auto format(const au::containers::BasicString<au::memory::HeapAllocator> &s,
-                            std::format_context &ctx) const
+                            FormatContext &ctx) const
   {
     const std::string_view view{s.data(), s.size()};
     return std::copy(view.begin(), view.end(), ctx.out());
@@ -3695,7 +3699,8 @@ struct std::formatter<au::StringView>
     return ctx.begin();
   }
 
-  [[nodiscard]] auto format(const au::StringView &sv, std::format_context &ctx) const
+  template<class FormatContext>
+  [[nodiscard]] auto format(const au::StringView &sv, FormatContext &ctx) const
   {
     const std::string_view view{sv.data(), sv.size()};
     return std::copy(view.begin(), view.end(), ctx.out());
