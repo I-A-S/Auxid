@@ -31,8 +31,8 @@ Conventions (all modules):
   runtime DLLs beside the executable for hermeticity (see the mingw
   toolchain file). MSVC/Clang-CL are unaffected (native TLS).
 
-Module status: `auxid.time` SHIPPED · `auxid.env` SHIPPED · `auxid.ipc`
-SHIPPED · `auxid.proc` PLANNED · `auxid.dl` PLANNED.
+Module status: `auxid.time` · `auxid.env` · `auxid.ipc` · `auxid.proc` ·
+`auxid.dl` — **ALL SHIPPED** (the D-010 family is complete).
 
 ---
 
@@ -111,15 +111,42 @@ Security note (v1): channel/lock nodes are created owner-only on POSIX;
 Windows named pipes currently use default OS ACLs — a hardening pass
 (explicit DACLs) is planned before any product ships multi-user.
 
-## auxid.proc (PLANNED)
+## auxid.proc
 
-`spawn` with piped/inherited/null stdio, `LifetimeGroup` supervision
-(job object / PDEATHSIG / pipe-EOF watcher — with the macOS guarantee
-honestly weaker), `wait`/`try_status`/`terminate`. No graceful
-`request_exit` in v1 (D-010): products send an IPC exit message and fall
-back to `terminate()`.
+**WASM: honest absence** — every operation returns an Err.
 
-## auxid.dl (PLANNED)
+| Op | Contract |
+|----|----------|
+| `spawn(exe, opts)` | `exe` is a real path — **no PATH search** on any platform. Windows builds the command line with MSVC quoting rules; POSIX is fork+exec with everything allocated pre-fork (only async-signal-safe calls between fork and exec; exec failure = child exit 127, setup failure = 126). A replacement `env` replaces the ENTIRE environment. Stdio per-stream: Inherit / Piped (parent end exposed on `Process`) / Null. |
+| `Process::wait()` | Blocking, idempotent (cached after first completion). `ExitStatus.abnormal` is best-effort: signal deaths on POSIX (`code` = signal), NTSTATUS-range exit codes on Windows. |
+| `Process::try_status()` | Non-blocking; none = still running. POSIX note: a reaped child is reaped — status is cached thereafter. |
+| `Process::terminate()` | Hard kill (`TerminateProcess(…, 1)` / SIGKILL). Graceful shutdown = an IPC message plus this as fallback (D-010: no `request_exit`). |
+| `Process` destruction | **Detaches** — closes our handle; the child keeps running. Kill-on-drop is LifetimeGroup's job, never the destructor's. |
+| `LifetimeGroup` | Enrollment at spawn only (atomic with creation). Kill-on-close semantics per platform below. POSIX children killed by a group close become zombies until `wait()`ed or the parent exits. |
 
-`Library::open/symbol/close`; destructor swallows unload errors, explicit
-`close() -> Result<void>` reports them (D-010).
+LifetimeGroup guarantee by platform (honest divergence):
+
+| Platform | Group close kills children | Parent crash kills children |
+|----------|---------------------------|------------------------------|
+| Windows | yes (job object, kernel-enforced) | **yes** — handle close on process death triggers KILL_ON_JOB_CLOSE |
+| Linux | yes (SIGKILL sweep) | **yes** — `PR_SET_PDEATHSIG(SIGKILL)` set in the child (note: tied to the death of the spawning *thread*) |
+| macOS | yes (SIGKILL sweep) | **no** in v1 — no PDEATHSIG equivalent; a cooperative pipe-EOF watcher (crash-watcher pattern) is the planned strengthening for IASoft-authored children |
+
+Caveats (v1): Windows spawns use `bInheritHandles=TRUE`, so *concurrent*
+spawns from multiple threads can leak each other's inheritable pipe ends
+into the wrong child (delaying pipe EOF) — serialize spawns or accept the
+window until the PROC_THREAD_ATTRIBUTE_LIST hardening lands. POSIX group
+close kills by pid — a group held long after its children were waited on
+could, in principle, hit a recycled pid; keep groups scoped to their
+children's lifetime.
+
+## auxid.dl
+
+**WASM: honest absence** (emscripten dlopen exists only under MAIN_MODULE
+builds, which Auxid does not target).
+
+| Op | Contract |
+|----|----------|
+| `Library::open(path)` | `LoadLibraryW` / `dlopen(RTLD_NOW \| RTLD_LOCAL)`. POSIX errors carry the `dlerror()` text (dl has no errno). |
+| `Library::symbol(name)` / `symbol_as<T>` | A missing symbol is an Err (POSIX disambiguates legal-null via the dlerror-clear protocol). |
+| `Library::close()` | Reports unload errors; the destructor swallows them (D-010). Idempotent. |

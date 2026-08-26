@@ -7,6 +7,8 @@ set(SRC_FILES
     "cpp/os/time.cpp"
     "cpp/os/env.cpp"
     "cpp/os/ipc.cpp"
+    "cpp/os/proc.cpp"
+    "cpp/os/dl.cpp"
     "cpp/core/result.cpp"
     "cpp/thread/thread.cpp"
 

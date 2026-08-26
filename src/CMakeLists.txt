@@ -23,6 +23,8 @@ set(AUXID_IMPL_MODULES
     cpp/auxid-time.cpp
     cpp/auxid-env.cpp
     cpp/auxid-ipc.cpp
+    cpp/auxid-proc.cpp
+    cpp/auxid-dl.cpp
     cpp/auxid-test.cpp
 )
 
@@ -72,6 +74,8 @@ target_sources(libauxid
             "${AUXID_ROOT}/src/ixx/auxid-time.ixx"
             "${AUXID_ROOT}/src/ixx/auxid-env.ixx"
             "${AUXID_ROOT}/src/ixx/auxid-ipc.ixx"
+            "${AUXID_ROOT}/src/ixx/auxid-proc.ixx"
+            "${AUXID_ROOT}/src/ixx/auxid-dl.ixx"
             "${AUXID_ROOT}/src/ixx/auxid-test.ixx"
 )
 set_target_properties(libauxid PROPERTIES CXX_SCAN_FOR_MODULES ON)
@@ -96,6 +100,10 @@ target_include_directories(libauxid PRIVATE
         "${CMAKE_CURRENT_LIST_DIR}/h/vendor"
         "hpp"
 )
+
+if(CMAKE_DL_LIBS)
+    target_link_libraries(libauxid PRIVATE ${CMAKE_DL_LIBS})
+endif()
 
 target_compile_options(libauxid PUBLIC  ${AUXID_CXX_FLAGS_NO_EXCEPTIONS} ${AUXID_CXX_FLAGS_NO_RTTI})
 target_link_options(libauxid    PRIVATE ${AUXID_LINK_FLAGS_INTERNAL})

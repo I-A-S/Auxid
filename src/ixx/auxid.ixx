@@ -17,3 +17,5 @@ export import auxid.fs;
 export import auxid.time;
 export import auxid.env;
 export import auxid.ipc;
+export import auxid.proc;
+export import auxid.dl;
