@@ -17,22 +17,13 @@
 module;
 
 #include <auxid/macros.hpp>
+#include <auxid_win32.hpp>
 
 #include <atomic>
 #include <cerrno>
 #include <random>
 
 module auxid.containers;
-
-#if AU_PLATFORM_WINDOWS
-// Not <windows.h>: in a module unit's global fragment it collides with the
-// intrinsics headers snapshotted inside this module under GCC (see
-// auxid-thread.cpp). One entry point, declared manually.
-extern "C"
-{
-  unsigned long __stdcall GetLastError(void);
-}
-#endif
 
 namespace au
 {

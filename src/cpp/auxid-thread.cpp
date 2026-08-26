@@ -17,6 +17,7 @@
 module;
 
 #include <auxid/macros.hpp>
+#include <auxid_win32.hpp>
 
 #include <cerrno>
 #include <cstdint>
@@ -37,24 +38,8 @@ module auxid.thread;
 
 import auxid.memory;
 
-#if AU_PLATFORM_WINDOWS
-// Deliberately NOT <windows.h>: in this TU's global module fragment it drags
-// in the x86 intrinsics headers (winnt.h -> x86intrin.h), which collide with
-// the same headers snapshotted inside the auxid.containers module under GCC's
-// modules implementation ("conflicting language linkage for imported
-// declaration"). The four entry points needed are declared manually — exact
-// canonical signatures; 64-bit Windows has a single calling convention, and
-// extern "C" declarations in the purview attach to the global module.
-extern "C"
-{
-  unsigned long long __cdecl _beginthreadex(void *security, unsigned stack_size,
-                                            unsigned(__stdcall *start_address)(void *), void *arglist,
-                                            unsigned initflag, unsigned *thrdaddr);
-  unsigned long __stdcall WaitForSingleObject(void *handle, unsigned long milliseconds);
-  int __stdcall CloseHandle(void *handle);
-  unsigned long __stdcall GetCurrentThreadId(void);
-}
-#endif
+// Win32/CRT entry points come from <auxid_win32.hpp> — the shared manual
+// prototypes; <windows.h> is banned from module-unit global fragments.
 
 namespace au::detail
 {

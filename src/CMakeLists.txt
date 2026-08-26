@@ -20,6 +20,8 @@ set(AUXID_IMPL_MODULES
     cpp/auxid-core.cpp
     cpp/auxid-containers.cpp
     cpp/auxid-thread.cpp
+    cpp/auxid-time.cpp
+    cpp/auxid-env.cpp
     cpp/auxid-test.cpp
 )
 
@@ -66,6 +68,8 @@ target_sources(libauxid
             "${AUXID_ROOT}/src/ixx/auxid-containers.ixx"
             "${AUXID_ROOT}/src/ixx/auxid-thread.ixx"
             "${AUXID_ROOT}/src/ixx/auxid-fs.ixx"
+            "${AUXID_ROOT}/src/ixx/auxid-time.ixx"
+            "${AUXID_ROOT}/src/ixx/auxid-env.ixx"
             "${AUXID_ROOT}/src/ixx/auxid-test.ixx"
 )
 set_target_properties(libauxid PROPERTIES CXX_SCAN_FOR_MODULES ON)

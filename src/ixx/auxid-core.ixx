@@ -575,7 +575,9 @@ public:
   };
 } // namespace au
 
-export namespace au::env
+// Compile-time facts about the BUILD TARGET. Runtime environment (variables,
+// paths) lives in auxid.env / au::env (D-010 ASK-6 ruling).
+export namespace au::build
 {
 #if defined(NDEBUG)
   inline constexpr bool IS_DEBUG = false;
@@ -594,7 +596,7 @@ export namespace au::env
 #endif
 
   inline constexpr usize MAX_PATH_LEN = 4096;
-} // namespace au::env
+} // namespace au::build
 
 export namespace au
 {

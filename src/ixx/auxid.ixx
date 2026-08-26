@@ -21,3 +21,5 @@ export import auxid.memory;
 export import auxid.containers;
 export import auxid.thread;
 export import auxid.fs;
+export import auxid.time;
+export import auxid.env;
