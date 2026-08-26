@@ -78,6 +78,7 @@ namespace
     {
       add_test("ok", [this] { return ok(); });
       add_test("err", [this] { return err(); });
+      add_test("error_type", [this] { return error_type(); });
       add_test("void_result", [this] { return void_result(); });
       add_test("std_expected_ok", [this] { return std_expected_ok(); });
       add_test("std_expected_err", [this] { return std_expected_err(); });
@@ -129,7 +130,28 @@ namespace
     {
       Result<i32> res = fail("Memory allocation failed");
       return check(res.is_err(), "res.is_err()") && check_not(res.is_ok(), "!res.is_ok()") &&
-             check_eq(res.unwrap_err(), "Memory allocation failed", "unwrap_err matches");
+             check_eq(res.unwrap_err().describe(), "Memory allocation failed", "unwrap_err matches");
+    }
+
+    auto error_type() -> bool
+    {
+      Result<i32> res = fail("plain message");
+      if (!check(res.is_err(), "fail() is_err"))
+        return false;
+      const Error &e = res.unwrap_err();
+      if (!check(e.domain == ErrorDomain::Generic && e.code == 0, "bare fail() is Generic/0"))
+        return false;
+      if (!check_eq(e.describe(), "plain message", "Generic describe is just the message"))
+        return false;
+
+      if (!check_eq(Error::os(2).describe(), "os/2", "message-free describe is domain/code"))
+        return false;
+
+      auto chained = Error(ErrorDomain::Fs, 2, String("open: no such file")).ctx("loading config");
+      if (!check(chained.domain == ErrorDomain::Fs && chained.code == 2, "ctx preserves domain and code"))
+        return false;
+      return check_eq(chained.describe(), "fs/2: loading config: open: no such file",
+                      "ctx chains outermost-first");
     }
 
     auto void_result() -> bool
@@ -145,8 +167,10 @@ namespace
 
     auto std_expected_ok() -> bool
     {
+      // ResultT<T, E> round-trips with std::expected<T, E> for matching E;
+      // pinned to String here since the Result<T> default is now Error.
       std::expected<i32, String> from_std{42};
-      Result<i32> ours = from_std;
+      ResultT<i32, String> ours = from_std;
       if (!check(ours.is_ok(), "ours.is_ok()"))
         return false;
       if (!check_eq(ours.unwrap(), 42, "ours.unwrap() == 42"))
@@ -160,7 +184,7 @@ namespace
     auto std_expected_err() -> bool
     {
       std::expected<i32, String> err_from_std{std::unexpect, String("boom")};
-      Result<i32> ours = err_from_std;
+      ResultT<i32, String> ours = err_from_std;
       if (!check(ours.is_err(), "ours.is_err()"))
         return false;
       if (!check_eq(ours.unwrap_err(), "boom", "ours.unwrap_err() == \"boom\""))

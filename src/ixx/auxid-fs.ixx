@@ -54,7 +54,10 @@ namespace au::filesystem::_internal
 {
   [[nodiscard]] inline auto fail_fs(const char *op, const std::error_code &ec)
   {
-    return au::fail("{}: {}", op, ec.message());
+    // Fs domain, raw platform error value preserved (D-008): errno-family on
+    // POSIX, Win32 codes on Windows — callers can dispatch on ec fidelity
+    // instead of parsing prose.
+    return au::fail(Error(ErrorDomain::Fs, ec.value(), String::format("{}: {}", op, ec.message())));
   }
 
   [[nodiscard]] inline auto absolute_relative_to_base(const Path &p, const Path &base) -> Result<Path>

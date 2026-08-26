@@ -16,10 +16,35 @@
 
 module;
 
+#include <auxid/macros.hpp>
+
 #include <atomic>
+#include <cerrno>
 #include <random>
 
 module auxid.containers;
+
+#if AU_PLATFORM_WINDOWS
+// Not <windows.h>: in a module unit's global fragment it collides with the
+// intrinsics headers snapshotted inside this module under GCC (see
+// auxid-thread.cpp). One entry point, declared manually.
+extern "C"
+{
+  unsigned long __stdcall GetLastError(void);
+}
+#endif
+
+namespace au
+{
+  auto Error::os_last() -> Error
+  {
+#if AU_PLATFORM_WINDOWS
+    return Error(ErrorDomain::Os, static_cast<i32>(::GetLastError()));
+#else
+    return Error(ErrorDomain::Os, errno);
+#endif
+  }
+} // namespace au
 
 namespace au::containers::detail
 {

@@ -114,7 +114,7 @@ namespace au::detail
     {
       const int spawn_errno = errno;
       memory::HeapAllocator{}.free(baton, sizeof(EntryBaton), alignof(EntryBaton));
-      return fail(String::format("thread spawn failed (_beginthreadex, errno {})", spawn_errno));
+      return fail(Error(ErrorDomain::Os, spawn_errno, String("thread spawn failed (_beginthreadex)")));
     }
 
     return NativeThread{reinterpret_cast<void *>(handle), static_cast<u64>(thread_id)};
@@ -144,7 +144,7 @@ namespace au::detail
     if (rc != 0)
     {
       memory::HeapAllocator{}.free(baton, sizeof(EntryBaton), alignof(EntryBaton));
-      return fail(String::format("thread spawn failed (pthread_create, rc {})", rc));
+      return fail(Error(ErrorDomain::Os, rc, String("thread spawn failed (pthread_create)")));
     }
 
     return NativeThread{reinterpret_cast<void *>(handle), static_cast<u64>(reinterpret_cast<std::uintptr_t>(

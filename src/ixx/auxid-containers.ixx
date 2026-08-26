@@ -1277,6 +1277,123 @@ export namespace au
   template<typename T> using Option = containers::Option<T>;
 }
 
+export namespace au
+{
+  // The Auxid error currency (DECISIONS.md D-008). Small, movable, and
+  // allocation-free unless a message is attached: an Err(Error::os_last())
+  // costs no more than returning an int. The OS Foundation Layer's honest
+  // error unit is the raw platform code plus a domain tag (D-002) — a
+  // classifier (e.g. fs_kind()) can be layered on later without changing
+  // this type.
+  enum class ErrorDomain : u16
+  {
+    Generic, // unclassified failures, incl. bare fail("...")
+    Os,      // raw errno / GetLastError from the OS Foundation Layer
+    Fs,      // filesystem ops; code is the platform error value
+    Net,     // reserved for IANet interop
+    Parse,
+    App,     // product-defined codes
+  };
+
+  class AUXID_API Error
+  {
+public:
+    ErrorDomain domain = ErrorDomain::Generic;
+    i32 code = 0;
+    Option<String> message{};
+
+    Error() = default;
+
+    Error(ErrorDomain err_domain, i32 err_code) : domain(err_domain), code(err_code)
+    {
+    }
+
+    Error(ErrorDomain err_domain, i32 err_code, String msg)
+        : domain(err_domain), code(err_code), message(std::move(msg))
+    {
+    }
+
+    // Implicit on purpose: keeps bare fail("...") and fail(String::format(...))
+    // working as Generic errors (D-008 ruling: app-level ergonomics matter).
+    Error(String msg) : message(std::move(msg))
+    {
+    }
+
+    Error(StringView msg) : message(String(msg))
+    {
+    }
+
+    Error(const char *msg) : message(String(msg))
+    {
+    }
+
+    [[nodiscard]] static auto os(i32 err_code) -> Error
+    {
+      return Error(ErrorDomain::Os, err_code);
+    }
+
+    // Captures errno (POSIX) / GetLastError() (Windows) at the call site.
+    [[nodiscard]] static auto os_last() -> Error;
+
+    [[nodiscard]] static auto app(i32 err_code, StringView msg) -> Error
+    {
+      return Error(ErrorDomain::App, err_code, String(msg));
+    }
+
+    // Context chaining, outermost first: open(path).ctx("loading config")
+    // describes as "fs/2: loading config: open: ...". Allocates only when
+    // called — the plain error path stays allocation-free.
+    [[nodiscard]] auto ctx(StringView context) && -> Error
+    {
+      if (message.has_value())
+      {
+        String combined{};
+        combined.reserve(context.size() + 2 + message->size());
+        combined.append(context);
+        combined.append(": ");
+        combined.append(StringView(message->data(), message->size()));
+        message = std::move(combined);
+      }
+      else
+      {
+        message = String(context);
+      }
+      return std::move(*this);
+    }
+
+    [[nodiscard]] auto domain_name() const -> const char *
+    {
+      switch (domain)
+      {
+      case ErrorDomain::Generic:
+        return "generic";
+      case ErrorDomain::Os:
+        return "os";
+      case ErrorDomain::Fs:
+        return "fs";
+      case ErrorDomain::Net:
+        return "net";
+      case ErrorDomain::Parse:
+        return "parse";
+      case ErrorDomain::App:
+        return "app";
+      }
+      return "unknown";
+    }
+
+    // "os/2: loading config: open: no such file". A bare Generic message
+    // renders as just the message.
+    [[nodiscard]] auto describe() const -> String
+    {
+      if (domain == ErrorDomain::Generic && code == 0 && message.has_value())
+        return message->clone();
+      if (message.has_value())
+        return String::format("{}/{}: {}", domain_name(), code, message->c_str());
+      return String::format("{}/{}", domain_name(), code);
+    }
+  };
+}
+
 export namespace au::containers
 {
   template<typename T, typename IndexT, typename AllocatorT = memory::HeapAllocator>
@@ -3546,7 +3663,9 @@ private:
 
 export namespace au
 {
-  template<typename T> using Result = ResultT<T, String>;
+  // D-008: the default error type is the structured au::Error. ResultT<T, E>
+  // stays fully generic for callers that want their own E.
+  template<typename T> using Result = ResultT<T, Error>;
 
   template<typename... Args> [[nodiscard]] inline auto fail(StringView fmt, Args &&...args)
   {
@@ -3556,7 +3675,7 @@ export namespace au
 
 export namespace au::containers
 {
-  template<typename T> using Result = ::au::ResultT<T, String>;
+  template<typename T> using Result = ::au::ResultT<T, ::au::Error>;
 }
 
 template<>
