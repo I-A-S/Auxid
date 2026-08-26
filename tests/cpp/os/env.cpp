@@ -16,6 +16,8 @@
 
 // OS-CONTRACT conformance: auxid.env.
 
+#include <auxid/macros.hpp>
+
 #include <string>
 
 import auxid;
@@ -84,9 +86,14 @@ namespace
     auto executable_path_absolute() -> bool
     {
       auto exe = env::executable_path();
+#if defined(AU_PLATFORM_WASM)
+      // Honest absence (contract): no executable image in a wasm sandbox.
+      return check(exe.is_err(), "executable_path is an honest Err on wasm");
+#else
       if (!check(exe.is_ok(), "executable_path ok"))
         return false;
       return check(exe.unwrap().is_absolute(), "executable_path is absolute");
+#endif
     }
 
     auto standard_dirs_absolute() -> bool

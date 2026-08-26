@@ -42,8 +42,16 @@ namespace au::env
   {
     [[nodiscard]] auto path_from_utf8(StringView sv) -> filesystem::Path
     {
+#if AU_PLATFORM_WINDOWS
+      // char8_t source: converts UTF-8 to the native wide encoding.
       return filesystem::Path(
           std::u8string_view(reinterpret_cast<const char8_t *>(sv.data()), sv.size()));
+#else
+      // POSIX paths ARE bytes; plain chars pass through untranslated. (Also
+      // sidesteps a Homebrew LLVM 22.1.8 codegen crash in the char8_t
+      // conversion machinery observed on macOS CI.)
+      return filesystem::Path(std::string_view(sv.data(), sv.size()));
+#endif
     }
 
 #if AU_PLATFORM_WINDOWS
@@ -176,7 +184,10 @@ namespace au::env
 
   AUXID_API auto executable_path() -> Result<filesystem::Path>
   {
-#  if defined(AU_PLATFORM_APPLE)
+#  if defined(AU_PLATFORM_WASM)
+    // Honest absence (contract): a wasm sandbox has no executable image path.
+    return fail("executable_path: not expressible in a wasm sandbox");
+#  elif defined(AU_PLATFORM_APPLE)
     u32 size = 0;
     ::_NSGetExecutablePath(nullptr, &size); // reports required size
     Vec<char> buffer(static_cast<usize>(size) + 1);

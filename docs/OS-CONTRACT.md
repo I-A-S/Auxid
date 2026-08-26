@@ -55,7 +55,7 @@ platform (steady_clock is monotonic on all supported targets). No divergence.
 | `get_or(name, fallback) -> String` | `find` with a fallback; never fails. |
 | `set(name, value) -> Result<void>` | Sets/overwrites. Errors carry the raw OS code. |
 | `unset(name) -> Result<void>` | Removes. **Unsetting a missing variable is success** on every platform. |
-| `executable_path() -> Result<Path>` | Absolute path of the running image, as reported by the OS (`GetModuleFileNameW` / `/proc/self/exe` / `_NSGetExecutablePath`); symlinks are not resolved beyond what the OS reports. |
+| `executable_path() -> Result<Path>` | Absolute path of the running image, as reported by the OS (`GetModuleFileNameW` / `/proc/self/exe` / `_NSGetExecutablePath`); symlinks are not resolved beyond what the OS reports. **WASM: honest absence** — a wasm sandbox has no executable image; returns an Err stating so. |
 | `standard_dir(dir, app) -> Result<Path>` | Conventional absolute path per the table below. **Does not create the directory.** `app` must be a filesystem-safe single component (unvalidated in v1). |
 
 Thread-safety: the process environment is global mutable state. Concurrent
