@@ -346,6 +346,16 @@ public:
       return m_err;
     }
 
+    // Non-const overload so std::move(res.unwrap_err()) is a real move: the
+    // const& overload alone yields const E&& — which binds to E's COPY
+    // constructor. AU_TRY error propagation relies on this overload.
+    constexpr E &unwrap_err(std::source_location loc = std::source_location::current()) &
+    {
+      if (m_is_ok)
+        au::panic("Called unwrap_err() on an Ok Result", loc);
+      return m_err;
+    }
+
     constexpr const E &err(std::source_location loc = std::source_location::current()) const &
     {
       return unwrap_err(loc);
@@ -421,6 +431,62 @@ public:
         au::construct_at(&m_err, std::move(other.m_err));
     }
 
+    constexpr ResultT(const ResultT &other)
+      requires std::is_copy_constructible_v<E>
+        : m_is_ok(other.m_is_ok)
+    {
+      if (!m_is_ok)
+        au::construct_at(&m_err, other.m_err);
+    }
+
+    constexpr ResultT &operator=(const ResultT &other)
+      requires std::is_copy_constructible_v<E>
+    {
+      if (this == &other)
+        return *this;
+
+      if (!m_is_ok && !other.m_is_ok)
+      {
+        m_err = other.m_err;
+      }
+      else
+      {
+        if (!m_is_ok)
+        {
+          if constexpr (!std::is_trivially_destructible_v<E>)
+            au::destroy_at(&m_err);
+        }
+        if (!other.m_is_ok)
+          au::construct_at(&m_err, other.m_err);
+        m_is_ok = other.m_is_ok;
+      }
+      return *this;
+    }
+
+    constexpr ResultT &operator=(ResultT &&other) noexcept
+      requires std::is_move_constructible_v<E>
+    {
+      if (this == &other)
+        return *this;
+
+      if (!m_is_ok && !other.m_is_ok)
+      {
+        m_err = std::move(other.m_err);
+      }
+      else
+      {
+        if (!m_is_ok)
+        {
+          if constexpr (!std::is_trivially_destructible_v<E>)
+            au::destroy_at(&m_err);
+        }
+        if (!other.m_is_ok)
+          au::construct_at(&m_err, std::move(other.m_err));
+        m_is_ok = other.m_is_ok;
+      }
+      return *this;
+    }
+
     constexpr ResultT(const std::expected<void, E> &exp) : m_is_ok(exp.has_value())
     {
       if (!m_is_ok)
@@ -478,6 +544,14 @@ public:
     }
 
     constexpr const E &unwrap_err(std::source_location loc = std::source_location::current()) const &
+    {
+      if (m_is_ok)
+        au::panic("Called unwrap_err() on an Ok Result", loc);
+      return m_err;
+    }
+
+    // See the primary template: required for AU_TRY to move rather than copy.
+    constexpr E &unwrap_err(std::source_location loc = std::source_location::current()) &
     {
       if (m_is_ok)
         au::panic("Called unwrap_err() on an Ok Result", loc);

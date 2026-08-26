@@ -14,6 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <auxid/macros.hpp>
+
 #include <expected>
 #include <utility>
 
@@ -24,6 +26,47 @@ using namespace au;
 
 namespace
 {
+  struct CopyTracker
+  {
+    i32 copies = 0;
+    i32 moves = 0;
+
+    CopyTracker() = default;
+
+    CopyTracker(const CopyTracker &o) : copies(o.copies + 1), moves(o.moves)
+    {
+    }
+
+    CopyTracker(CopyTracker &&o) noexcept : copies(o.copies), moves(o.moves + 1)
+    {
+    }
+
+    auto operator=(const CopyTracker &o) -> CopyTracker &
+    {
+      copies = o.copies + 1;
+      moves = o.moves;
+      return *this;
+    }
+
+    auto operator=(CopyTracker &&o) noexcept -> CopyTracker &
+    {
+      copies = o.copies;
+      moves = o.moves + 1;
+      return *this;
+    }
+  };
+
+  auto tracked_inner_fail() -> ResultT<i32, CopyTracker>
+  {
+    return fail(CopyTracker{});
+  }
+
+  auto tracked_outer_propagates() -> ResultT<f32, CopyTracker>
+  {
+    AU_TRY_VAR(v, tracked_inner_fail());
+    return static_cast<f32>(v);
+  }
+
   struct ResultBlock final : test::Block
   {
     [[nodiscard]] auto get_name() const -> const char * override
@@ -39,6 +82,40 @@ namespace
       add_test("std_expected_ok", [this] { return std_expected_ok(); });
       add_test("std_expected_err", [this] { return std_expected_err(); });
       add_test("std_expected_void", [this] { return std_expected_void(); });
+      add_test("error_propagation_moves", [this] { return error_propagation_moves(); });
+      add_test("void_result_copies", [this] { return void_result_copies(); });
+    }
+
+    auto error_propagation_moves() -> bool
+    {
+      // AU_TRY must MOVE the error through every propagation hop; with the
+      // default E = String, a copy here is a heap allocation per hop.
+      auto res = tracked_outer_propagates();
+      if (!check(res.is_err(), "propagated result is_err"))
+        return false;
+      return check_eq(res.unwrap_err().copies, 0, "error was never copied during propagation") &&
+             check(res.unwrap_err().moves >= 1, "error was moved");
+    }
+
+    auto void_result_copies() -> bool
+    {
+      ResultT<void, String> src = fail("void-copy");
+      ResultT<void, String> copied = src;
+      if (!check(copied.is_err(), "copy-constructed is_err"))
+        return false;
+      if (!check_eq(copied.unwrap_err(), "void-copy", "copied error matches"))
+        return false;
+
+      ResultT<void, String> assigned;
+      assigned = src;
+      if (!check(assigned.is_err(), "copy-assigned is_err"))
+        return false;
+      if (!check_eq(assigned.unwrap_err(), "void-copy", "assigned error matches"))
+        return false;
+
+      ResultT<void, String> ok_state;
+      src = ok_state;
+      return check(src.is_ok(), "ok copy-assigned over err");
     }
 
     auto ok() -> bool
