@@ -104,6 +104,10 @@ namespace au
         return pos <= h_len ? pos : static_cast<usize>(-1);
       if (pos >= h_len)
         return static_cast<usize>(-1);
+      // A needle longer than the haystack can never match — and h_len - n_len
+      // would underflow into a near-SIZE_MAX loop bound (out-of-bounds reads).
+      if (n_len > h_len)
+        return static_cast<usize>(-1);
 
       const usize last_possible = h_len - n_len;
       if (pos > last_possible)

@@ -28,6 +28,25 @@ namespace
       add_test("append_and_concat", [this] { return append_and_concat(); });
       add_test("push_pop", [this] { return push_pop(); });
       add_test("arena_basic_string", [this] { return arena_basic_string(); });
+      add_test("find_needle_longer_than_haystack",
+               [this] { return find_needle_longer_than_haystack(); });
+    }
+
+    auto find_needle_longer_than_haystack() -> bool
+    {
+      // Regression: h_len - n_len underflowed when the needle was longer than
+      // the haystack, turning the search bound into ~SIZE_MAX (out-of-bounds
+      // reads; found via a SEGV in LaVista's color-scheme query).
+      const StringView haystack("hi");
+      if (!check_eq(haystack.find(StringView("prefer-dark")), StringView::npos,
+                    "needle longer than haystack is npos"))
+        return false;
+      if (!check_eq(StringView("").find(StringView("x")), StringView::npos,
+                    "empty haystack is npos"))
+        return false;
+      if (!check_eq(haystack.find(StringView("hi")), 0u, "exact-length match still found"))
+        return false;
+      return check_eq(haystack.find(StringView("")), 0u, "empty needle matches at pos");
     }
 
     auto sso() -> bool
