@@ -25,12 +25,7 @@ module;
 #include <format>
 #include <print>
 
-#if AU_PLATFORM_WINDOWS
-#  define WIN32_LEAN_AND_MEAN
-#  include <windows.h>
-
-#  include <process.h>
-#else
+#if !AU_PLATFORM_WINDOWS
 #  include <pthread.h>
 #endif
 
@@ -41,6 +36,25 @@ module;
 module auxid.thread;
 
 import auxid.memory;
+
+#if AU_PLATFORM_WINDOWS
+// Deliberately NOT <windows.h>: in this TU's global module fragment it drags
+// in the x86 intrinsics headers (winnt.h -> x86intrin.h), which collide with
+// the same headers snapshotted inside the auxid.containers module under GCC's
+// modules implementation ("conflicting language linkage for imported
+// declaration"). The four entry points needed are declared manually — exact
+// canonical signatures; 64-bit Windows has a single calling convention, and
+// extern "C" declarations in the purview attach to the global module.
+extern "C"
+{
+  unsigned long long __cdecl _beginthreadex(void *security, unsigned stack_size,
+                                            unsigned(__stdcall *start_address)(void *), void *arglist,
+                                            unsigned initflag, unsigned *thrdaddr);
+  unsigned long __stdcall WaitForSingleObject(void *handle, unsigned long milliseconds);
+  int __stdcall CloseHandle(void *handle);
+  unsigned long __stdcall GetCurrentThreadId(void);
+}
+#endif
 
 namespace au::detail
 {
@@ -95,7 +109,7 @@ namespace au::detail
     EntryBaton *baton = alloc_baton(entry, arg);
 
     unsigned int thread_id = 0;
-    const uintptr_t handle = ::_beginthreadex(nullptr, 0, &thread_entry_adapter, baton, 0, &thread_id);
+    const unsigned long long handle = ::_beginthreadex(nullptr, 0, &thread_entry_adapter, baton, 0, &thread_id);
     if (handle == 0)
     {
       const int spawn_errno = errno;
@@ -108,8 +122,9 @@ namespace au::detail
 
   AUXID_API auto join_native_thread(NativeThread &thread) -> void
   {
-    ::WaitForSingleObject(static_cast<HANDLE>(thread.handle), INFINITE);
-    ::CloseHandle(static_cast<HANDLE>(thread.handle));
+    constexpr unsigned long K_WAIT_INFINITE = 0xFFFFFFFFul;
+    ::WaitForSingleObject(thread.handle, K_WAIT_INFINITE);
+    ::CloseHandle(thread.handle);
     thread = NativeThread{};
   }
 
@@ -132,7 +147,7 @@ namespace au::detail
       return fail(String::format("thread spawn failed (pthread_create, rc {})", rc));
     }
 
-    return NativeThread{reinterpret_cast<void *>(handle), static_cast<u64>(reinterpret_cast<uintptr_t>(
+    return NativeThread{reinterpret_cast<void *>(handle), static_cast<u64>(reinterpret_cast<std::uintptr_t>(
                                                               reinterpret_cast<void *>(handle)))};
   }
 
@@ -144,7 +159,7 @@ namespace au::detail
 
   AUXID_API auto current_native_thread_id() noexcept -> u64
   {
-    return static_cast<u64>(reinterpret_cast<uintptr_t>(reinterpret_cast<void *>(::pthread_self())));
+    return static_cast<u64>(reinterpret_cast<std::uintptr_t>(reinterpret_cast<void *>(::pthread_self())));
   }
 
 #endif
