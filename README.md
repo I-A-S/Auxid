@@ -210,12 +210,7 @@ Explore the Auxid Ecosystem!
 | Name | Description | Repository |
 |------|-------------|------------|
 | **LibAuxid** | Custom template library and core platform | [Auxid (This Repo)](https://github.com/IASoft-PVT-LTD/Auxid) |
-| **Project Template** | Scaffold for new Auxid projects (CMake Presets Included) | [Auxid-Project-Template](https://github.com/I-A-S/Auxid-Project-Template) |
-| **IAUSB** | Cross-Platform USB Library for C++ | [IAUSB](https://github.com/IASoft-PVT-LTD/IAUSB) |
-| **IANet** | Cross-Platform Networking Library for C++ | [IANet](https://github.com/IASoft-PVT-LTD/IANet) |
-| **LaVista** | UI Platform for Modern C++ Desktop Apps | [LaVista](https://github.com/IASoft-PVT-LTD/LaVista) |
-| **IAVis** | Real-Time Visualization Library | [IAVis](https://github.com/IASoft-PVT-LTD/IAVis) |
-| **IAGHI** | IA Graphics Hardware Interface | [IAGHI](https://github.com/IASoft-PVT-LTD/IAGHI) |
+| **Project Template** | Scaffold for new Auxid projects (CMake Presets Included) | [Auxid-Project-Template](https://github.com/IASoft-PVT-LTD/Auxid-Project-Template) |
 
 ## License
 
